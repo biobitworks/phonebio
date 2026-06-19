@@ -3,10 +3,10 @@
 > Source of truth: `python3 scripts/stress_test.py` → **23/23 GREEN = ready.**
 
 ## Status (auto-verified by the stress test)
-- [x] Vapi: both numbers → Nebius **Llama-3.3-70B** · 5 tools · webhook serverUrl · denoise · **EMERGENCY MODE** prompt
+- [x] Vapi: both numbers → Nebius **Llama-3.3-70B** · 6 inline tools · webhook serverUrl · denoise · **EMERGENCY MODE** prompt
 - [x] InsForge: `phonebio-llm` + `phonebio-vapi-webhook` active · DB seeded (4 protocols / 2 SDS / 3 hardware / 9 sensors)
 - [x] Dashboard **https://qfdp5nuv.insforge.site** (sensors) + **/edge.html** (in-browser quantized LLM orchestrator)
-- [x] Brain tool-calling · all 5 tools grounded · unknown → "stop work" escalation · emergency 3-leg loop gives a safe action
+- [x] Brain tool-calling · all 6 tools grounded · unknown → "stop work" escalation · emergency 3-leg loop gives a safe action
 
 ## Before recording (pre-field setup — do once, with signal)
 - [ ] Send setup links to phone: `make send-demo-links` or `python3 scripts/send_demo_links.py --to '+1...'`

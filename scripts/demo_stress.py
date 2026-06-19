@@ -92,6 +92,49 @@ def vapi_preflight_check() -> dict[str, Any]:
     return run_command("vapi_preflight", ["make", "vapi-preflight"], timeout=90)
 
 
+def vapi_live_tools_check() -> dict[str, Any]:
+    api_key = os.getenv("VAPI_PRIVATE_KEY") or os.getenv("VAPI_API_KEY")
+    assistant_id = os.getenv("VAPI_ASSISTANT_ID")
+    expected = {
+        "get_protocol",
+        "get_safety_sheet",
+        "troubleshoot_hardware",
+        "interpret_sensor_report",
+        "compress_observation",
+        "assess_environment_risk",
+    }
+    if not api_key or not assistant_id:
+        return {"name": "vapi_live_tools", "status": "blocked", "detail": "Vapi key or assistant ID missing."}
+    try:
+        response = httpx.get(
+            f"https://api.vapi.ai/assistant/{assistant_id}",
+            headers={"authorization": f"Bearer {api_key}"},
+            timeout=30,
+        )
+        response.raise_for_status()
+        assistant = response.json()
+    except (httpx.HTTPError, json.JSONDecodeError) as error:
+        return {"name": "vapi_live_tools", "status": "fail", "error": error.__class__.__name__}
+    model = assistant.get("model") if isinstance(assistant.get("model"), dict) else {}
+    tools = model.get("tools") if isinstance(model.get("tools"), list) else []
+    names = {
+        str((tool.get("function") or {}).get("name") or tool.get("name"))
+        for tool in tools
+        if isinstance(tool, dict)
+    }
+    missing = sorted(expected - names)
+    return {
+        "name": "vapi_live_tools",
+        "status": "pass" if not missing else "fail",
+        "toolCount": len(names),
+        "toolIdsCount": len(model.get("toolIds") or []),
+        "toolNames": sorted(names),
+        "missing": missing,
+        "modelProvider": model.get("provider"),
+        "model": model.get("model"),
+    }
+
+
 def vapi_call_check() -> dict[str, Any]:
     if os.getenv("PHONEBIO_CALL_VERIFIED") == "1" or os.getenv("PHONEBIO_LIVE_VAPI_VERIFIED") == "1":
         return {"name": "vapi_call_verified", "status": "pass", "detail": "PHONEBIO_CALL_VERIFIED is set."}
@@ -160,6 +203,7 @@ def main() -> None:
             ["relative humidity", "lidar", "radar-like", "barometer boundary", "emergency_priority"],
         ),
         vapi_preflight_check(),
+        vapi_live_tools_check(),
         vapi_call_check(),
         ollarma_review(),
     ]

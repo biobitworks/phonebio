@@ -84,6 +84,12 @@ The preflight output includes redacted key diagnostics:
 
 `make vapi-preflight` exits nonzero until all live prerequisites are true: valid Vapi auth, usable phone-number selection, non-placeholder webhook URL, and, only for `custom-llm` assistants, a non-placeholder custom-LLM URL.
 
+For v1, PhoneBio uses six inline function declarations on the assistant, not
+separate reusable Vapi Tool records: `get_protocol`, `get_safety_sheet`,
+`troubleshoot_hardware`, `interpret_sensor_report`, `compress_observation`, and
+`assess_environment_risk`. `make demo-stress` checks the live assistant for that
+tool surface.
+
 ## Live Create and Assign
 
 ```bash

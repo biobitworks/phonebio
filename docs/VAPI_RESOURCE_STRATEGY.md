@@ -10,7 +10,7 @@ they prove a specific requirement.
 |--------------|--------------|--------|
 | Assistants | The `PhoneBio Field Biology Worker` assistant owns the system prompt, model provider, tool declarations, and hosted InsForge server URL. | Active |
 | Phone Numbers | The `phonebio` number routes inbound calls to the PhoneBio assistant. | Active |
-| Tools | Vapi function declarations call the hosted InsForge webhook for deterministic protocol, SDS, hardware, sensor, and shorthand tools. | Active |
+| Tools | Six inline Vapi function declarations call the hosted InsForge webhook for deterministic protocol, SDS, hardware, sensor, shorthand, and environment-risk tools. | Active |
 | Logs | Use after each call to inspect failures, latency, and tool-call behavior without committing transcripts. | Active operational surface |
 
 ## Use For Verification
@@ -18,7 +18,7 @@ they prove a specific requirement.
 | Vapi surface | PhoneBio use | Rule |
 |--------------|--------------|------|
 | Outbound calls | Optional verification if `VAPI_TEST_NUMBER` is set and approved. | Do not place outbound calls without explicit destination/approval. |
-| Evals | Post-demo regression suite for the five hackathon turns. | Add after the first real call succeeds. |
+| Evals | Post-demo regression suite for the demo matrix turns. | Add after the first real call succeeds. |
 | Metrics / Monitoring | Check call latency, errors, and credit burn. | Use during demo rehearsal and after changes. |
 
 ## Defer Unless Needed
@@ -51,4 +51,4 @@ Vapi Phone Number -> Vapi Assistant -> Vapi Tool Call -> InsForge Webhook -> det
 3. Place an inbound call to the assigned phonebio number.
 4. If the wait succeeds, set `PHONEBIO_CALL_VERIFIED=1`.
 5. Run `make readiness`.
-6. After the first successful call, add Vapi Evals for the five demo turns.
+6. After the first successful call, add Vapi Evals for the demo matrix turns.
