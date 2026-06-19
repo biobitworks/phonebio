@@ -259,6 +259,7 @@ function num(a: Record<string, unknown>, key: string): number | null {
 async function nwsAlerts(lat: number, lon: number) {
   const res = await fetch(`https://api.weather.gov/alerts/active?point=${lat.toFixed(4)},${lon.toFixed(4)}`, {
     headers: { "User-Agent": "phonebio-demo/0.1", "Accept": "application/geo+json" },
+    signal: AbortSignal.timeout(3000),
   });
   if (!res.ok) throw new Error(`nws_${res.status}`);
   const body = await res.json();
@@ -274,7 +275,7 @@ async function nwsAlerts(lat: number, lon: number) {
 }
 
 async function gdacsAlerts() {
-  const res = await fetch("https://www.gdacs.org/gdacsapi/api/events/geteventlist/events4app");
+  const res = await fetch("https://www.gdacs.org/gdacsapi/api/events/geteventlist/events4app", { signal: AbortSignal.timeout(3000) });
   if (!res.ok) throw new Error(`gdacs_${res.status}`);
   const body = await res.json();
   return (body.features || []).slice(0, 3).map((f: any) => {
@@ -304,12 +305,17 @@ async function getPublicAlertContext(a: Record<string, unknown>) {
       severity: "unknown",
     });
   } else {
+    // All sources run in PARALLEL, each hard-bounded, with an overall 4s cap so a
+    // slow or hung feed can never stall the Vapi call (which is always available).
+    const jobs: Promise<void>[] = [];
     if (lat !== null && lon !== null && ["", "us", "usa", "united states"].includes(country)) {
       sourcesChecked.push("NOAA/NWS api.weather.gov");
-      try { alerts.push(...await nwsAlerts(lat, lon)); } catch (e) { sourceErrors.push({ source: "NOAA/NWS", error: e instanceof Error ? e.message : "fetch_error" }); }
+      jobs.push(nwsAlerts(lat, lon).then((r) => { alerts.push(...r); }).catch((e) => { sourceErrors.push({ source: "NOAA/NWS", error: e instanceof Error ? e.message : "fetch_error" }); }));
     }
     sourcesChecked.push("GDACS");
-    try { alerts.push(...await gdacsAlerts()); } catch (e) { sourceErrors.push({ source: "GDACS", error: e instanceof Error ? e.message : "fetch_error" }); }
+    jobs.push(gdacsAlerts().then((r) => { alerts.push(...r); }).catch((e) => { sourceErrors.push({ source: "GDACS", error: e instanceof Error ? e.message : "fetch_error" }); }));
+    await Promise.race([Promise.allSettled(jobs), new Promise<void>((res) => setTimeout(res, 4000))]);
+    if (!alerts.length && !sourceErrors.length) sourceErrors.push({ source: "all", error: "timed_out" });
   }
 
   const headlineBits = alerts.slice(0, 3).map((x) => x.headline || x.event).filter(Boolean);

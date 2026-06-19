@@ -85,14 +85,11 @@ export default async function (req: Request): Promise<Response> {
   let body: any = {};
   try { body = await req.json(); } catch { /* empty */ }
   const fallbackAnswer = lowLevelFormaldehydeAnswer(lastUserText(body.messages));
+  // Universal voice fallback so the always-available phone call never goes silent.
+  const safe = fallbackAnswer || "I'm having trouble reaching the system right now. Stay on the line. If anyone is in danger, get to safety and contact your supervisor or emergency services, then tell me what is happening, slowly.";
 
   const key = Deno.env.get("NEBIUS_API_KEY");
-  if (!key) {
-    if (fallbackAnswer) return completionResponse(fallbackAnswer, body.stream !== false, FALLBACK_MODEL);
-    return new Response(JSON.stringify({ error: "NEBIUS_API_KEY secret not set" }), {
-      status: 500, headers: { ...cors, "Content-Type": "application/json" },
-    });
-  }
+  if (!key) return completionResponse(safe, body.stream !== false, FALLBACK_MODEL);
 
   // Whitelist OpenAI fields so Vapi-specific extras don't trip Nebius.
   const payload: Record<string, unknown> = {
@@ -111,14 +108,13 @@ export default async function (req: Request): Promise<Response> {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(20000),
     });
   } catch (_error) {
-    if (fallbackAnswer) return completionResponse(fallbackAnswer, body.stream !== false, FALLBACK_MODEL);
-    throw _error;
+    return completionResponse(safe, body.stream !== false, FALLBACK_MODEL);
   }
 
-  if (!upstream.ok && fallbackAnswer) return completionResponse(fallbackAnswer, body.stream !== false, FALLBACK_MODEL);
+  if (!upstream.ok) return completionResponse(safe, body.stream !== false, FALLBACK_MODEL);
 
   // Stream the upstream body straight back (works for SSE stream and JSON alike).
   return new Response(upstream.body, {
