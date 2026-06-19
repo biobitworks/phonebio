@@ -1,5 +1,7 @@
 # PhoneBio — Demo Run Sheet + 3-Minute Video Plan
 
+> ⭐ **Reference recording (best call session):** [`media/demo-2026-06-19-1515.mov`](../media/demo-2026-06-19-1515.mov)
+
 **Stack on screen:** Vapi (phone) → **Nebius Llama-3.3-70B** via an InsForge edge proxy → InsForge tools + Postgres + hosting. **No OpenAI. Voice-only-capable (no caller data). Hands-free, camera-free.**
 **Call-in:** **+1 541‑526‑9723** (backup line +1 541‑526‑9684) · **"Hey Siri, call PhoneBio"** · **Dashboard:** https://qfdp5nuv.insforge.site/live.html
 
