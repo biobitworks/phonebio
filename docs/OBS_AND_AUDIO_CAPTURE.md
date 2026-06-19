@@ -33,6 +33,15 @@ The TTS stress creates rehearsal audio under `recordings/tts-stress/`, which is
 gitignored. It proves the spoken prompt set exercises local tools and the hosted
 InsForge webhook; it does not replace the real Vapi call/STT test.
 
+For the simple variation matrix, run:
+
+```bash
+make matrix-stress
+```
+
+It covers normal hands-free check-in, protocol, MSDS/safety sheet, hardware,
+sensor, shorthand/readback, unknown fallback, and emergency triage.
+
 ## OBS Scene
 
 Capture these windows:

@@ -12,6 +12,7 @@
 - [ ] Send setup links to phone: `make send-demo-links` or `python3 scripts/send_demo_links.py --to '+1...'`
 - [ ] Close the `.env` tab in VS Code so a stale buffer cannot overwrite live keys.
 - [ ] Run `make recording-preflight` → Vapi + Nebius + redacted demo stress gate.
+- [ ] Run `make matrix-stress` → normal, protocol, MSDS, hardware, sensor, shorthand, emergency.
 - [ ] Confirm TTS rehearsal audio was generated under `recordings/tts-stress/`.
 - [ ] Set OBS to capture the laptop dashboard and terminal; keep `.env`, raw numbers, keys, transcripts, and recording URLs off screen.
 - [ ] Start iPhone Screen Recording before the no-touch section.
@@ -28,6 +29,9 @@
 - [ ] "Hey Siri, call PhoneBio" (or start the call just before the no-touch section)
 - [ ] Phone on speaker; do not touch it
 - [ ] "Help with my experiment — I can't use my hands."
+- [ ] Normal: "Mobile data is weak, but this call works."
+- [ ] Protocol: "I am collecting a surface water grab sample and the bottle has an air bubble."
+- [ ] MSDS: "I spilled formaldehyde on a glove."
 - [ ] Name the field mode: rainforest canopy / desert / field station
 - [ ] Trigger the emergency: spill + small fire (or exposure), alone, can't reach 911
 - [ ] Bring in the **physical first-aid kit** only AFTER the immediate-hazard action

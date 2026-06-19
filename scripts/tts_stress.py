@@ -29,6 +29,18 @@ from scripts.hosted_function_probe import assistant_server_url  # noqa: E402
 
 EXTRA_SCENARIOS: list[dict[str, Any]] = [
     {
+        "label": "normal-hands-free-checkin",
+        "caller": "PhoneBio, I am in PPE and cannot use my hands. Mobile data is weak, but this call works.",
+        "tool": "compress_observation",
+        "arguments": {
+            "text": "PPE, cannot use hands, mobile data weak, voice call works.",
+            "connectivity": "voice only",
+            "phonePlacement": "speaker",
+        },
+        "expect_status": "ok",
+        "must_include": ["voice"],
+    },
+    {
         "label": "speaker-only-emergency-risk",
         "caller": (
             "PhoneBio, I am in a remote field station, speaker only, no hands. "

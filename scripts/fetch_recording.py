@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Fetch the most recent Vapi call's recording + transcript (for the video).
+"""Fetch the most recent Vapi call recording for the video.
 
     make recording     # or:  python3 scripts/fetch_recording.py
-Saves audio to recordings/<callId>.mp3 (gitignored) and prints the transcript.
+Saves audio to recordings/<callId>.mp3 (gitignored). Does not print recording
+URLs, transcripts, phone numbers, or summaries.
 """
 import json, os, subprocess, sys
 
@@ -29,21 +30,31 @@ def rec_url(c):
 
 calls = curl("/call?limit=10")
 if not isinstance(calls, list) or not calls:
-    print("No calls yet. Call +1 541-526-9723, then re-run."); sys.exit(0)
+    print(json.dumps({"saved": False, "reason": "no_calls"}, indent=2)); sys.exit(0)
 target = next((c for c in calls if rec_url(c)), calls[0])
 art = target.get("artifact") or {}
 url = rec_url(target)
-print("call:", target.get("id"), "| status:", target.get("status"), "| ended:", target.get("endedAt"))
-print("recording:", url)
-print("stereo:", art.get("stereoRecordingUrl"))
-tr = target.get("transcript") or art.get("transcript")
-if tr:
-    print("\n--- transcript ---\n" + tr[:2000])
 if url:
     os.makedirs("recordings", exist_ok=True)
     ext = "wav" if ".wav" in (url or "") else "mp3"
     out = f"recordings/{target.get('id')}.{ext}"
     subprocess.run(["curl", "-sL", url, "-o", out])
-    print("\nsaved ->", out)
+    print(json.dumps({
+        "saved": True,
+        "path": out,
+        "callId": target.get("id"),
+        "status": target.get("status"),
+        "endedReason": target.get("endedReason"),
+        "recordingPresent": True,
+        "transcriptPresent": bool(target.get("transcript") or art.get("transcript")),
+    }, indent=2, sort_keys=True))
 else:
-    print("\n(no recording URL yet — it can take a moment after the call ends)")
+    print(json.dumps({
+        "saved": False,
+        "callId": target.get("id"),
+        "status": target.get("status"),
+        "endedReason": target.get("endedReason"),
+        "recordingPresent": False,
+        "transcriptPresent": bool(target.get("transcript") or art.get("transcript")),
+        "reason": "recording_url_not_available_yet",
+    }, indent=2, sort_keys=True))

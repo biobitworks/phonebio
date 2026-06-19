@@ -1,4 +1,4 @@
-.PHONY: install dev test test-python test-node expose tunnel push wire wire-dry-run vapi-preflight vapi-verify-call vapi-wait-call public-probe hosted-probe hosted-demo smoke readiness prefield-check shorthand-stress tts-stress demo-stress recording-preflight send-demo-links llm-probe nebius-probe nebius-models demo-call insforge-export
+.PHONY: install dev test test-python test-node expose tunnel push wire wire-dry-run vapi-preflight vapi-verify-call vapi-wait-call public-probe hosted-probe hosted-demo smoke readiness prefield-check shorthand-stress tts-stress matrix-stress demo-stress recording-preflight fetch-recording send-demo-links llm-probe nebius-probe nebius-models demo-call insforge-export
 
 install:
 	python3 -m pip install -r requirements.txt
@@ -64,11 +64,16 @@ shorthand-stress:
 tts-stress:
 	@python3 scripts/tts_stress.py
 
+matrix-stress: tts-stress
+
 demo-stress:
 	@python3 scripts/demo_stress.py
 
 recording-preflight:
 	@python3 scripts/recording_preflight.py --repair
+
+fetch-recording:
+	@python3 scripts/fetch_recording.py
 
 send-demo-links:
 	@python3 scripts/send_demo_links.py
@@ -93,3 +98,6 @@ recording:
 
 voice-stress:
 	python3 scripts/voice_stress.py
+
+demo-matrix:
+	python3 scripts/demo_matrix.py
