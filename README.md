@@ -59,6 +59,14 @@ make llm-probe
 
 This verifies the configured local model emits a Vapi-compatible tool call and that model reasoning fields are scrubbed before returning to Vapi.
 
+Local hackathon call-script replay:
+
+```bash
+make demo-call
+```
+
+This replays the protocol, safety, hardware, sensor, and shorthand turns from the Vapi demo script against the local webhook tools.
+
 InsForge backend preview:
 
 ```bash

@@ -91,6 +91,12 @@ The outbound payload uses `assistantId`, `phoneNumberId`, and `customer.number`.
 
 ## Call Script for Hackathon Demo
 
+Local rehearsal:
+
+```bash
+make demo-call
+```
+
 1. Call the Vapi phone number.
 2. Say: "I am collecting a surface water grab sample and the bottle has an air bubble. What do I do?"
 3. Confirm the assistant calls `get_protocol`.

@@ -1,0 +1,15 @@
+{
+  "id": "centrifuge_vibration",
+  "device": "Field centrifuge",
+  "symptom": "Vibrating, walking, or making abnormal noise after balancing",
+  "keywords": ["centrifuge", "vibration", "vibrating", "balance", "balanced", "rotor", "tube", "walking", "noise"],
+  "steps": [
+    {"do": "Stop the run immediately and wait for the rotor to fully stop before opening the lid.", "why": "Unexpected vibration can indicate imbalance, cracked tubes, rotor seating problems, or mechanical failure."},
+    {"do": "Confirm tubes are opposite each other with matching mass, fill level, tube type, caps, and adapters.", "why": "Visual balance is not enough when density, caps, or adapters differ."},
+    {"do": "Inspect tubes, buckets, adapters, and rotor wells for cracks, leaks, debris, or missing cushions.", "why": "Small defects can create imbalance or aerosol risk."},
+    {"do": "Reseat the rotor or buckets according to the equipment manual if trained to do so.", "why": "A partially seated rotor can vibrate even with correctly paired samples."},
+    {"do": "Restart at the lowest appropriate speed only if inspection is clean and the manual allows retry.", "why": "A low-speed check reduces risk before returning to the protocol speed."},
+    {"do": "If vibration repeats, power down, label the unit out of service, preserve the sample state, and call the equipment owner.", "why": "Repeated vibration can signal a rotor or drive fault that field troubleshooting should not override."}
+  ],
+  "escalate_if": "Any tube breakage, leak, smell, visible rotor damage, failed latch, repeated vibration, or unknown sample hazard -> stop work, isolate if safe, and contact the supervisor/equipment owner."
+}
