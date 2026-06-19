@@ -149,22 +149,26 @@ def vapi_call_check() -> dict[str, Any]:
 
 def ollarma_review() -> dict[str, Any]:
     prompt = (
-        "PhoneBio demo stress review. The live call is speaker-only, no touch, no headset. "
-        "Sensors are pre-authorized before recording. Dashboard is public static demo with "
-        "ExecuTorch gate, noisy_confirmation, and emergency_priority. Identify one blocker "
-        "only if it prevents a recorded demo today; otherwise answer READY."
+        "Reply with exactly READY. Do not explain."
     )
     try:
+        readiness = httpx.get("http://127.0.0.1:8484/startup/readiness", timeout=8).json()
         response = httpx.post("http://127.0.0.1:8484/chat", json={"prompt": prompt}, timeout=45)
         body = response.json()
     except (httpx.HTTPError, json.JSONDecodeError) as error:
         return {"name": "ollarma_local_review", "status": "blocked", "error": error.__class__.__name__}
     text = str(body.get("response", ""))
+    ready_word = "READY" in text.upper()
+    readiness_status = str(readiness.get("status", "unknown"))
+    model_status = (readiness.get("model_availability") or {}).get("status")
     return {
         "name": "ollarma_local_review",
-        "status": "pass" if response.status_code == 200 and text else "blocked",
+        "status": "pass" if response.status_code == 200 and text and ready_word else "blocked",
         "model": body.get("model"),
-        "response": text[:800],
+        "readiness": readiness_status,
+        "modelAvailability": model_status,
+        "verdict": "READY" if ready_word else "unexpected_response",
+        "response": text[:120],
     }
 
 
