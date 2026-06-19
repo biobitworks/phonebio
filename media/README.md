@@ -10,4 +10,5 @@ OBS demo takes for the hackathon submission.
 
 - **Run sheet:** [`../docs/DEMO_SCRIPT.md`](../docs/DEMO_SCRIPT.md)
 - **Live demo dashboard:** https://qfdp5nuv.insforge.site/live.html
-- **Call-in line:** +1 541‑526‑9723 ("Hey Siri, call PhoneBio")
+- **Call-in line:** assigned Vapi PhoneBio number saved locally as `PhoneBio`.
+  Do not commit or display raw phone numbers.

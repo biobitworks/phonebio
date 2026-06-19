@@ -252,12 +252,15 @@ Use this when the demo room audio is bleeding into the call:
 1. Open `https://qfdp5nuv.insforge.site/live.html`.
 2. Place the Vapi call from your real phone.
 3. Say: "Stage demo mode. I am not close to the microphone, and the room is noisy."
-4. Click `Stage speaker` on the dashboard.
-5. Expected dashboard behavior: `risk: medium`, `lane: noisy_confirmation`.
-6. Expected assistant behavior: it asks for confirmation instead of assuming who
-   is speaking or what device is nearby.
-7. Click `Biohazard`.
-8. Expected dashboard behavior: `risk: high`, `lane: emergency_priority`.
+4. Under `Live inputs`, click `Start live mic` if laptop audio spikes are part
+   of the visual demo, or use the scripted `sensor` button for a simulated
+   noisy-context packet.
+5. Expected dashboard behavior: edge/mic/sensor lines update, and the assistant
+   asks for confirmation instead of assuming who is speaking or what device is
+   nearby.
+6. Under `Scripted demo controls`, click `script: formaldehyde location check`.
+7. Expected dashboard behavior: AMBER tier, shorthand packet, bandwidth saved,
+   and 70B lane activity for the cloud reasoning turn.
 
 ## Safety Boundary
 

@@ -72,7 +72,7 @@ def public_dashboard_check() -> dict[str, Any]:
     except httpx.HTTPError as error:
         return {"name": "public_dashboard", "status": "fail", "error": error.__class__.__name__}
     checks.append({"item": "html_has_live_title", "ok": "PHONEBIO · LIVE FIELD TRIAGE" in html})
-    checks.append({"item": "html_has_laptop_mic", "ok": "Arm laptop mic" in html})
+    checks.append({"item": "html_has_laptop_mic", "ok": "Start live mic" in html})
     checks.append({"item": "html_has_formaldehyde_location_check", "ok": "formaldehyde location check" in html})
     checks.append({"item": "html_has_edge_route", "ok": "Edge · quantized" in html})
     checks.append({"item": "html_has_nebius_70b_route", "ok": "Llama-70B" in html and "Nebius GPU" in html})

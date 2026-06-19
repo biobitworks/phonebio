@@ -43,11 +43,13 @@ supported devices. It does not need LiDAR or humidity to show the core flow.
 1. Use the real phone to call the Vapi number.
 2. Use the public dashboard on the laptop or phone:
    `https://qfdp5nuv.insforge.site/live.html`
-3. Click `Stage speaker` to show noisy confirmation.
+3. Click `Start live mic` to show live laptop audio-feature spikes, or click
+   `script: sensor` for the scripted noisy-context packet.
 4. Click `Centrifuge spike` to show accelerometer-style equipment context.
 5. Click `Pressure drop` to show barometer context.
 6. Click `GPS degraded` for rainforest/canopy location uncertainty.
-7. Click `Biohazard` for emergency priority.
+7. Click `script: formaldehyde location check` for the AMBER safety-location
+   workflow.
 
 ## Sources
 

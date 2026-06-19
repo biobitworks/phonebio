@@ -12,6 +12,10 @@
   h1{font-size:17px;margin:0;letter-spacing:.5px}
   .badge{font-size:12px;border:1px solid var(--edge);color:var(--edge);border-radius:999px;padding:2px 10px}
   .wrap{max-width:1100px;margin:auto;padding:16px;display:grid;gap:14px}
+  .controlGrid{display:grid;grid-template-columns:280px 1fr;gap:12px}
+  .controlGroup{background:#0c1320;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .controlGroup h2{font-size:12px;margin:0 0 8px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
+  .controlGroup p{margin:8px 0 0;color:var(--mut);font-size:12px}
   .controls{display:flex;gap:10px;flex-wrap:wrap}
   button{background:#16314a;color:var(--ink);border:1px solid var(--cloud);border-radius:8px;padding:10px 16px;font:inherit;cursor:pointer}
   .sensors{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
@@ -43,6 +47,7 @@
   .scriptBox{background:#0c1320;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
   .scriptBox h2{font-size:12px;margin:0 0 6px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
   .scriptBox p{margin:0;font-size:14px}.say{color:var(--ok)}.needs{color:var(--cloud)}
+  @media(max-width:800px){.sensors,.scriptGrid,.eff,.controlGrid{grid-template-columns:1fr}.wrap{padding:12px}.laneName{width:120px}.kv{grid-template-columns:90px 1fr}.tally{flex-direction:column;gap:4px}}
 </style>
 </head>
 <body>
@@ -51,17 +56,27 @@
    <option>Amazon rainforest</option><option>Desert field station</option><option>Open field</option></select></span></header>
 
 <div class="wrap">
-  <div class="setup"><b>Start state:</b> turn iPhone call audio to Speaker manually, then tap one demo button. Sensor animation waits until you start.</div>
+  <div class="setup"><b>Start state:</b> turn iPhone call audio to Speaker manually. Use <b>Live inputs</b> for real laptop mic features, or <b>Scripted demo controls</b> for labeled test data. Sensor animation waits until you start.</div>
   <div class="scriptGrid">
     <div class="scriptBox"><h2>What PhoneBio needs</h2><p class="needs">Location context: ventilation/open air, eyewash or water, spill kit, exits, and whether anyone is nearby.</p></div>
     <div class="scriptBox"><h2>What I say</h2><p class="say">Low-level formaldehyde cleanup. No fire. No skin contact. I forgot the SDS location step. Ask me where I am relative to ventilation, eyewash, spill kit, exits, and other people before cleanup.</p></div>
   </div>
-  <div class="controls">
-    <button id="mic">🎙 Arm laptop mic</button>
-    <button id="auto">▶ Auto demo</button>
-    <button data-x="Observed three juvenile specimens near the burrow at 12 meters, temperature 18 degrees" class="ev0">routine note</button>
-    <button data-x="My barometer read 1003 then 998 over an hour">sensor</button>
-    <button data-x="Small formaldehyde spill on my outer glove. No fire and no skin contact. I forgot to check where I am relative to ventilation, eyewash, and the spill kit. What should I confirm first?" id="emg">formaldehyde location check</button>
+  <div class="controlGrid">
+    <div class="controlGroup">
+      <h2>Live inputs</h2>
+      <div class="controls"><button id="mic">🎙 Start live mic</button></div>
+      <p>Uses this laptop microphone for local dBFS features only. Raw audio stays local.</p>
+    </div>
+    <div class="controlGroup">
+      <h2>Scripted demo controls</h2>
+      <div class="controls">
+        <button id="auto">▶ Start scripted auto demo</button>
+        <button data-x="Observed three juvenile specimens near the burrow at 12 meters, temperature 18 degrees" class="ev0">script: routine note</button>
+        <button data-x="My barometer read 1003 then 998 over an hour">script: sensor</button>
+        <button data-x="Small formaldehyde spill on my outer glove. No fire and no skin contact. I forgot to check where I am relative to ventilation, eyewash, and the spill kit. What should I confirm first?" id="emg">script: formaldehyde location check</button>
+      </div>
+      <p>Runs simulated prompts for the stage demo. Auto demo stops after one pass, or press Stop scripted demo.</p>
+    </div>
   </div>
 
   <div class="sensors">
@@ -79,7 +94,7 @@
   <div class="tally"><div>edge-only (offline): <b class="te" id="nE">0</b></div><div>escalated to 70B: <b class="tc" id="nC">0</b></div><div>bytes to cloud: <b id="nB">0</b></div></div>
 
   <div class="detail"><div class="kv">
-    <span>heard</span><span id="d-heard">— press Auto demo —</span>
+    <span>heard</span><span id="d-heard">— press Start scripted auto demo —</span>
     <span>edge → shorthand</span><span class="gregg" id="d-gregg">—</span>
     <span>lab jargon map</span><span id="d-map">—</span>
     <span>edge tier</span><span id="d-tier">—</span>
@@ -132,7 +147,7 @@ async function armMic(){
     const an=ac.createAnalyser();an.fftSize=512;
     ac.createMediaStreamSource(stream).connect(an);
     const d=new Uint8Array(an.fftSize);micLive=true;$('src').textContent='LAPTOP MIC FEATURE';
-    $('mic').textContent='🎙 mic armed';
+    $('mic').textContent='🎙 Live mic armed';
     function loop(){
       an.getByteTimeDomainData(d);let s=0;
       for(const v of d){const n=(v-128)/128;s+=n*n;}
@@ -141,7 +156,7 @@ async function armMic(){
       if(loud>-28&&now>micCooldown){
         micCooldown=now+3500;flash($('f-loud'));
         nE++;$('nE').textContent=nE;chip($('edgeTrack'),'AUDIO','edge','e');
-        $('d-heard').textContent='Laptop mic detected loud room audio / possible speech.';
+        $('d-heard').textContent='LIVE INPUT: laptop mic detected loud room audio / possible speech.';
         $('d-gregg').textContent='aud-lvl '+loud+'db noisy-room';
         $('d-map').textContent='microphone→dBFS · raw audio stays local';
         $('d-tier').innerHTML='<span class="tier-AMBER">AMBER</span>';
@@ -181,9 +196,9 @@ document.querySelectorAll('button[data-x]').forEach(b=>b.onclick=()=>run(b.datas
 $('mic').onclick=armMic;
 // auto demo: one finite pass for recording, no triage loop
 let timer=null,seq=['Observed three juvenile specimens near the burrow at 12 meters, temperature 18 degrees','My barometer read 1003 then 998 over an hour','Small formaldehyde spill on my outer glove. No fire and no skin contact. I forgot to check where I am relative to ventilation, eyewash, and the spill kit. What should I confirm first?'];let si=0;
-function stopAuto(){if(timer){clearInterval(timer);timer=null;}$('auto').textContent='▶ Auto demo';si=0;}
+function stopAuto(){if(timer){clearInterval(timer);timer=null;}$('auto').textContent='▶ Start scripted auto demo';si=0;}
 $('auto').onclick=()=>{if(timer){stopAuto();return;}
-  $('auto').textContent='⏹ Stop';si=0;run(seq[si]);si++;
+  $('auto').textContent='⏹ Stop scripted demo';si=0;run(seq[si]);si++;
   timer=setInterval(()=>{if(si>=seq.length){stopAuto();return;}run(seq[si]);si++;},7000);};
 </script>
 </body>

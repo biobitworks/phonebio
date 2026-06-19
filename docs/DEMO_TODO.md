@@ -1,6 +1,6 @@
 # PhoneBio Demo TODO
 
-> Source of truth: `python3 scripts/stress_test.py` → **23/23 GREEN = ready.**
+> Source of truth: `make demo-stress` → **16 pass / 0 fail** and `demoReady: true`.
 
 ## Status (auto-verified by the stress test)
 - [x] Vapi: both numbers → Nebius **Llama-3.3-70B** · 7 inline tools · webhook serverUrl · denoise · **EMERGENCY MODE** prompt
@@ -16,13 +16,13 @@
 - [ ] Confirm TTS rehearsal audio was generated under `recordings/tts-stress/`.
 - [ ] Set OBS to capture the laptop dashboard and terminal; keep `.env`, raw numbers, keys, transcripts, and recording URLs off screen.
 - [ ] Start iPhone Screen Recording before the no-touch section.
-- [ ] Save contact **PhoneBio = +1 541‑526‑9723** → enables "Hey Siri, call PhoneBio" (hands-free start)
+- [ ] Save the assigned Vapi number locally as **PhoneBio** → enables "Hey Siri, call PhoneBio" (hands-free start). Do not show raw numbers on screen.
 - [ ] Add `https://qfdp5nuv.insforge.site` to the iPhone Home Screen as `PhoneBio` (and `/edge.html` for the local orchestrator)
 - [ ] Open the Home Screen web app once; grant mic/motion/location (iOS may re-ask — that's fine)
 - [ ] Enable **Voice Control (iOS)** / **Voice Access (Android)** → voice-tap "ARM SENSORS" / "Allow" with no physical touch
 - [ ] **Two devices**: Phone A = the hands-free call · Device B = the dashboard (a live call grabs the mic, keep them separate)
 - [ ] Quiet room · phone on speaker ~arm's length · camera/recorder capturing the room
-- [ ] Run `python3 scripts/stress_test.py` → confirm **23/23 GREEN**
+- [ ] Run `make demo-stress` → confirm **16 pass / 0 fail** and `demoReady: true`
 
 ## Speaker-only take (no touch)
 - [ ] Start `make vapi-wait-call` before placing the call.

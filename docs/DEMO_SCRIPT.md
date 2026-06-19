@@ -2,16 +2,16 @@
 
 > ⭐ **Reference recording (best call session):** [`media/demo-2026-06-19-1515.mov`](../media/demo-2026-06-19-1515.mov)
 
-**Stack on screen:** Vapi (phone) → **Nebius Llama-3.3-70B** via an InsForge edge proxy → InsForge tools + Postgres + hosting. **No OpenAI. Voice-only-capable (no caller data). Hands-free, camera-free.**
-**Call-in:** **+1 541‑526‑9723** (backup line +1 541‑526‑9684) · **"Hey Siri, call PhoneBio"** · **Dashboard:** https://qfdp5nuv.insforge.site/live.html
+**Stack on screen:** Vapi (phone) → **Nebius Llama-3.3-70B** via an InsForge edge proxy → InsForge tools + Postgres + hosting. **No OpenAI. Voice-only-capable. Hands-free, camera-free.**
+**Call-in:** assigned Vapi PhoneBio number saved locally as **PhoneBio**. Do not show raw numbers on screen. Say: **"Hey Siri, call PhoneBio."** **Dashboard:** https://qfdp5nuv.insforge.site/live.html
 **Best local take reference:** `/Users/byron/Movies/2026-06-19 15-15-53.mov` (keep local; do not commit/export raw call artifacts).
 
 ---
 
 ## Scene (OBS, 1920×1080)
-- **Browser Source → `https://qfdp5nuv.insforge.site/live.html`** (right ⅔). Right-click → **Interact**; press **▶ Auto demo** or click buttons. *(Simulated sensor data — labeled — so it runs with no real sensors.)*
+- **Browser Source → `https://qfdp5nuv.insforge.site/live.html`** (right ⅔). Right-click → **Interact**. Use **Live inputs** for laptop mic features or **Scripted demo controls** for labeled simulated prompts.
 - **iPhone screen recording** of the real call (left ⅓). **Webcam** PIP corner.
-- Pre-flight before rolling: `make preflight` → **23/23 GREEN**. Clean audio after: `make recording`.
+- Pre-flight before rolling: `make demo-stress` → **16 pass / 0 fail** and `demoReady: true`. Clean audio after: `make recording`.
 
 ## A. The call beats (what to say → what it does)
 **0. Hands-free start:** "Hey Siri, call PhoneBio." → *"PhoneBio here. Tell me the task, material, or device, and what changed."*
@@ -34,8 +34,9 @@
 **6. Trust beat (no hallucination):** "How do I neutralize a tank of [unknown chemical]?"
 > *not found* → "Stop work, don't mix, contact your supervisor." Refuses to guess.
 
-## B. The dashboard beats (live.html, Interact / Auto demo)
-- **Edge ⇄ 70B interplay:** routine/sensor → handled at **EDGE** (offline, ~ms); **EMERGENCY** → escalates to **Llama-70B** (cloud lane fires) — tally shows *edge-only vs escalated vs bytes-to-cloud*.
+## B. The dashboard beats (live.html)
+- **Live vs scripted controls:** **Live inputs** starts real laptop mic feature extraction; **Scripted demo controls** runs labeled simulated prompts and has an explicit **Stop scripted demo** state.
+- **Edge ⇄ 70B interplay:** routine/sensor → handled at **EDGE** (offline, ~ms); higher-risk prompts → escalate to **Llama-70B** (cloud lane fires) — tally shows *edge-only vs escalated vs bytes-to-cloud*.
 - **Shorthand efficiency + lab jargon:** % smaller, "fits 1 SMS", and the lab-term map (centrifuge→cfg, pcr, formaldehyde→form…) highlighting used terms.
 - **Bandwidth tags:** each sensor labeled EDGE (high raw bw) vs cloud-ok (tiny).
 
