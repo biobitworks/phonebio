@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from fieldbio import llm
 from fieldbio.app import app
+from fieldbio.config import settings
 
 client = TestClient(app)
 
@@ -44,6 +45,21 @@ def test_custom_llm_stream(monkeypatch):
     assert r.status_code == 200
     assert "ven" in r.text
     assert "tilate" in r.text
+
+
+def test_custom_llm_auth_when_secret_configured(monkeypatch):
+    monkeypatch.setattr(settings, "webhook_secret", "test-webhook-secret")
+    monkeypatch.setattr(llm, "raw_completion", lambda body: {"choices": [{"message": {"content": "ok"}}]})
+
+    rejected = client.post("/custom-llm/chat/completions", json={"messages": []})
+    assert rejected.status_code == 401
+
+    accepted = client.post(
+        "/custom-llm/chat/completions",
+        json={"messages": []},
+        headers={"authorization": "Bearer test-webhook-secret"},
+    )
+    assert accepted.status_code == 200
 
 
 def test_llm_response_sanitizer_removes_reasoning_but_keeps_tool_calls():

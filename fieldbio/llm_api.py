@@ -10,10 +10,11 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Header, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from . import llm
+from .auth import authorize_vapi_request
 
 router = APIRouter()
 
@@ -24,13 +25,18 @@ def llm_health() -> dict[str, Any]:
 
 
 @router.post("/custom-llm/chat/completions")
-async def custom_llm(req: Request):
+async def custom_llm(
+    req: Request,
+    authorization: str | None = Header(default=None),
+    x_vapi_secret: str | None = Header(default=None),
+):
     """Chat-completions endpoint Vapi points its custom-llm model at.
 
     Forwards messages + tool definitions to the local offline model and proxies
     the reply (content AND tool_calls) so the offline brain drives Vapi function
     calling for free. Deterministic tool execution stays on /webhook.
     """
+    authorize_vapi_request(authorization, x_vapi_secret)
     body = await req.json()
 
     if not body.get("stream", False):

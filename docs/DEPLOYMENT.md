@@ -50,12 +50,12 @@ curl -X POST https://your-host/webhook \
 
 ## Webhook Authentication
 
-If `VAPI_WEBHOOK_SECRET` is set to a non-placeholder value, `/webhook` requires either:
+If `VAPI_WEBHOOK_SECRET` is set to a non-placeholder value, `/webhook` and `/custom-llm/chat/completions` require either:
 
 - `Authorization: Bearer <VAPI_WEBHOOK_SECRET>`
 - `x-vapi-secret: <VAPI_WEBHOOK_SECRET>`
 
-For Vapi, create a Custom Credential with a bearer token and attach it to the assistant server configuration.
+For Vapi, create a Custom Credential with a bearer token and attach it to the assistant server/custom-LLM configuration.
 
 ## Demo Readiness Checklist
 

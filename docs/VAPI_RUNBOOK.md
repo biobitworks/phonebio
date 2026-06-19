@@ -9,7 +9,7 @@
 - Public webhook URL in `VAPI_WEBHOOK_URL` or `PUBLIC_BASE_URL`.
 - Public custom-LLM base URL in `VAPI_CUSTOM_LLM_URL`, or derive it from `PUBLIC_BASE_URL` as `/custom-llm`.
 - Optional outbound test destination in `VAPI_TEST_NUMBER`.
-- Optional webhook bearer secret in `VAPI_WEBHOOK_SECRET`.
+- Optional bearer secret in `VAPI_WEBHOOK_SECRET` for both `/webhook` and `/custom-llm/chat/completions`.
 
 ## Credential Timing
 
