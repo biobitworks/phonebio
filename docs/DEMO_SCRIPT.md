@@ -1,77 +1,51 @@
-# PhoneBio — Demo Call Script + 3-Minute Video Plan
+# PhoneBio — Demo Run Sheet + 3-Minute Video Plan
 
-**Call the live agent:** **+1 541‑526‑9723** (phonebio line). Speak naturally; wait
-for the agent to finish before replying. Backup line: +1 541‑526‑9684 (not attached).
-
-**Stack on screen (the story):** Vapi (phone) → Nebius GPU brain (Qwen3-30B) via an
-InsForge edge proxy → InsForge tools + Postgres. **No OpenAI. Runs on a plain voice
-call (no data needed on the caller's side). Hands-free, camera-free.**
+**Stack on screen:** Vapi (phone) → **Nebius Llama-3.3-70B** via an InsForge edge proxy → InsForge tools + Postgres + hosting. **No OpenAI. Voice-only-capable (no caller data). Hands-free, camera-free.**
+**Call-in:** **+1 541‑526‑9723** (backup line +1 541‑526‑9684) · **"Hey Siri, call PhoneBio"** · **Dashboard:** https://qfdp5nuv.insforge.site/live.html
 
 ---
 
-## A. Call script — scenarios with variations (record several, keep best takes)
+## Scene (OBS, 1920×1080)
+- **Browser Source → `https://qfdp5nuv.insforge.site/live.html`** (right ⅔). Right-click → **Interact**; press **▶ Auto demo** or click buttons. *(Simulated sensor data — labeled — so it runs with no real sensors.)*
+- **iPhone screen recording** of the real call (left ⅓). **Webcam** PIP corner.
+- Pre-flight before rolling: `make preflight` → **23/23 GREEN**. Clean audio after: `make recording`.
 
-Each scenario lists what to SAY (with variations) and what the agent should DO.
-Pause ~1s after the agent speaks so cuts are clean.
+## A. The call beats (what to say → what it does)
+**0. Hands-free start:** "Hey Siri, call PhoneBio." → *"PhoneBio here. Tell me the task, material, or device, and what changed."*
 
-### 0. Opener (it answers)
-> *Agent:* "PhoneBio here. Tell me the field task, material or device, and what changed."
+**1. Proactive coach (asks where you are):** "I spilled a little formaldehyde on the bench."
+> Agent asks **WHERE/ventilation** and flags a forgotten step before reading steps → `get_safety_sheet` → PPE + **spill cleanup** (absorb, ventilate, don't drain) + first aid. Tier **AMBER** (contain + PPE).
 
-### 1. Safety Data Sheet (chemical hazard)
-- "I spilled formaldehyde on the bench — what PPE and first aid?"
-- *var:* "Got formalin on my glove, what do I do?"
-- *var:* "Seventy percent ethanol spill near a heat source — is that dangerous?"
-> *Does:* `get_safety_sheet` → PPE (nitrile gloves, goggles, face shield), eye/skin rinse 15 min, ventilation, poison control. Cites it's a field quick-reference, not the official SDS.
+**2. Severity gradation → emergency:** "Now there's a small fire and I can't reach 911."
+> Tier **RED** → life-safety **first** ("move away/upwind, protect airway"), then the **can't-reach-ER** path (self-rescue + log + relay GPS). Same substance, harder tier.
 
-### 2. Protocol lookup
-- "How do I set a pitfall trap for ground beetles?"
-- *var:* "Walk me through taking a surface water grab sample."
-> *Does:* `get_protocol` → flush-set cups + preservative + raised cover + georeference (trap); rinse 3x, fill from below surface upstream, no headspace, cool & dark (water).
+**3. First-aid kit (physical prop):** "I have my first aid kit — what do I use?"
+> `get_protocol` → names the items in a basic kit, hands-free; improvises if one's missing.
 
-### 3. Hardware troubleshooting (old/field gear)
-- "My GPS won't get a fix."
-- *var:* "The Bluetooth data logger keeps dropping the connection."
-> *Does:* `troubleshoot_hardware` → ordered checks (open sky / wait 60–90s / high-accuracy mode …), and a camera-free fallback (landmark + bearing).
+**4. Hardware / sensor (camera-free):** "My GPS won't get a fix" · "barometer read 1003 then 998."
+> `troubleshoot_hardware` / `interpret_sensor_report` → ordered steps / weather-trend warning with honest error bars.
 
-### 4. Sensor interpretation (camera-free, read aloud)
-- "My barometer read 1003 then 998 over an hour — what does that mean?"
-- *var:* "How accurate is the phone accelerometer for leveling a scope?"
-> *Does:* `interpret_sensor_report` → relative-altitude ±1 m, flags a falling-pressure / weather-trend warning, gives confidence + that caller readings aren't calibrated instruments.
+**5. Hands-free log → shorthand:** "Log this: observed three juvenile specimens near the burrow at 12 meters, 18 degrees."
+> `compress_observation` → `obs thr juv spcmns near brw ~ 12 m tmp 18 deg` + measurements; ~50% smaller, fits one SMS.
 
-### 5. Hands-free field log → shorthand (the wow)
-- "Log this: observed three juvenile specimens near the burrow at approximately 12 meters, temperature 18 degrees."
-> *Does:* `compress_observation` → stores `obs thr juv spcmns near brw ~ 12 m tmp 18 deg` + structured measurements; can read it back verbatim. **Show the row appearing in the InsForge DB.**
+**6. Trust beat (no hallucination):** "How do I neutralize a tank of [unknown chemical]?"
+> *not found* → "Stop work, don't mix, contact your supervisor." Refuses to guess.
 
-### 6. Safety escalation (the trust moment — no hallucination)
-- "How do I neutralize a tank of [obscure/unknown chemical]?"
-> *Does:* returns *not found* → "Stop work, isolate if safe, don't mix chemicals, contact your supervisor / incident lead." **It refuses to guess** — show this; it's the rigor beat.
+## B. The dashboard beats (live.html, Interact / Auto demo)
+- **Edge ⇄ 70B interplay:** routine/sensor → handled at **EDGE** (offline, ~ms); **EMERGENCY** → escalates to **Llama-70B** (cloud lane fires) — tally shows *edge-only vs escalated vs bytes-to-cloud*.
+- **Shorthand efficiency + lab jargon:** % smaller, "fits 1 SMS", and the lab-term map (centrifuge→cfg, pcr, formaldehyde→form…) highlighting used terms.
+- **Bandwidth tags:** each sensor labeled EDGE (high raw bw) vs cloud-ok (tiny).
 
----
-
-## B. 3-minute video plan (180s, shot-by-shot)
-
-Format suggestion: **split screen** — left = phone on speaker (or a call-UI), right
-= a screen recording of the InsForge dashboard (DB rows / function logs updating).
-Add captions for every spoken line (field audio is noisy on purpose = authentic).
-
-| Time | Visual | Narration / on-screen text |
+## C. 3-minute video plan (180s)
+| Time | Visual | Narration |
 |---|---|---|
-| 0:00–0:15 | Field worker in gloves/PPE, phone in pocket, bad-signal bars, no camera allowed | "Field and disaster workers can't tap apps, can't use a camera, and barely have a signal — but a **phone call** still gets through." |
-| 0:15–0:30 | Title card + architecture lower-third | "**PhoneBio**: call in, get protocols, safety sheets, hardware help, sensor guidance. Brain on **Nebius GPU**, backend on **InsForge**, phone via **Vapi**. No OpenAI." |
-| 0:30–0:55 | Live call — **Scenario 1 (formaldehyde)**; right side shows the tool call + SDS row | "Real call. It pulls the safety sheet from our database and tells her exactly what PPE and first aid — grounded, not guessed." |
-| 0:55–1:20 | **Scenario 3 (GPS/logger)** | "Old gear acting up in the field? Step-by-step troubleshooting, with a camera-free fallback." |
-| 1:20–1:45 | **Scenario 4 (barometer)** | "No camera — so the phone's other sensors do the work. It interprets a barometer trend and flags incoming weather, with honest error bars." |
-| 1:45–2:10 | **Scenario 5 (shorthand)**; right side shows the compact log line write to InsForge | "Hands-free, she just talks. We compress it — Gregg-shorthand style — into a tiny structured record that survives a weak link, and read it right back." |
-| 2:10–2:30 | **Scenario 6 (escalation)** | "And when it doesn't know? It says **stop work, call your supervisor** — it refuses to hallucinate safety advice." |
-| 2:30–2:50 | Map/diagram: voice-only call + offline buffer + sensor fusion → triage board | "It runs on a **voice-only** line with no data, hands-free under PPE — and the same sensor signals feed **downstream disaster triage**." |
-| 2:50–3:00 | Close card: repo URL + stack logos | "Built in a day — Claude + Codex pair-programming. Vapi · InsForge · Nebius. github.com/biobitworks/phonebio." |
+| 0:00–0:15 | gloved worker, bad signal, no camera | "Field & disaster workers can't tap apps or use a camera, and barely have signal — but a **phone call** gets through." |
+| 0:15–0:30 | title + stack | "**PhoneBio**: call in for protocols, safety sheets, hardware, sensor triage. Brain = **Nebius Llama-70B**, backend = **InsForge**, phone = **Vapi**. No OpenAI." |
+| 0:30–1:00 | call beat 1+2 + dashboard | "It asks *where she is*, pulls the real safety sheet, and as it escalates from spill to **fire**, the triage jumps **AMBER→RED**." |
+| 1:00–1:30 | dashboard interplay | "Routine stays on the **on-device quantized** model — offline. Only the emergency **escalates to the 70B**. That's the bandwidth play." |
+| 1:30–2:00 | shorthand beat 5 | "Hands-free, she just talks; we compress it Gregg-style into a record that **survives a weak link** and reads back." |
+| 2:00–2:30 | beat 3 (first-aid kit) + beat 6 | "It walks her through her kit by voice — and when it doesn't know, it says **stop work, call your supervisor**." |
+| 2:30–3:00 | map + close | "Voice-only, hands-free, camera-free — feeding **downstream disaster triage**. Built with Vapi · InsForge · Nebius. github.com/biobitworks/phonebio" |
 
-### Recording tips
-- Put the phone on **speaker**; record in a quiet room, then add light "field" ambience under it.
-- Screen-record the **InsForge dashboard** (insforge.dev → project phonebio) and `npx @insforge/cli logs function.logs` so viewers see tools firing live.
-- Keep each agent answer short (system prompt already caps ~35 words) → tight cuts.
-- Have the **number on screen** early; show a real inbound call.
-- Best order for impact: **1 → 5 → 6** are the strongest three if you need to trim.
-
-### If you only have 60 seconds
-Hook (0:10) → Scenario 1 SDS (0:20) → Scenario 5 shorthand (0:15) → Scenario 6 escalation (0:10) → close (0:05).
+**60-sec cut:** hook (0:10) → spill→fire gradation (0:25) → shorthand (0:15) → close (0:10).
+**Trim priority:** beats **1→2 (gradation)**, **5 (shorthand)**, **6 (no-hallucination)** are the strongest.

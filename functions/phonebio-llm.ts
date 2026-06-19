@@ -5,6 +5,7 @@
 // an InsForge secret, injected server-side — never exposed to Vapi or the repo.
 const NEBIUS_BASE = (Deno.env.get("NEBIUS_BASE_URL") || "https://api.tokenfactory.nebius.com/v1").replace(/\/+$/, "");
 const NEBIUS_MODEL = Deno.env.get("NEBIUS_MODEL") || "Qwen/Qwen3-30B-A3B";
+const FALLBACK_MODEL = "phonebio-deterministic-fallback";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -46,14 +47,14 @@ function lowLevelFormaldehydeAnswer(text: string): string | null {
   return "For a small trained cleanup: avoid fumes, keep the glove away from skin, confirm ventilation, eyewash, spill kit, and exits, then follow the SDS spill-kit steps.";
 }
 
-function completionResponse(content: string, stream: boolean): Response {
+function completionResponse(content: string, stream: boolean, model = NEBIUS_MODEL): Response {
   const created = Math.floor(Date.now() / 1000);
   if (stream) {
     const encoder = new TextEncoder();
     const id = `phonebio-fast-${created}`;
     const chunks = [
-      { id, object: "chat.completion.chunk", created, model: NEBIUS_MODEL, choices: [{ index: 0, delta: { role: "assistant", content }, finish_reason: null }] },
-      { id, object: "chat.completion.chunk", created, model: NEBIUS_MODEL, choices: [{ index: 0, delta: {}, finish_reason: "stop" }] },
+      { id, object: "chat.completion.chunk", created, model, choices: [{ index: 0, delta: { role: "assistant", content }, finish_reason: null }] },
+      { id, object: "chat.completion.chunk", created, model, choices: [{ index: 0, delta: {}, finish_reason: "stop" }] },
     ];
     const body = `${chunks.map((chunk) => `data: ${JSON.stringify(chunk)}\n\n`).join("")}data: [DONE]\n\n`;
     return new Response(encoder.encode(body), {
@@ -65,7 +66,7 @@ function completionResponse(content: string, stream: boolean): Response {
     id: `phonebio-fast-${created}`,
     object: "chat.completion",
     created,
-    model: NEBIUS_MODEL,
+    model,
     choices: [{ index: 0, message: { role: "assistant", content }, finish_reason: "stop" }],
   }), {
     status: 200,
@@ -81,18 +82,17 @@ export default async function (req: Request): Promise<Response> {
     });
   }
 
+  let body: any = {};
+  try { body = await req.json(); } catch { /* empty */ }
+  const fallbackAnswer = lowLevelFormaldehydeAnswer(lastUserText(body.messages));
+
   const key = Deno.env.get("NEBIUS_API_KEY");
   if (!key) {
+    if (fallbackAnswer) return completionResponse(fallbackAnswer, body.stream !== false, FALLBACK_MODEL);
     return new Response(JSON.stringify({ error: "NEBIUS_API_KEY secret not set" }), {
       status: 500, headers: { ...cors, "Content-Type": "application/json" },
     });
   }
-
-  let body: any = {};
-  try { body = await req.json(); } catch { /* empty */ }
-
-  const fastAnswer = lowLevelFormaldehydeAnswer(lastUserText(body.messages));
-  if (fastAnswer) return completionResponse(fastAnswer, body.stream !== false);
 
   // Whitelist OpenAI fields so Vapi-specific extras don't trip Nebius.
   const payload: Record<string, unknown> = {
@@ -105,11 +105,20 @@ export default async function (req: Request): Promise<Response> {
   if (body.temperature != null) payload.temperature = body.temperature;
   if (body.max_tokens != null) payload.max_tokens = body.max_tokens;
 
-  const upstream = await fetch(`${NEBIUS_BASE}/chat/completions`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+  let upstream: Response;
+  try {
+    upstream = await fetch(`${NEBIUS_BASE}/chat/completions`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(8000),
+    });
+  } catch (_error) {
+    if (fallbackAnswer) return completionResponse(fallbackAnswer, body.stream !== false, FALLBACK_MODEL);
+    throw _error;
+  }
+
+  if (!upstream.ok && fallbackAnswer) return completionResponse(fallbackAnswer, body.stream !== false, FALLBACK_MODEL);
 
   // Stream the upstream body straight back (works for SSE stream and JSON alike).
   return new Response(upstream.body, {

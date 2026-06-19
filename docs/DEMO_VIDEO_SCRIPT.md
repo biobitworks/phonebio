@@ -45,19 +45,25 @@ before internet goes out.”
 
 **Say as caller:**
 
-“I am in PPE and mobile data is down. I can only keep this call open. I spilled
-formaldehyde on a glove.”
+“Low-level formaldehyde cleanup. No fire. No skin contact. I forgot the SDS
+location step. Ask me where I am relative to ventilation, eyewash, spill kit,
+exits, and other people before cleanup.”
 
 **Narrate:**
 
-“Vapi owns the phone agent. InsForge hosts the deterministic tool backend. The
-answer is source-backed, not a live web search.”
+“Vapi owns the phone call. Nebius 70B handles the live reasoning turn. InsForge
+hosts the deterministic SDS/tool backend, so safety facts come from source-backed
+records, not a guess.”
 
 **Expected behavior:**
 
-- Calls `get_safety_sheet`.
-- Mentions SDS quick-reference boundary.
-- Escalates if exposure/uncertainty exists.
+- The agent asks for missing location context first: ventilation/open air,
+  eyewash or water, spill kit, exits, and nearby people.
+- It can call `get_safety_sheet` for the formaldehyde SDS quick-reference.
+- It does not jump to emergency services because the caller explicitly says no
+  fire, no skin contact, no symptoms, and low-level cleanup.
+- It escalates only if the caller adds fire, symptoms, skin/eye contact, a large
+  spill, lack of training, or uncertainty.
 
 ### 1:20-1:55 Old Equipment + Sensors
 
@@ -106,10 +112,10 @@ voice readback.”
 **Say:**
 
 “The provider split is simple: Vapi is for phone agents. InsForge is for the
-website, backend, deterministic tools, and records. Nebius is for GPU model
-acceleration: multilingual extraction, evals, shorthand candidates, and
-non-safety summaries. Local quantized models are a future acceleration layer,
-not required for today’s demo.”
+website, backend, deterministic tools, and records. Nebius is the GPU reasoning
+lane for the live call. Safety authority still comes from InsForge SDS/protocol
+records. If Nebius or the network fails, a clearly labeled deterministic fallback
+can keep the demo moving, but it is not the primary path.”
 
 ### 2:50-3:00 Close
 
@@ -162,5 +168,7 @@ make readiness
 - Do not say the system replaces SDS, emergency services, or a site supervisor.
 - Do not say the phone precisely counts or identifies people from audio.
 - Do not say Nebius is the source of protocol or SDS truth.
+- Do not imply a deterministic fallback is Nebius output; call it a fallback
+  only if it is used.
 - Do not show raw phone numbers, API keys, transcripts, or exact private
   locations.
