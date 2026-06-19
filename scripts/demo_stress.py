@@ -74,12 +74,13 @@ def public_dashboard_check() -> dict[str, Any]:
         edge = edge_response.text
     except (httpx.HTTPError, json.JSONDecodeError) as error:
         return {"name": "public_dashboard", "status": "fail", "error": error.__class__.__name__}
-    checks.append({"item": "html_has_executorch_gate", "ok": "ExecuTorch gate" in html})
-    checks.append({"item": "html_has_orchestrator", "ok": "Local Quantized Orchestrator" in html})
+    checks.append({"item": "html_has_edge_quantized_route", "ok": "Edge quantized gate" in html})
+    checks.append({"item": "html_has_nebius_70b_route", "ok": "Nebius 70B" in html})
+    checks.append({"item": "html_has_simple_field_triage", "ok": "Field Triage" in html})
     checks.append({"item": "manifest_standalone", "ok": manifest.get("display") == "standalone"})
     checks.append({"item": "script_has_speaker_lane", "ok": "stage speakerphone echo" in script})
     checks.append({"item": "script_has_emergency_lane", "ok": "emergency_priority" in script})
-    checks.append({"item": "script_has_executorch_route", "ok": "ExecuTorch local .pte" in script})
+    checks.append({"item": "script_has_quantized_to_70b_route", "ok": "renderModelRoute" in script and "Nebius 70B" in html})
     checks.append({"item": "edge_route_http_200", "ok": edge_response.status_code == 200})
     checks.append({"item": "edge_has_orchestrator", "ok": "EDGE ORCHESTRATOR" in edge})
     checks.append({"item": "edge_has_webgpu_or_fallback", "ok": "WebGPU" in edge and "cloud fallback" in edge})

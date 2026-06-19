@@ -16,22 +16,22 @@
       <header class="topbar">
         <div>
           <p class="eyebrow">PhoneBio</p>
-          <h1>Live Signal Dashboard</h1>
+          <h1>Field Triage</h1>
         </div>
         <div class="status-strip">
-          <span id="connectionState">Local</span>
           <span id="eventCount">0 signals</span>
           <span id="riskState">risk: none</span>
-          <span id="laneState">lane: idle</span>
-          <span id="orchestratorState">orchestrator: idle</span>
           <span id="captureState">capture: idle</span>
+          <span id="connectionState" hidden>Local</span>
+          <span id="laneState" hidden>lane: idle</span>
+          <span id="orchestratorState" hidden>orchestrator: idle</span>
         </div>
       </header>
 
       <section class="grid">
         <div class="panel chart-panel">
           <div class="panel-head">
-            <h2>Signal Spikes</h2>
+            <h2>Sensor Lines</h2>
             <div class="legend">
               <span><b class="audio"></b>audio</span>
               <span><b class="motion"></b>motion</span>
@@ -40,43 +40,31 @@
               <span><b class="location"></b>location</span>
             </div>
           </div>
+          <div class="model-route">
+            <div id="edgeRoute" class="route-node active">
+              <span>Edge quantized gate</span>
+              <strong>screening sensors</strong>
+              <small>low-bandwidth features</small>
+            </div>
+            <div class="route-arrow">→</div>
+            <div id="brainRoute" class="route-node">
+              <span>Nebius 70B</span>
+              <strong>standby</strong>
+              <small>voice + escalations</small>
+            </div>
+          </div>
           <canvas id="signalChart" width="920" height="320" aria-label="Signal intensity chart"></canvas>
           <div id="sensorLines" class="sensor-lines" aria-label="Latest sensor data lines"></div>
         </div>
 
-        <div class="panel">
+        <div class="panel question-panel">
           <h2>Agent Question</h2>
           <p id="askLine" class="ask">Waiting for signal context.</p>
-          <div class="risk-box">
-            <span>Current risk</span>
-            <strong id="currentRisk">none</strong>
-          </div>
-          <div class="risk-box lane-box">
-            <span>Processing lane</span>
-            <strong id="processingLane">idle</strong>
-          </div>
-        </div>
-
-        <div class="panel orchestrator-panel">
-          <h2>Local Quantized Orchestrator</h2>
-          <div class="model-row">
-            <span>simulated runtime</span>
-            <strong>ExecuTorch .pte INT8</strong>
-          </div>
-          <div class="route-stack">
-            <div>
-              <span>decision</span>
-              <strong id="orchestratorDecision">standby</strong>
-            </div>
-            <div>
-              <span>resource route</span>
-              <strong id="resourceRoute">local only</strong>
-            </div>
-            <div>
-              <span>sensor basis</span>
-              <strong id="sensorBasis">none</strong>
-            </div>
-          </div>
+          <div class="risk-box"><span>Risk</span><strong id="currentRisk">none</strong></div>
+          <strong id="processingLane" hidden>idle</strong>
+          <strong id="orchestratorDecision" hidden>standby</strong>
+          <strong id="resourceRoute" hidden>local only</strong>
+          <strong id="sensorBasis" hidden>none</strong>
         </div>
 
         <div class="panel">
@@ -97,7 +85,7 @@
         </div>
 
         <div class="panel log-panel">
-          <h2>Event Log</h2>
+          <h2>Recent Signals</h2>
           <ol id="eventLog" class="event-log"></ol>
         </div>
       </section>

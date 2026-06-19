@@ -15,6 +15,8 @@ const sensorBasis = document.querySelector("#sensorBasis");
 const captureState = document.querySelector("#captureState");
 const armSensorsButton = document.querySelector("#armSensors");
 const sensorLines = document.querySelector("#sensorLines");
+const edgeRoute = document.querySelector("#edgeRoute");
+const brainRoute = document.querySelector("#brainRoute");
 
 const CAPTURE_ENDPOINT = "https://qfdp5nuv.function2.insforge.app/phonebio-vapi-webhook";
 const sensorSessionId = globalThis.crypto?.randomUUID?.() ?? `demo_${Date.now()}`;
@@ -43,31 +45,31 @@ const channelMeta = {
     label: "Audio",
     unit: "dBFS",
     bandwidth: "high raw / low feature",
-    processing: "VAD local, Vapi/Nebius if speech or emergency"
+    processing: "edge first"
   },
   motion: {
     label: "Motion",
     unit: "m/s2",
     bandwidth: "low",
-    processing: "local quantized gate"
+    processing: "edge"
   },
   wireless: {
     label: "Wireless",
     unit: "proximity",
     bandwidth: "very low",
-    processing: "local context, ask confirmation"
+    processing: "edge confirm"
   },
   environment: {
     label: "Environment",
     unit: "trend",
     bandwidth: "very low",
-    processing: "local risk matrix, public alert context"
+    processing: "edge + alerts"
   },
   location: {
     label: "Location",
     unit: "accuracy",
     bandwidth: "low / sensitive",
-    processing: "redacted relay only"
+    processing: "redacted"
   }
 };
 
@@ -476,6 +478,22 @@ function orchestrate(signal) {
   };
 }
 
+function renderModelRoute(orchestration, signals, lane, risk) {
+  const hasSignals = signals.length > 0;
+  const escalate = lane === "noisy_confirmation" || lane === "emergency_priority" || risk === "high";
+  edgeRoute.className = hasSignals ? "route-node active" : "route-node";
+  brainRoute.className = escalate ? "route-node hot" : "route-node";
+  edgeRoute.querySelector("strong").textContent = hasSignals ? "filtering locally" : "standby";
+  edgeRoute.querySelector("small").textContent = hasSignals ? "sensor bytes -> triage feature" : "waiting for sensor input";
+  if (escalate) {
+    brainRoute.querySelector("strong").textContent = lane === "emergency_priority" ? "emergency reasoning" : "voice reasoning";
+    brainRoute.querySelector("small").textContent = orchestration.resourceRoute;
+  } else {
+    brainRoute.querySelector("strong").textContent = "standby";
+    brainRoute.querySelector("small").textContent = "not spending GPU";
+  }
+}
+
 function recordLocal(signal) {
   const event = {
     id: `local_${Date.now()}_${localSignals.length}`,
@@ -611,7 +629,6 @@ function renderSensorLines(signals) {
       item.style.borderLeftColor = colors[channel] ?? colors.default;
       item.innerHTML = `<strong>${meta.label}</strong>
         <span class="value">${displayValue(channel, signal)}</span>
-        <span>${signal?.source || "waiting"} · ${signal?.processingLane || "idle"}</span>
         <span>${meta.bandwidth}</span>
         <span>${meta.processing}</span>`;
       return item;
@@ -627,6 +644,7 @@ function render(payload) {
   const risk = payload.summary?.latestRisk ?? "none";
   const lane = payload.summary?.processingLane ?? "idle";
   const orchestration = payload.summary?.orchestration ?? orchestrate(signals.at(-1));
+  renderModelRoute(orchestration, signals, lane, risk);
   riskState.textContent = `risk: ${risk}`;
   laneState.textContent = `lane: ${lane}`;
   orchestratorState.textContent = `orchestrator: ${orchestration.decision}`;
@@ -637,7 +655,7 @@ function render(payload) {
   sensorBasis.textContent = orchestration.sensorBasis;
   askLine.textContent = payload.summary?.latestAsk || "Waiting for signal context.";
   eventLog.replaceChildren(
-    ...signals.slice(-9).reverse().map((signal) => {
+    ...signals.slice(-3).reverse().map((signal) => {
       const item = document.createElement("li");
       const time = new Date(signal.timestamp).toLocaleTimeString();
       item.innerHTML = `<strong>${signal.label}</strong><small>${time} · ${signal.type} · ${displayValue(signal.type, signal)}<br>${signal.processingLane}<br>${signal.ask}</small>`;
