@@ -20,8 +20,11 @@ from fieldbio.vapi_client import (
     assistant_payload,
     create_assistant,
     create_outbound_call,
+    list_phone_numbers,
     outbound_call_payload,
     phone_assignment_payload,
+    phone_number_id_from_env_or_single,
+    redacted_phone_number_record,
     webhook_url_from_env,
 )
 
@@ -51,6 +54,7 @@ def create_assistant_command(args: argparse.Namespace) -> int:
             assistant_id = os.getenv("VAPI_ASSISTANT_ID") or "<assistant-id-from-create-response>"
             result["assignPhone"] = {
                 "phoneNumberIdSet": bool(os.getenv("VAPI_PHONE_NUMBER_ID")),
+                "phoneNumberIdAutoDiscovery": "enabled-for-live-call",
                 "payload": phone_assignment_payload(assistant_id, args.webhook_url),
             }
         _print_json(result)
@@ -62,7 +66,7 @@ def create_assistant_command(args: argparse.Namespace) -> int:
     if args.assign_phone:
         result["phoneNumber"] = assign_phone_number(
             api_key_from_env(),
-            os.getenv("VAPI_PHONE_NUMBER_ID", ""),
+            phone_number_id_from_env_or_single(api_key_from_env()),
             assistant_id,
             args.webhook_url,
         )
@@ -79,11 +83,13 @@ def assign_phone_command(args: argparse.Namespace) -> int:
                 "dryRun": True,
                 "envReady": _redacted_env_state(),
                 "phoneNumberIdSet": bool(phone_number_id),
+                "phoneNumberIdAutoDiscovery": "enabled-for-live-call",
                 "assistantIdSet": bool(assistant_id),
                 "payload": phone_assignment_payload(assistant_id or "<assistant-id>", args.webhook_url),
             }
         )
         return 0
+    phone_number_id = phone_number_id or phone_number_id_from_env_or_single(api_key_from_env())
     _print_json(assign_phone_number(api_key_from_env(), phone_number_id, assistant_id, args.webhook_url))
     return 0
 
@@ -100,13 +106,25 @@ def outbound_call_command(args: argparse.Namespace) -> int:
                 "customerNumberSet": bool(customer_number),
                 "payload": outbound_call_payload(
                     assistant_id or "<assistant-id>",
-                    phone_number_id or "<phone-number-id>",
+                    phone_number_id or "<phone-number-id-or-single-vapi-number>",
                     customer_number or "<customer-e164-number>",
                 ),
             }
         )
         return 0
+    phone_number_id = phone_number_id or phone_number_id_from_env_or_single(api_key_from_env())
     _print_json(create_outbound_call(api_key_from_env(), assistant_id, phone_number_id, customer_number))
+    return 0
+
+
+def list_phone_numbers_command(args: argparse.Namespace) -> int:
+    phone_numbers = list_phone_numbers(api_key_from_env())
+    _print_json(
+        {
+            "count": len(phone_numbers),
+            "phoneNumbers": [redacted_phone_number_record(record) for record in phone_numbers],
+        }
+    )
     return 0
 
 
@@ -126,6 +144,9 @@ def build_parser() -> argparse.ArgumentParser:
     assign.add_argument("--webhook-url", default=None)
     assign.add_argument("--dry-run", action="store_true")
     assign.set_defaults(func=assign_phone_command)
+
+    list_numbers = subparsers.add_parser("list-phone-numbers", help="List Vapi phone numbers with phone values redacted.")
+    list_numbers.set_defaults(func=list_phone_numbers_command)
 
     outbound = subparsers.add_parser("outbound-call", help="Create an outbound test call.")
     outbound.add_argument("--assistant-id", default=None)

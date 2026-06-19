@@ -40,6 +40,7 @@ Dry-run Vapi wiring:
 
 ```bash
 make wire-dry-run
+python3 vapi/wire.py list-phone-numbers
 ```
 
 Local v1 readiness status:
@@ -49,6 +50,14 @@ make readiness
 ```
 
 This reports all locally provable requirements and leaves live Vapi phone assignment blocked until credentials and public URLs are supplied.
+
+Local Ollama custom-LLM tool-call probe:
+
+```bash
+make llm-probe
+```
+
+This verifies the configured local model emits a Vapi-compatible tool call and that model reasoning fields are scrubbed before returning to Vapi.
 
 Live Vapi wiring needs `VAPI_API_KEY` or `VAPI_PRIVATE_KEY`, `VAPI_PHONE_NUMBER_ID`, and `VAPI_WEBHOOK_URL` or `PUBLIC_BASE_URL`. See `docs/VAPI_RUNBOOK.md`.
 
@@ -71,4 +80,4 @@ Optional custom LLM endpoint:
 - `GET /llm/health`
 - `POST /custom-llm/chat/completions`
 
-This route uses local Ollama only.
+This route uses local Ollama only. The default local model is `qwen3:1.7b` because it emits tool calls in the local probe; no cloud LLM key is used.

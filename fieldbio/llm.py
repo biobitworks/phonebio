@@ -145,6 +145,27 @@ def health() -> list[dict[str, Any]]:
     return report
 
 
+def _strip_reasoning(value: Any) -> Any:
+    """Remove model-private reasoning fields before returning responses to Vapi."""
+    if isinstance(value, dict):
+        return {key: _strip_reasoning(item) for key, item in value.items() if key != "reasoning"}
+    if isinstance(value, list):
+        return [_strip_reasoning(item) for item in value]
+    return value
+
+
+def _sanitize_sse_line(line: str) -> str:
+    if not line.startswith("data: "):
+        return line
+    data = line.removeprefix("data: ").strip()
+    if data == "[DONE]":
+        return line
+    try:
+        return f"data: {json.dumps(_strip_reasoning(json.loads(data)), separators=(',', ':'))}"
+    except json.JSONDecodeError:
+        return line
+
+
 def _primary() -> Provider:
     ps = providers()
     if not ps:
@@ -163,7 +184,7 @@ def raw_completion(body: dict[str, Any], *, timeout: float = 120.0) -> dict[str,
     with httpx.Client(timeout=timeout) as client:
         resp = client.post(_url(p, "/chat/completions"), headers=_headers(p), json=payload)
         resp.raise_for_status()
-    return resp.json()
+    return _strip_reasoning(resp.json())
 
 
 def raw_stream(body: dict[str, Any], *, timeout: float = 120.0) -> Iterator[bytes]:
@@ -175,6 +196,6 @@ def raw_stream(body: dict[str, Any], *, timeout: float = 120.0) -> Iterator[byte
     with httpx.Client(timeout=timeout) as client:
         with client.stream("POST", _url(p, "/chat/completions"), headers=_headers(p), json=payload) as resp:
             resp.raise_for_status()
-            for chunk in resp.iter_raw():
-                if chunk:
-                    yield chunk
+            for line in resp.iter_lines():
+                if line:
+                    yield (_sanitize_sse_line(line) + "\n\n").encode()

@@ -44,6 +44,16 @@ This prints:
 - phone-number assignment payload with `assistantId`
 - redacted readiness booleans
 
+Placeholder URLs such as `your-tunnel-or-deploy.example.com` are treated as not ready.
+
+## Redacted Vapi Auth and Phone Check
+
+```bash
+python3 vapi/wire.py list-phone-numbers
+```
+
+This makes a read-only `GET /phone-number` request and prints count, IDs, provider, and assignment presence without raw phone numbers. A `401 Unauthorized` means the local Vapi key is missing, expired, or not the correct private/API key.
+
 ## Live Create and Assign
 
 ```bash
@@ -59,6 +69,8 @@ This calls:
 
 - `POST https://api.vapi.ai/assistant`
 - `PATCH https://api.vapi.ai/phone-number/:id`
+
+If `VAPI_PHONE_NUMBER_ID` is absent and exactly one Vapi phone number exists, the CLI can auto-discover that ID. If multiple numbers exist, set `VAPI_PHONE_NUMBER_ID` explicitly.
 
 If an assistant already exists:
 

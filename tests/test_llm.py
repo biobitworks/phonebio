@@ -1,6 +1,8 @@
 """Offline-safe tests for the LLM router and custom-LLM endpoint (no network)."""
 from __future__ import annotations
 
+import json
+
 from fastapi.testclient import TestClient
 
 from fieldbio import llm
@@ -42,3 +44,32 @@ def test_custom_llm_stream(monkeypatch):
     assert r.status_code == 200
     assert "ven" in r.text
     assert "tilate" in r.text
+
+
+def test_llm_response_sanitizer_removes_reasoning_but_keeps_tool_calls():
+    response = {
+        "choices": [
+            {
+                "message": {
+                    "content": "",
+                    "reasoning": "private chain-of-thought",
+                    "tool_calls": [{"function": {"name": "get_protocol", "arguments": "{}"}}],
+                }
+            }
+        ]
+    }
+
+    sanitized = llm._strip_reasoning(response)
+
+    assert "reasoning" not in sanitized["choices"][0]["message"]
+    assert sanitized["choices"][0]["message"]["tool_calls"][0]["function"]["name"] == "get_protocol"
+
+
+def test_llm_sse_sanitizer_removes_reasoning_delta():
+    line = 'data: {"choices":[{"delta":{"reasoning":"private","content":"ok"}}]}'
+
+    sanitized = llm._sanitize_sse_line(line)
+    payload = json.loads(sanitized.removeprefix("data: "))
+
+    assert "reasoning" not in payload["choices"][0]["delta"]
+    assert payload["choices"][0]["delta"]["content"] == "ok"

@@ -18,7 +18,12 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
 from fieldbio.app import handle_vapi_payload
-from fieldbio.vapi_client import assistant_payload, api_key_from_env, webhook_url_from_env
+from fieldbio.vapi_client import (
+    assistant_payload,
+    api_key_from_env,
+    custom_llm_url_from_env_or_webhook,
+    webhook_url_from_env,
+)
 
 
 def _exists(path: str) -> bool:
@@ -30,11 +35,12 @@ def _read(path: str) -> str:
 
 
 def _env_ready() -> dict[str, bool]:
+    webhook_url = webhook_url_from_env()
     return {
         "vapi_api_key": bool(api_key_from_env()),
         "vapi_phone_number_id": bool(os.getenv("VAPI_PHONE_NUMBER_ID")),
-        "vapi_webhook_url": bool(webhook_url_from_env()),
-        "vapi_custom_llm_url": bool(os.getenv("VAPI_CUSTOM_LLM_URL") or os.getenv("PUBLIC_BASE_URL")),
+        "vapi_webhook_url": bool(webhook_url),
+        "vapi_custom_llm_url": bool(custom_llm_url_from_env_or_webhook(webhook_url)) if webhook_url else False,
         "insforge_api_key": bool(os.getenv("INSFORGE_API_KEY")),
     }
 

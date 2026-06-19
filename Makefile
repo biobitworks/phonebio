@@ -1,4 +1,4 @@
-.PHONY: install dev test test-python test-node expose push wire wire-dry-run smoke readiness
+.PHONY: install dev test test-python test-node expose push wire wire-dry-run smoke readiness llm-probe
 
 install:
 	python3 -m pip install -r requirements.txt
@@ -33,3 +33,6 @@ smoke:
 
 readiness:
 	@python3 scripts/readiness.py
+
+llm-probe:
+	@python3 scripts/llm_probe.py
