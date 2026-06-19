@@ -1,7 +1,8 @@
 // PhoneBio Vapi tool webhook — InsForge edge function (Deno Subhosting).
-// Receives Vapi tool-calls, dispatches the 6 field-bio tools against the
+// Receives Vapi tool-calls, dispatches the 7 field-bio tools against the
 // InsForge content tables (public-read RLS via anon key), returns Vapi results.
-// No OpenAI, no external calls — answers come only from the project DB + local logic.
+// No OpenAI — core answers come from the project DB + local logic; public alert
+// context may query official open feeds and remains non-authoritative context.
 import { createClient } from "npm:@insforge/sdk";
 
 const cors = {
@@ -9,6 +10,57 @@ const cors = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, x-vapi-secret",
 };
+
+type SensorCapture = {
+  id: string;
+  receivedAt: string;
+  clientTime?: string;
+  sessionId: string;
+  source: string;
+  mode: string;
+  loudnessDbfs: number | null;
+  motionMps2: number | null;
+  speakerEstimate: number | null;
+  environmentScore: number | null;
+  locationAccuracyMeters: number | null;
+  wirelessScore: number | null;
+  riskTier: string;
+  captureBoundary: string;
+};
+
+const sensorCaptures: SensorCapture[] = [];
+const MAX_SENSOR_CAPTURES = 120;
+
+function numOrNull(value: unknown): number | null {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function str(value: unknown, fallback = ""): string {
+  return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
+
+function saveSensorCapture(input: Record<string, unknown>) {
+  const event: SensorCapture = {
+    id: `cap_${Date.now()}_${sensorCaptures.length}`,
+    receivedAt: new Date().toISOString(),
+    clientTime: str(input.clientTime),
+    sessionId: str(input.sessionId, "anonymous-demo").slice(0, 80),
+    source: str(input.source, "edge-web").slice(0, 40),
+    mode: str(input.mode, "browser").slice(0, 40),
+    loudnessDbfs: numOrNull(input.loudnessDbfs),
+    motionMps2: numOrNull(input.motionMps2),
+    speakerEstimate: numOrNull(input.speakerEstimate),
+    environmentScore: numOrNull(input.environmentScore),
+    locationAccuracyMeters: numOrNull(input.locationAccuracyMeters),
+    wirelessScore: numOrNull(input.wirelessScore),
+    riskTier: str(input.riskTier, "unknown").slice(0, 16),
+    captureBoundary: "Compact demo capture only: no raw audio stream, no exact GPS, no phone number, and no raw transcript.",
+  };
+  sensorCaptures.push(event);
+  while (sensorCaptures.length > MAX_SENSOR_CAPTURES) sensorCaptures.shift();
+  return event;
+}
 
 function db() {
   return createClient({
@@ -199,6 +251,88 @@ function assessEnvironmentRisk(a: Record<string, unknown>) {
   };
 }
 
+function num(a: Record<string, unknown>, key: string): number | null {
+  const v = Number(a[key]);
+  return Number.isFinite(v) ? v : null;
+}
+
+async function nwsAlerts(lat: number, lon: number) {
+  const res = await fetch(`https://api.weather.gov/alerts/active?point=${lat.toFixed(4)},${lon.toFixed(4)}`, {
+    headers: { "User-Agent": "phonebio-demo/0.1", "Accept": "application/geo+json" },
+  });
+  if (!res.ok) throw new Error(`nws_${res.status}`);
+  const body = await res.json();
+  return (body.features || []).slice(0, 3).map((f: any) => {
+    const p = f.properties || {};
+    return {
+      source: "NOAA/NWS", event: p.event, headline: p.headline || p.event,
+      severity: p.severity, urgency: p.urgency, certainty: p.certainty,
+      effective: p.effective, expires: p.expires,
+      instructionPresent: Boolean(p.instruction),
+    };
+  });
+}
+
+async function gdacsAlerts() {
+  const res = await fetch("https://www.gdacs.org/gdacsapi/api/events/geteventlist/events4app");
+  if (!res.ok) throw new Error(`gdacs_${res.status}`);
+  const body = await res.json();
+  return (body.features || []).slice(0, 3).map((f: any) => {
+    const p = f.properties || {};
+    const coords = f.geometry?.coordinates || [];
+    return {
+      source: "GDACS", event: p.eventtype, headline: p.name || p.description,
+      severity: p.alertlevel, effective: p.fromdate || p.datemodified,
+      country: p.country, coordinates: Array.isArray(coords) ? coords.slice(0, 2) : [],
+    };
+  });
+}
+
+async function getPublicAlertContext(a: Record<string, unknown>) {
+  const country = String(a.country || "").toLowerCase();
+  const lat = num(a, "latitude");
+  const lon = num(a, "longitude");
+  const hazardHint = String(a.hazardHint || a.hazard_hint || "").trim();
+  const alerts: any[] = [];
+  const sourceErrors: any[] = [];
+  const sourcesChecked: string[] = [];
+
+  if (a.offline) {
+    alerts.push({
+      source: "demo-static", event: hazardHint || "field hazard",
+      headline: "Public alert lookup unavailable; continue voice-only triage.",
+      severity: "unknown",
+    });
+  } else {
+    if (lat !== null && lon !== null && ["", "us", "usa", "united states"].includes(country)) {
+      sourcesChecked.push("NOAA/NWS api.weather.gov");
+      try { alerts.push(...await nwsAlerts(lat, lon)); } catch (e) { sourceErrors.push({ source: "NOAA/NWS", error: e instanceof Error ? e.message : "fetch_error" }); }
+    }
+    sourcesChecked.push("GDACS");
+    try { alerts.push(...await gdacsAlerts()); } catch (e) { sourceErrors.push({ source: "GDACS", error: e instanceof Error ? e.message : "fetch_error" }); }
+  }
+
+  const headlineBits = alerts.slice(0, 3).map((x) => x.headline || x.event).filter(Boolean);
+  return {
+    status: alerts.length || !sourceErrors.length ? "ok" : "degraded",
+    alerts: alerts.slice(0, 6),
+    sourcesChecked,
+    sourceErrors,
+    readAloudSummary: headlineBits.length
+      ? "Public alert context found: " + headlineBits.join("; ")
+      : "No public alert context was found or the alert feed was unavailable.",
+    actions: [
+      "Treat public alerts as context only; do not override local emergency authority, SDS, supervisor, or incident command.",
+      "If the caller reports immediate danger, prioritize life safety and voice-only relay facts over alert lookup.",
+    ],
+    inferenceBoundary: "Public alert feeds may lag, omit local hazards, or be unavailable. PhoneBio uses them as context, not as a substitute for emergency services.",
+    sourceIds: [
+      "https://api.weather.gov/alerts/active",
+      "https://www.gdacs.org/gdacsapi/api/events/geteventlist/events4app",
+    ],
+  };
+}
+
 const TOOLS: Record<string, (a: Record<string, unknown>) => unknown | Promise<unknown>> = {
   get_protocol: getProtocol,
   get_safety_sheet: getSafetySheet,
@@ -206,6 +340,7 @@ const TOOLS: Record<string, (a: Record<string, unknown>) => unknown | Promise<un
   interpret_sensor_report: interpretSensorReport,
   compress_observation: compressObservation,
   assess_environment_risk: assessEnvironmentRisk,
+  get_public_alert_context: getPublicAlertContext,
 };
 
 export default async function (req: Request): Promise<Response> {
@@ -213,7 +348,18 @@ export default async function (req: Request): Promise<Response> {
   const json = (b: unknown, s = 200) =>
     new Response(JSON.stringify(b), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
 
-  if (req.method === "GET") return json({ status: "ok", service: "phonebio-vapi-webhook" });
+  const url = new URL(req.url);
+  if (req.method === "GET") {
+    if (url.searchParams.get("capture") === "latest") {
+      return json({
+        status: "ok",
+        count: sensorCaptures.length,
+        latest: sensorCaptures.at(-1) ?? null,
+        captures: sensorCaptures.slice(-20),
+      });
+    }
+    return json({ status: "ok", service: "phonebio-vapi-webhook", sensorCapture: "enabled" });
+  }
 
   // optional shared-secret check (set VAPI_WEBHOOK_SECRET as an InsForge secret)
   const secret = Deno.env.get("VAPI_WEBHOOK_SECRET");
@@ -224,6 +370,14 @@ export default async function (req: Request): Promise<Response> {
 
   let body: any;
   try { body = await req.json(); } catch { return json({ results: [] }); }
+  if (body.type === "sensor-capture" || body.kind === "sensor-capture") {
+    const event = saveSensorCapture(body.snapshot || body);
+    return json({
+      status: "ok",
+      capture: event,
+      count: sensorCaptures.length,
+    });
+  }
   const msg = body.message || body;
   const calls = msg.toolCallList || msg.toolCalls || body.toolCallList || body.toolCalls || [];
 

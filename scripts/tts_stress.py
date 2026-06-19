@@ -78,6 +78,19 @@ EXTRA_SCENARIOS: list[dict[str, Any]] = [
         "must_include": ["possible", "voice", "identity"],
     },
     {
+        "label": "public-alert-context",
+        "caller": "Check recent public alerts near San Francisco before I continue the field run.",
+        "tool": "get_public_alert_context",
+        "arguments": {
+            "country": "US",
+            "latitude": 37.7749,
+            "longitude": -122.4194,
+            "hazardHint": "weather or disaster alert",
+        },
+        "expect_status": "ok",
+        "must_include": ["context", "substitute"],
+    },
+    {
         "label": "milliliter-dialect-shorthand",
         "caller": (
             "Observed em-ells, five milliliters formalin, one point five mil "
@@ -132,6 +145,7 @@ def redact_result(result: dict[str, Any]) -> dict[str, Any]:
             "voice_readback",
             "fieldLine",
             "field_line",
+            "readAloudSummary",
         )
         if result.get(key)
     }
@@ -142,6 +156,9 @@ def redact_result(result: dict[str, Any]) -> dict[str, Any]:
         redacted["actionsPreview"] = result["actions"][:2]
     if result.get("sourceIds"):
         redacted["sourceIds"] = result["sourceIds"]
+    if result.get("alerts"):
+        redacted["alertCount"] = len(result["alerts"])
+        redacted["alertSources"] = sorted({str(alert.get("source")) for alert in result["alerts"] if alert.get("source")})
     return redacted
 
 

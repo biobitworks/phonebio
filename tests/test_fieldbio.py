@@ -190,6 +190,24 @@ def test_environment_risk_flags_biohazard_and_possible_multiple_speakers():
     assert "exact speaker count" in result["inferenceBoundary"]
 
 
+def test_public_alert_context_is_context_only_offline():
+    result = get_result(
+        {
+            "toolCalls": [
+                {
+                    "id": "call_alerts",
+                    "name": "get_public_alert_context",
+                    "arguments": {"country": "US", "hazardHint": "wildfire smoke", "offline": True},
+                }
+            ]
+        }
+    )
+    assert result["status"] == "ok"
+    assert result["alerts"][0]["source"] == "demo-static"
+    assert "context only" in result["actions"][0]
+    assert "not as a substitute" in result["inferenceBoundary"]
+
+
 def test_webhook_auth_when_secret_configured(monkeypatch):
     from fastapi.testclient import TestClient
     from fieldbio.app import app

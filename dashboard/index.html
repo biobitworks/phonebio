@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>PhoneBio — Field Signals</title>
 <style>
-  :root{--bg:#0a0e14;--panel:#121826;--line:#1f2a3d;--ink:#e6edf3;--mut:#7d8aa0;--ok:#33d17a;--warn:#ffb454;--hot:#ff5d62;--acc:#4cc2ff}
+  :root{--bg:#0a0e14;--panel:#121826;--line:#1f2a3d;--ink:#e6edf3;--mut:#7d8aa0;--ok:#33d17a;--warn:#ffb454;--hot:#ff5d62;--acc:#4cc2ff;--vio:#b48cff}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 ui-monospace,Menlo,Consolas,monospace}
   header{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
@@ -13,57 +13,70 @@
   .tag{color:var(--mut);font-size:12px}
   button{background:#16314a;color:var(--ink);border:1px solid var(--acc);border-radius:8px;padding:9px 14px;font:inherit;cursor:pointer}
   button:active{transform:translateY(1px)}
-  .grid{display:grep;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;padding:12px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;position:relative;overflow:hidden}
-  .card h2{font-size:12px;margin:0 0 6px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
-  .big{font-size:30px;font-weight:600}
-  .unit{font-size:13px;color:var(--mut)}
-  canvas{width:100%;height:54px;display:block;margin-top:8px}
-  .flash{position:absolute;inset:0;background:var(--hot);opacity:0;pointer-events:none;transition:opacity .35s}
-  .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-  #log{padding:0 12px 24px}
-  #log h2{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
-  #events{list-style:none;margin:0;padding:0;max-height:34vh;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
-  #events li{padding:7px 12px;border-bottom:1px solid var(--line);display:flex;gap:10px}
-  #events li b{color:var(--acc)} .t{color:var(--mut);min-width:78px}
   .pill{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--mut)}
   .on{color:var(--ok);border-color:var(--ok)} .off{color:var(--hot);border-color:var(--hot)}
-  label{font-size:12px;color:var(--mut)} input[type=range]{vertical-align:middle}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;padding:12px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;position:relative;overflow:hidden}
+  .card h2{font-size:12px;margin:0 0 4px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
+  .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .big{font-size:26px;font-weight:600}
+  .sub{font-size:11px;color:var(--mut);min-height:14px}
+  .bw{font-size:10px;color:#5b6b85;margin:0 0 4px;letter-spacing:.3px}
+  .bw .edge{color:var(--warn)} .bw .cloud{color:var(--acc)}
+  .unit{font-size:12px;color:var(--mut)}
+  canvas{width:100%;height:46px;display:block;margin-top:6px}
+  .flash{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .35s;background:var(--hot)}
+  #log h2{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;margin:0 12px}
+  #events{list-style:none;margin:6px 12px 24px;padding:0;max-height:30vh;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+  #events li{padding:7px 12px;border-bottom:1px solid var(--line);display:flex;gap:10px}
+  #events li b{color:var(--acc)} .t{color:var(--mut);min-width:74px}
+  #bles{list-style:none;padding:6px 0 0;margin:0;font-size:13px}
+  label{font-size:12px;color:var(--mut)}
 </style>
 </head>
 <body>
 <header>
   <h1>PHONEBIO · FIELD SIGNALS</h1>
-  <span class="tag">camera-free · live</span>
+  <span class="tag">camera-free · in-browser · data stays on this device</span>
   <button id="arm">▶ ARM SENSORS</button>
   <span id="status" class="pill off">disarmed</span>
-  <span style="margin-left:auto"><label>spike thresh <input id="thr" type="range" min="-50" max="-5" value="-28"> <span id="thrv">-28 dB</span></label></span>
 </header>
 
 <div class="grid">
   <div class="card"><div class="flash" id="f-loud"></div>
-    <h2>Loudness (mic)</h2>
-    <div class="row"><span class="big" id="loud">—</span><span class="unit">dBFS</span></div>
-    <canvas id="c-loud"></canvas></div>
+    <h2>Loudness · microphone</h2>
+    <div class="bw">≈768 kbps raw → <span class="edge">EDGE</span> · sends labels (bytes)</div>
+    <div class="row"><span class="big" id="v-loud">—</span><span class="unit">dBFS</span></div>
+    <div class="sub" id="s-loud"></div><canvas id="c-loud"></canvas></div>
 
-  <div class="card"><div class="flash" id="f-vib"></div>
-    <h2>Vibration / motion (accel)</h2>
-    <div class="row"><span class="big" id="vib">—</span><span class="unit">m/s²</span></div>
-    <canvas id="c-vib"></canvas></div>
-
-  <div class="card">
-    <h2>Location (GPS)</h2>
-    <div class="big" id="gps" style="font-size:18px">—</div>
-    <div class="unit" id="gpsacc"></div></div>
+  <div class="card"><div class="flash" id="f-acc"></div>
+    <h2>Acceleration · motion</h2>
+    <div class="bw">≈3 KB/s raw → <span class="edge">EDGE</span> · fall/impact events</div>
+    <div class="row"><span class="big" id="v-acc">—</span><span class="unit">m/s² (net)</span></div>
+    <div class="sub" id="s-acc"></div><canvas id="c-acc"></canvas></div>
 
   <div class="card">
-    <h2>Heading (compass)</h2>
-    <div class="row"><span class="big" id="head">—</span><span class="unit" id="card">°</span></div></div>
+    <h2>Rotation · gyroscope</h2>
+    <div class="bw">≈3 KB/s raw → <span class="edge">EDGE</span> · orientation fusion</div>
+    <div class="row"><span class="big" id="v-gyr">—</span><span class="unit">°/s</span></div>
+    <div class="sub" id="s-gyr"></div><canvas id="c-gyr"></canvas></div>
 
   <div class="card">
-    <h2>Nearby devices (BLE)</h2>
+    <h2>Heading · compass</h2>
+    <div class="bw">≈0.5 KB/s → <span class="edge">EDGE</span> fuse → <span class="cloud">cloud</span> bearing</div>
+    <div class="row"><span class="big" id="v-head">—</span><span class="unit" id="card">°</span></div>
+    <div class="sub" id="s-head"></div><canvas id="c-head"></canvas></div>
+
+  <div class="card">
+    <h2>GPS · location accuracy</h2>
+    <div class="bw">≈20 B/s → <span class="cloud">CLOUD-ok</span> · geotag/relay</div>
+    <div class="row"><span class="big" id="v-gps">—</span><span class="unit">m radius</span></div>
+    <div class="sub" id="s-gps"></div><canvas id="c-gps"></canvas></div>
+
+  <div class="card">
+    <h2>Nearby devices · BLE</h2>
     <button id="ble">scan</button>
-    <ul id="bles" style="list-style:none;padding:8px 0 0;margin:0;font-size:13px"></ul></div>
+    <ul id="bles"></ul></div>
 </div>
 
 <div id="log"><h2>Event log — spikes as they happen</h2><ul id="events"></ul></div>
@@ -74,58 +87,56 @@ const events=$('events');
 function log(kind,msg){const li=document.createElement('li');const t=new Date().toTimeString().slice(0,8);
   li.innerHTML=`<span class="t">${t}</span><b>${kind}</b><span>${msg}</span>`;events.prepend(li);
   while(events.children.length>120)events.lastChild.remove();}
-function flash(el){el.style.opacity=.55;setTimeout(()=>el.style.opacity=0,60);}
-let THR=-28; $('thr').oninput=e=>{THR=+e.target.value;$('thrv').textContent=THR+' dB';};
+function flash(el){if(!el)return;el.style.opacity=.5;setTimeout(()=>el.style.opacity=0,60);}
 
-// rolling sparkline
-function spark(cv){const ctx=cv.getContext('2d');const buf=[];const W=cv.width=cv.clientWidth*devicePixelRatio,H=cv.height=54*devicePixelRatio;
-  return (v,lo,hi,col)=>{buf.push(v);if(buf.length>W/2)buf.shift();ctx.clearRect(0,0,W,H);ctx.beginPath();
-    buf.forEach((b,i)=>{const x=i*2;const y=H-((b-lo)/(hi-lo))*H;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
-    ctx.strokeStyle=col;ctx.lineWidth=2*devicePixelRatio;ctx.stroke();};}
-const drawLoud=spark($('c-loud')), drawVib=spark($('c-vib'));
+// one sparkline per canvas; each sensor has its own data line
+function spark(id,color){
+  const cv=$(id),ctx=cv.getContext('2d');const buf=[];
+  const W=cv.width=cv.clientWidth*devicePixelRatio||300, H=cv.height=46*devicePixelRatio;
+  return (v,lo,hi)=>{if(v==null||isNaN(v))return;buf.push(v);if(buf.length>W/2)buf.shift();
+    ctx.clearRect(0,0,W,H);ctx.beginPath();
+    buf.forEach((b,i)=>{const x=i*2;let y=H-((b-lo)/((hi-lo)||1))*H;y=Math.max(1,Math.min(H-1,y));i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+    ctx.strokeStyle=color;ctx.lineWidth=2*devicePixelRatio;ctx.stroke();};}
+const L={loud:spark('c-loud','#4cc2ff'),acc:spark('c-acc','#ffb454'),gyr:spark('c-gyr','#b48cff'),head:spark('c-head','#33d17a'),gps:spark('c-gps','#ff8cc6')};
 
 async function arm(){
-  $('arm').disabled=true; $('status').textContent='arming…';
-  // iOS motion/orientation permission
-  try{ if(typeof DeviceMotionEvent?.requestPermission==='function'){await DeviceMotionEvent.requestPermission();}
-       if(typeof DeviceOrientationEvent?.requestPermission==='function'){await DeviceOrientationEvent.requestPermission();}}catch(e){}
-  // mic
+  $('arm').disabled=true;$('status').textContent='arming…';
+  try{if(typeof DeviceMotionEvent?.requestPermission==='function')await DeviceMotionEvent.requestPermission();
+      if(typeof DeviceOrientationEvent?.requestPermission==='function')await DeviceOrientationEvent.requestPermission();}catch(e){}
+  // mic loudness
   try{
-    const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
-    const ac=new (window.AudioContext||window.webkitAudioContext)();
-    const src=ac.createMediaStreamSource(stream); const an=ac.createAnalyser(); an.fftSize=1024; src.connect(an);
-    const d=new Uint8Array(an.fftSize); let last=-100;
-    (function loop(){an.getByteTimeDomainData(d);let s=0;for(let i=0;i<d.length;i++){const v=(d[i]-128)/128;s+=v*v;}
-      const rms=Math.sqrt(s/d.length); const db=Math.round(20*Math.log10(rms+1e-7));
-      $('loud').textContent=db; drawLoud(db,-60,0,'#4cc2ff');
-      if(db>THR && db-last>4){flash($('f-loud'));log('LOUD',`${db} dBFS spike`);}
-      last=db; requestAnimationFrame(loop);})();
-    log('MIC','armed — loudness live');
-  }catch(e){log('MIC','blocked: '+e.message);}
-  // motion
+    const st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    const ac=new (window.AudioContext||window.webkitAudioContext)();const an=ac.createAnalyser();an.fftSize=1024;
+    ac.createMediaStreamSource(st).connect(an);const d=new Uint8Array(an.fftSize);let last=-100;
+    (function loop(){an.getByteTimeDomainData(d);let s=0;for(const x of d){const n=(x-128)/128;s+=n*n;}
+      const db=Math.round(20*Math.log10(Math.sqrt(s/d.length)+1e-7));
+      $('v-loud').textContent=db;$('s-loud').textContent='live';L.loud(db,-60,0);
+      if(db>-28&&db-last>4){flash($('f-loud'));log('LOUD',db+' dBFS spike');}last=db;requestAnimationFrame(loop);})();
+  }catch(e){$('v-loud').textContent='n/a';$('s-loud').textContent='mic blocked';}
+  // accel + gyro from devicemotion
   let base=9.8;
-  window.addEventListener('devicemotion',e=>{const a=e.accelerationIncludingGravity||{};
-    const m=Math.sqrt((a.x||0)**2+(a.y||0)**2+(a.z||0)**2); const dev=Math.abs(m-base); base=base*0.98+m*0.02;
-    $('vib').textContent=dev.toFixed(2); drawVib(dev,0,6,'#ffb454');
-    if(dev>2.2){flash($('f-vib'));log('MOTION',`impact/step ${dev.toFixed(1)} m/s²`);}});
-  // orientation / compass
-  window.addEventListener('deviceorientation',e=>{let h=e.webkitCompassHeading??(e.alpha!=null?360-e.alpha:null);
-    if(h!=null){h=Math.round(h);$('head').textContent=h;const dirs=['N','NE','E','SE','S','SW','W','NW'];$('card').textContent='° '+dirs[Math.round(h/45)%8];}});
+  addEventListener('devicemotion',e=>{
+    const a=e.accelerationIncludingGravity||{};const mag=Math.hypot(a.x||0,a.y||0,a.z||0);const net=Math.abs(mag-base);base=base*.98+mag*.02;
+    $('v-acc').textContent=net.toFixed(2);$('s-acc').textContent='net of gravity';L.acc(net,0,6);
+    if(net>2.2){flash($('f-acc'));log('MOTION','impact/step '+net.toFixed(1)+' m/s²');}
+    const r=e.rotationRate||{};const rr=Math.hypot(r.alpha||0,r.beta||0,r.gamma||0);
+    $('v-gyr').textContent=rr.toFixed(0);$('s-gyr').textContent='angular rate';L.gyr(rr,0,300);
+  });
+  // heading
+  addEventListener('deviceorientation',e=>{let h=e.webkitCompassHeading??(e.alpha!=null?360-e.alpha:null);
+    if(h!=null){h=Math.round(h);$('v-head').textContent=h;const dirs=['N','NE','E','SE','S','SW','W','NW'];$('card').textContent='° '+dirs[Math.round(h/45)%8];$('s-head').textContent='magnetometer-fused';L.head(h,0,360);}});
   // gps
-  if(navigator.geolocation){navigator.geolocation.watchPosition(p=>{
-    $('gps').textContent=p.coords.latitude.toFixed(5)+', '+p.coords.longitude.toFixed(5);
-    $('gpsacc').textContent='±'+Math.round(p.coords.accuracy)+' m'+(p.coords.altitude!=null?' · alt '+Math.round(p.coords.altitude)+' m':'');
-    },e=>log('GPS','blocked: '+e.message),{enableHighAccuracy:true,maximumAge:2000});}
-  $('status').textContent='ARMED'; $('status').className='pill on';
+  if(navigator.geolocation)navigator.geolocation.watchPosition(p=>{
+    const acc=Math.round(p.coords.accuracy);$('v-gps').textContent=acc;
+    $('s-gps').textContent=p.coords.latitude.toFixed(4)+', '+p.coords.longitude.toFixed(4)+(p.coords.altitude!=null?' · '+Math.round(p.coords.altitude)+'m':'');
+    L.gps(acc,0,50);},e=>{$('v-gps').textContent='n/a';$('s-gps').textContent='blocked';},{enableHighAccuracy:true,maximumAge:2000});
+  $('status').textContent='ARMED';$('status').className='pill on';log('READY','sensors armed — all data stays on this device');
 }
 $('arm').onclick=arm;
-
-// BLE
 $('ble').onclick=async()=>{
-  if(!navigator.bluetooth){log('BLE','not supported (use Chrome on Android)');return;}
+  if(!navigator.bluetooth){log('BLE','not supported (use Chrome/Android)');return;}
   try{const dev=await navigator.bluetooth.requestDevice({acceptAllDevices:true});
-    const li=document.createElement('li');li.textContent='• '+(dev.name||'unknown')+' ['+dev.id.slice(0,8)+']';$('bles').prepend(li);
-    log('BLE','device: '+(dev.name||dev.id.slice(0,8)));
+    const li=document.createElement('li');li.textContent='• '+(dev.name||'unknown')+' ['+dev.id.slice(0,8)+']';$('bles').prepend(li);log('BLE','device: '+(dev.name||dev.id.slice(0,8)));
     if(dev.watchAdvertisements){await dev.watchAdvertisements();dev.addEventListener('advertisementreceived',ev=>{li.textContent='• '+(dev.name||'unknown')+'  RSSI '+ev.rssi+' dBm';});}
   }catch(e){log('BLE',e.message);}
 };

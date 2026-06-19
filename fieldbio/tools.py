@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from typing import Any
 
+import httpx
+
 from .content import best_match, load_protocols, load_sds, load_sensors, load_troubleshooting
 from .shorthand import compress
 
@@ -251,6 +253,128 @@ def assess_environment_risk(args: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _float_arg(args: dict[str, Any], key: str) -> float | None:
+    try:
+        value = args.get(key)
+        return float(value) if value not in (None, "") else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _nws_alerts(latitude: float, longitude: float, *, limit: int = 3) -> tuple[list[dict[str, Any]], str | None]:
+    url = f"https://api.weather.gov/alerts/active?point={latitude:.4f},{longitude:.4f}"
+    try:
+        response = httpx.get(
+            url,
+            headers={"User-Agent": "phonebio-demo/0.1", "Accept": "application/geo+json"},
+            timeout=8,
+        )
+        response.raise_for_status()
+        body = response.json()
+    except (httpx.HTTPError, ValueError) as error:
+        return [], error.__class__.__name__
+    alerts = []
+    for feature in (body.get("features") or [])[:limit]:
+        props = feature.get("properties") or {}
+        alerts.append(
+            {
+                "source": "NOAA/NWS",
+                "event": props.get("event"),
+                "headline": props.get("headline") or props.get("event"),
+                "severity": props.get("severity"),
+                "urgency": props.get("urgency"),
+                "certainty": props.get("certainty"),
+                "effective": props.get("effective"),
+                "expires": props.get("expires"),
+                "instructionPresent": bool(props.get("instruction")),
+            }
+        )
+    return alerts, None
+
+
+def _gdacs_alerts(*, limit: int = 3) -> tuple[list[dict[str, Any]], str | None]:
+    url = "https://www.gdacs.org/gdacsapi/api/events/geteventlist/events4app"
+    try:
+        response = httpx.get(url, timeout=8)
+        response.raise_for_status()
+        body = response.json()
+    except (httpx.HTTPError, ValueError) as error:
+        return [], error.__class__.__name__
+    alerts = []
+    for feature in (body.get("features") or [])[:limit]:
+        props = feature.get("properties") or {}
+        coordinates = (feature.get("geometry") or {}).get("coordinates") or []
+        alerts.append(
+            {
+                "source": "GDACS",
+                "event": props.get("eventtype"),
+                "headline": props.get("name") or props.get("description"),
+                "severity": props.get("alertlevel"),
+                "effective": props.get("fromdate") or props.get("datemodified"),
+                "country": props.get("country"),
+                "coordinates": coordinates[:2] if isinstance(coordinates, list) else [],
+            }
+        )
+    return alerts, None
+
+
+def get_public_alert_context(args: dict[str, Any]) -> dict[str, Any]:
+    """Fetch public emergency-alert context without making it authoritative."""
+    country = str(args.get("country", "")).lower()
+    latitude = _float_arg(args, "latitude")
+    longitude = _float_arg(args, "longitude")
+    hazard_hint = str(args.get("hazardHint") or args.get("hazard_hint") or "").strip()
+    offline = bool(args.get("offline"))
+    alerts: list[dict[str, Any]] = []
+    source_errors: list[dict[str, str]] = []
+    sources_checked: list[str] = []
+
+    if offline:
+        alerts.append(
+            {
+                "source": "demo-static",
+                "event": hazard_hint or "field hazard",
+                "headline": "Public alert lookup unavailable; continue voice-only triage.",
+                "severity": "unknown",
+            }
+        )
+    else:
+        if latitude is not None and longitude is not None and country in {"", "us", "usa", "united states"}:
+            sources_checked.append("NOAA/NWS api.weather.gov")
+            nws, error = _nws_alerts(latitude, longitude)
+            alerts.extend(nws)
+            if error:
+                source_errors.append({"source": "NOAA/NWS", "error": error})
+        sources_checked.append("GDACS")
+        gdacs, error = _gdacs_alerts()
+        alerts.extend(gdacs)
+        if error:
+            source_errors.append({"source": "GDACS", "error": error})
+
+    headline_bits = [str(alert.get("headline") or alert.get("event")) for alert in alerts[:3] if alert.get("headline") or alert.get("event")]
+    summary = (
+        "Public alert context found: " + "; ".join(headline_bits)
+        if headline_bits
+        else "No public alert context was found or the alert feed was unavailable."
+    )
+    return {
+        "status": "ok" if alerts or not source_errors else "degraded",
+        "alerts": alerts[:6],
+        "sourcesChecked": sources_checked,
+        "sourceErrors": source_errors,
+        "readAloudSummary": summary,
+        "actions": [
+            "Treat public alerts as context only; do not override local emergency authority, SDS, supervisor, or incident command.",
+            "If the caller reports immediate danger, prioritize life safety and voice-only relay facts over alert lookup.",
+        ],
+        "inferenceBoundary": "Public alert feeds may lag, omit local hazards, or be unavailable. PhoneBio uses them as context, not as a substitute for emergency services.",
+        "sourceIds": [
+            "https://api.weather.gov/alerts/active",
+            "https://www.gdacs.org/gdacsapi/api/events/geteventlist/events4app",
+        ],
+    }
+
+
 TOOLS = {
     "get_protocol": get_protocol,
     "get_safety_sheet": get_safety_sheet,
@@ -258,4 +382,5 @@ TOOLS = {
     "interpret_sensor_report": interpret_sensor_report,
     "compress_observation": compress_observation,
     "assess_environment_risk": assess_environment_risk,
+    "get_public_alert_context": get_public_alert_context,
 }

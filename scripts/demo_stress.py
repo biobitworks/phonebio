@@ -102,6 +102,7 @@ def vapi_live_tools_check() -> dict[str, Any]:
         "interpret_sensor_report",
         "compress_observation",
         "assess_environment_risk",
+        "get_public_alert_context",
     }
     if not api_key or not assistant_id:
         return {"name": "vapi_live_tools", "status": "blocked", "detail": "Vapi key or assistant ID missing."}

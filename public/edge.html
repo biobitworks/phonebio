@@ -60,7 +60,10 @@ import { CreateMLCEngine } from "https://esm.run/@mlc-ai/web-llm";
 const $=id=>document.getElementById(id);
 const MODEL="Qwen2.5-1.5B-Instruct-q4f16_1-MLC";   // small quantized model, runs in-browser
 const PROXY="https://qfdp5nuv.function2.insforge.app/phonebio-llm/chat/completions"; // cloud fallback
+const CAPTURE_ENDPOINT="https://qfdp5nuv.function2.insforge.app/phonebio-vapi-webhook";
+const SESSION_ID=globalThis.crypto?.randomUUID?.() ?? `edge_${Date.now()}`;
 let engine=null, useLocal=false;
+let armed=false, lastTier="unknown", captureTimer=null;
 
 const hasGPU = !!navigator.gpu;
 $('mode').textContent = hasGPU ? "WebGPU ready (local)" : "no WebGPU → cloud fallback";
@@ -86,7 +89,30 @@ $('arm').onclick=async()=>{
   }catch(e){$('loud').textContent="n/a";}
   let base=9.8;
   addEventListener('devicemotion',e=>{const a=e.accelerationIncludingGravity||{};const m=Math.hypot(a.x||0,a.y||0,a.z||0);base=base*.98+m*.02;$('vib').textContent=Math.abs(m-base).toFixed(2);});
+  armed=true;
+  $('arm').textContent="Sensors armed";
+  if(!captureTimer) captureTimer=setInterval(captureSnapshot,1000);
 };
+
+async function captureSnapshot(){
+  if(!armed) return;
+  const loud=Number($('loud').textContent), vib=Number($('vib').textContent), spk=Number($('speakers').value);
+  try{
+    await fetch(CAPTURE_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+      type:"sensor-capture",
+      snapshot:{
+        sessionId:SESSION_ID,
+        clientTime:new Date().toISOString(),
+        source:"edge-web",
+        mode:useLocal?"local-quantized":"cloud-fallback",
+        loudnessDbfs:Number.isFinite(loud)?loud:null,
+        motionMps2:Number.isFinite(vib)?vib:null,
+        speakerEstimate:Number.isFinite(spk)?spk:null,
+        riskTier:lastTier
+      }
+    })});
+  }catch(e){}
+}
 
 function prompt_(){
   const loud=$('loud').textContent, vib=$('vib').textContent, spk=$('speakers').value, note=$('note').value;
@@ -104,6 +130,7 @@ $('assess').onclick=async()=>{
   try{
     const txt = (useLocal&&engine) ? await localChat(prompt_()) : await cloudChat(prompt_());
     const tier=(txt.match(/GREEN|AMBER|RED/i)||["?"])[0].toUpperCase();
+    lastTier=tier==="RED"?"high":(tier==="AMBER"?"medium":"low");
     $('tier').textContent=tier; $('tier').className=tier;
     $('out').textContent=(useLocal?"[local quantized · offline] ":"[cloud fallback] ")+txt.trim();
   }catch(e){$('out').textContent="error: "+e.message;}

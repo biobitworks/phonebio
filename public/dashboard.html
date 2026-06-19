@@ -24,6 +24,7 @@
           <span id="riskState">risk: none</span>
           <span id="laneState">lane: idle</span>
           <span id="orchestratorState">orchestrator: idle</span>
+          <span id="captureState">capture: idle</span>
         </div>
       </header>
 
@@ -36,9 +37,11 @@
               <span><b class="motion"></b>motion</span>
               <span><b class="wireless"></b>wireless</span>
               <span><b class="environment"></b>environment</span>
+              <span><b class="location"></b>location</span>
             </div>
           </div>
           <canvas id="signalChart" width="920" height="320" aria-label="Signal intensity chart"></canvas>
+          <div id="sensorLines" class="sensor-lines" aria-label="Latest sensor data lines"></div>
         </div>
 
         <div class="panel">
@@ -88,6 +91,7 @@
             <button data-demo="executorch">ExecuTorch gate</button>
             <button data-demo="biohazard">Biohazard</button>
           </div>
+          <button id="armSensors" class="wide">Arm live phone sensors</button>
           <button id="simulate" class="wide">Run live simulation</button>
           <button id="clear" class="wide ghost">Clear</button>
         </div>

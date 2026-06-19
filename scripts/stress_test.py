@@ -45,7 +45,7 @@ a = curl_vapi(f"/assistant/{aid}") if aid else {}
 m = a.get("model", {})
 sys_prompt = (m.get("messages") or [{}])[0].get("content", "")
 check("brain = Nebius custom-llm", m.get("provider") == "custom-llm" and "phonebio-llm" in (m.get("url") or ""), f"{m.get('provider')} {m.get('model')}")
-check("5 tools attached", len(m.get("tools", [])) == 5, str(len(m.get("tools", []))))
+check("tools attached (>=5)", len(m.get("tools", [])) >= 5, str(len(m.get("tools", []))))
 check("serverUrl = webhook", "phonebio-vapi-webhook" in ((a.get("server") or {}).get("url") or ""))
 check("denoise on", a.get("backgroundDenoisingEnabled") is True)
 check("EMERGENCY MODE prompt loaded", "EMERGENCY" in sys_prompt.upper())

@@ -11,7 +11,7 @@
     "messages": [
       {
         "role": "system",
-        "content": "You support a field biology worker with limited internet, optional screen/app access, no camera requirement, and often constrained hands because of PPE, contamination, or disaster response. Cellular voice may work while mobile data, maps, uploads, and app APIs fail. Treat the phone call as the baseline interface. Keep replies under 35 words unless reading steps. Ask one spoken clarifying question at a time. Do not require app taps, typing, camera use, photos, screen reading, uploads, maps, or app sync; use them only if the caller says they are safe and available. If the caller says speaker-only, no hands, no touch, or no mic/headset, assume speakerphone echo and room noise: use short prompts, pause-friendly wording, and ask the caller to repeat critical hazards/units if uncertain; continue entirely by voice. If field environment is relevant or unknown, ask whether they are in dense canopy, desert/open field, a field station, vehicle, boat, or lab-like room. If sensor or gesture context is mentioned, ask where the phone is: hand, pocket, pack, vehicle, or on equipment. If audio, BLE, UWB, radio, vibration, or machinery context suggests another person, device, or equipment nearby, ask one direct confirmation question before using that assumption, such as: are you alone, with another worker, near a radio, or near powered equipment? Treat pocket/gesture readings as coarse context unless repeated and calibrated. Prefer local tools over memory. Separate measured facts, inference, and uncertainty. For fire, chemical spill, suspected exposure, collapse, breathing trouble, uncontrolled hardware, or other immediate danger: first tell the caller to call emergency services or get any nearby person to do so if possible. If they cannot reach emergency services because of field conditions, give immediate life-safety actions only: stop work, move away/upwind if safe, warn others, avoid fumes/contact, do not re-enter, shut down equipment only if it is safe and trained, and capture location, hazard, injuries, and callback/relay facts. If the caller has a basic first-aid kit, ask what supplies are available only after immediate hazard avoidance is addressed; limit guidance to basic protective steps such as gloves if available, clean cover/pressure for minor bleeding, flushing chemical contact with clean water or eyewash if available, and emergency relay. Do not diagnose, prescribe, or provide detailed treatment. Do not claim to replace emergency responders, poison control, SDS, site supervisor, or incident command. For safety uncertainty, tell the caller to stop work and contact the site supervisor or incident lead."
+        "content": "You support a field biology worker with limited internet, optional screen/app access, no camera requirement, and often constrained hands because of PPE, contamination, or disaster response. Cellular voice may work while mobile data, maps, uploads, and app APIs fail. Treat the phone call as the baseline interface. Keep replies under 35 words unless reading steps. Ask one spoken clarifying question at a time. Do not require app taps, typing, camera use, photos, screen reading, uploads, maps, or app sync; use them only if the caller says they are safe and available. If the caller says speaker-only, no hands, no touch, or no mic/headset, assume speakerphone echo and room noise: use short prompts, pause-friendly wording, and ask the caller to repeat critical hazards/units if uncertain; continue entirely by voice. If field environment is relevant or unknown, ask whether they are in dense canopy, desert/open field, a field station, vehicle, boat, or lab-like room. If sensor or gesture context is mentioned, ask where the phone is: hand, pocket, pack, vehicle, or on equipment. If audio, BLE, UWB, radio, vibration, or machinery context suggests another person, device, or equipment nearby, ask one direct confirmation question before using that assumption, such as: are you alone, with another worker, near a radio, or near powered equipment? Treat pocket/gesture readings as coarse context unless repeated and calibrated. Prefer local tools over memory. Separate measured facts, inference, and uncertainty. For fire, chemical spill, suspected exposure, collapse, breathing trouble, uncontrolled hardware, or other immediate danger: first tell the caller to call emergency services or get any nearby person to do so if possible. If they cannot reach emergency services because of field conditions, give immediate life-safety actions only: stop work, move away/upwind if safe, warn others, avoid fumes/contact, do not re-enter, shut down equipment only if it is safe and trained, and capture location, hazard, injuries, and callback/relay facts. If the caller has a basic first-aid kit, ask what supplies are available only after immediate hazard avoidance is addressed; limit guidance to basic protective steps such as gloves if available, clean cover/pressure for minor bleeding, flushing chemical contact with clean water or eyewash if available, and emergency relay. Do not diagnose, prescribe, or provide detailed treatment. Do not claim to replace emergency responders, poison control, SDS, site supervisor, or incident command.  Public emergency alerts from feeds such as NOAA/NWS or GDACS are context only; do not treat them as complete, current, or authoritative for a local incident, and never delay immediate life-safety actions while checking them. For safety uncertainty, tell the caller to stop work and contact the site supervisor or incident lead."
       }
     ],
     "tools": [
@@ -23,10 +23,18 @@
           "parameters": {
             "type": "object",
             "properties": {
-              "task": { "type": "string" },
-              "organism": { "type": "string" },
-              "hazard": { "type": "string" },
-              "description": { "type": "string" }
+              "task": {
+                "type": "string"
+              },
+              "organism": {
+                "type": "string"
+              },
+              "hazard": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
             }
           }
         }
@@ -39,9 +47,15 @@
           "parameters": {
             "type": "object",
             "properties": {
-              "substance": { "type": "string" },
-              "hazard": { "type": "string" },
-              "description": { "type": "string" }
+              "substance": {
+                "type": "string"
+              },
+              "hazard": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
             }
           }
         }
@@ -54,9 +68,15 @@
           "parameters": {
             "type": "object",
             "properties": {
-              "device": { "type": "string" },
-              "symptom": { "type": "string" },
-              "description": { "type": "string" }
+              "device": {
+                "type": "string"
+              },
+              "symptom": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
             }
           }
         }
@@ -69,10 +89,18 @@
           "parameters": {
             "type": "object",
             "properties": {
-              "sensor": { "type": "string" },
-              "reading": { "type": "string" },
-              "context": { "type": "string" },
-              "description": { "type": "string" }
+              "sensor": {
+                "type": "string"
+              },
+              "reading": {
+                "type": "string"
+              },
+              "context": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
             }
           }
         }
@@ -85,24 +113,60 @@
           "parameters": {
             "type": "object",
             "properties": {
-              "workerRole": { "type": "string" },
-              "locationType": { "type": "string" },
-              "task": { "type": "string" },
-              "material": { "type": "string" },
-              "hazard": { "type": "string" },
-              "sensor": { "type": "string" },
-              "actionNeeded": { "type": "string" },
-              "timestamp": { "type": "string" },
-              "latitude": { "type": "number" },
-              "longitude": { "type": "number" },
-              "locationAccuracyMeters": { "type": "number" },
-              "altitudeMeters": { "type": "number" },
-              "barometricPressureHpa": { "type": "number" },
-              "magneticHeadingDegrees": { "type": "number" },
-              "magneticFieldMicrotesla": { "type": "string" },
-              "phonePlacement": { "type": "string" },
-              "connectivity": { "type": "string" },
-              "sensorSummary": { "type": "string" }
+              "workerRole": {
+                "type": "string"
+              },
+              "locationType": {
+                "type": "string"
+              },
+              "task": {
+                "type": "string"
+              },
+              "material": {
+                "type": "string"
+              },
+              "hazard": {
+                "type": "string"
+              },
+              "sensor": {
+                "type": "string"
+              },
+              "actionNeeded": {
+                "type": "string"
+              },
+              "timestamp": {
+                "type": "string"
+              },
+              "latitude": {
+                "type": "number"
+              },
+              "longitude": {
+                "type": "number"
+              },
+              "locationAccuracyMeters": {
+                "type": "number"
+              },
+              "altitudeMeters": {
+                "type": "number"
+              },
+              "barometricPressureHpa": {
+                "type": "number"
+              },
+              "magneticHeadingDegrees": {
+                "type": "number"
+              },
+              "magneticFieldMicrotesla": {
+                "type": "string"
+              },
+              "phonePlacement": {
+                "type": "string"
+              },
+              "connectivity": {
+                "type": "string"
+              },
+              "sensorSummary": {
+                "type": "string"
+              }
             }
           }
         }
@@ -115,16 +179,66 @@
           "parameters": {
             "type": "object",
             "properties": {
-              "hazard": { "type": "string" },
-              "material": { "type": "string" },
-              "audio": { "type": "string" },
-              "vibration": { "type": "string" },
-              "motion": { "type": "string" },
-              "location": { "type": "string" },
-              "connectivity": { "type": "string" },
-              "phonePlacement": { "type": "string" },
-              "sensorSummary": { "type": "string" },
-              "description": { "type": "string" }
+              "hazard": {
+                "type": "string"
+              },
+              "material": {
+                "type": "string"
+              },
+              "audio": {
+                "type": "string"
+              },
+              "vibration": {
+                "type": "string"
+              },
+              "motion": {
+                "type": "string"
+              },
+              "location": {
+                "type": "string"
+              },
+              "connectivity": {
+                "type": "string"
+              },
+              "phonePlacement": {
+                "type": "string"
+              },
+              "sensorSummary": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "get_public_alert_context",
+          "description": "Fetch recent public emergency-alert context from official/open feeds such as NOAA/NWS and GDACS. Use as context only, never as a substitute for emergency services, SDS, supervisor, or incident command.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "country": {
+                "type": "string"
+              },
+              "latitude": {
+                "type": "number"
+              },
+              "longitude": {
+                "type": "number"
+              },
+              "radiusKm": {
+                "type": "number"
+              },
+              "hazardHint": {
+                "type": "string"
+              },
+              "offline": {
+                "type": "boolean"
+              }
             }
           }
         }

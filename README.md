@@ -102,6 +102,7 @@ Sensor triage limits and fusion rules are in `docs/SENSOR_TRIAGE_MATRIX.md`.
 Rainforest, desert, and field-station operating modes are in `docs/FIELD_ENVIRONMENT_MODES.md`.
 iPhone 11-specific sensor availability is in `docs/IPHONE_11_FIELD_PROFILE.md`.
 Basic first-aid kit support boundaries are in `docs/BASIC_FIRST_AID_KIT_MODE.md`.
+Public emergency alert context is scoped in `docs/PUBLIC_ALERT_CONTEXT.md`.
 Stage test-call setup and the public signal dashboard are in `docs/STAGE_TEST_CALL_GUIDE.md`.
 The simulated local quantized orchestrator and ExecuTorch target path are in `docs/EXECUTORCH_LOCAL_ORCHESTRATOR.md`.
 
