@@ -100,6 +100,8 @@ def vapi_live_tools_check() -> dict[str, Any]:
         "troubleshoot_hardware",
         "interpret_sensor_report",
         "compress_observation",
+    }
+    optional = {
         "assess_environment_risk",
         "get_public_alert_context",
     }
@@ -130,6 +132,7 @@ def vapi_live_tools_check() -> dict[str, Any]:
         "toolIdsCount": len(model.get("toolIds") or []),
         "toolNames": sorted(names),
         "missing": missing,
+        "optionalMissing": sorted(optional - names),
         "modelProvider": model.get("provider"),
         "model": model.get("model"),
     }
