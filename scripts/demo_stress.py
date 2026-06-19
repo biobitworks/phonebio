@@ -18,6 +18,7 @@ import httpx
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PUBLIC_DASHBOARD = "https://qfdp5nuv.insforge.site/dashboard.html"
 PUBLIC_MANIFEST = "https://qfdp5nuv.insforge.site/manifest.webmanifest"
+PUBLIC_EDGE = "https://qfdp5nuv.insforge.site/edge.html"
 
 try:
     from dotenv import load_dotenv
@@ -69,6 +70,8 @@ def public_dashboard_check() -> dict[str, Any]:
         html = httpx.get(PUBLIC_DASHBOARD, timeout=20).text
         manifest = httpx.get(PUBLIC_MANIFEST, timeout=20).json()
         script = httpx.get(PUBLIC_DASHBOARD.replace("dashboard.html", "dashboard.js"), timeout=20).text
+        edge_response = httpx.get(PUBLIC_EDGE, timeout=20)
+        edge = edge_response.text
     except (httpx.HTTPError, json.JSONDecodeError) as error:
         return {"name": "public_dashboard", "status": "fail", "error": error.__class__.__name__}
     checks.append({"item": "html_has_executorch_gate", "ok": "ExecuTorch gate" in html})
@@ -77,6 +80,9 @@ def public_dashboard_check() -> dict[str, Any]:
     checks.append({"item": "script_has_speaker_lane", "ok": "stage speakerphone echo" in script})
     checks.append({"item": "script_has_emergency_lane", "ok": "emergency_priority" in script})
     checks.append({"item": "script_has_executorch_route", "ok": "ExecuTorch local .pte" in script})
+    checks.append({"item": "edge_route_http_200", "ok": edge_response.status_code == 200})
+    checks.append({"item": "edge_has_orchestrator", "ok": "EDGE ORCHESTRATOR" in edge})
+    checks.append({"item": "edge_has_webgpu_or_fallback", "ok": "WebGPU" in edge and "cloud fallback" in edge})
     return {"name": "public_dashboard", "status": "pass" if all(item["ok"] for item in checks) else "fail", "checks": checks}
 
 
@@ -166,6 +172,7 @@ def main() -> None:
         "project": "phonebio",
         "scenario": "speaker_only_pre_authorized_demo",
         "publicDashboard": PUBLIC_DASHBOARD,
+        "publicEdge": PUBLIC_EDGE,
         "checks": checks,
         "summary": summary,
         "demoReady": summary["fail"] == 0,
