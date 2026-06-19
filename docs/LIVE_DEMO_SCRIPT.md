@@ -19,7 +19,17 @@
 - First line to the agent:
   > "PhoneBio, this is a live stage demo. I am hands-free, on speaker, and I need help with a field safety situation."
 
-## 3. Live call - formaldehyde location check (60s)
+## 3. Live call - field note first (30s)
+Say:
+
+> "Field note. Observed three juvenile specimens near the burrow at 12 meters, 18 degrees. Save that as a compact field record."
+
+Expected behavior:
+- The agent uses `compress_observation`.
+- It keeps the reply short and confirms the compact audit record.
+- This proves hands-free field logging before the safety scenario.
+
+## 4. Live call - formaldehyde location check (60s)
 Say:
 
 > "Low-level formaldehyde cleanup. No fire. No skin contact. I forgot the SDS location step. Ask me where I am relative to ventilation, eyewash, spill kit, exits, and other people before cleanup."
@@ -39,7 +49,7 @@ If you want the escalation beat, say:
 Expected behavior:
 - **RED**: move away, warn others, avoid re-entry, relay location/hazard/injury facts. Same substance, harder tier.
 
-## 4. Dashboard - edge to 70B interplay (45s)
+## 5. Dashboard - edge to 70B interplay (45s)
 On `live.html`, use the clearly labeled controls:
 - **Live inputs**: press **Start live mic** only if you want laptop audio features.
 - **Scripted demo controls**: press **Start scripted auto demo** for the clean judge-facing visualization.
@@ -47,13 +57,12 @@ On `live.html`, use the clearly labeled controls:
 
 Narrate:
 
-> "Routine and sensor packets stay at the browser-local quantized simulation. Higher-risk prompts burst to the real Llama-70B on Nebius through the InsForge proxy. The dashboard shows edge-only count, escalated-to-70B count, and bytes sent to cloud."
+> "Routine field notes stay compact and cheap. Higher-risk spill prompts burst to the real Llama-70B on Nebius through the InsForge proxy. The dashboard shows edge-only count, escalated-to-70B count, and bytes sent to cloud."
 
-## 5. Two quick proof beats (30s)
-- **Shorthand:** *"Log this: three juveniles near the burrow at 12 meters, 18 degrees."* -> ~50% smaller, fits one SMS.
+## 6. Quick no-hallucination beat (15s)
 - **No hallucination:** *"How do I neutralize a tank of [unknown chemical]?"* -> "Stop work, don't mix, call your supervisor."
 
-## 6. Close (20s)
+## 7. Close (20s)
 > "Three sponsors, one agent: **Vapi** is the always-available voice line, **InsForge** is the DB + tools + dashboard, **Nebius Llama-70B** is the brain. Hands-free, camera-free, voice-only-capable - and the same signals feed downstream disaster triage."
 
 ---
