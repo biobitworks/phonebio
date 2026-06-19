@@ -1,5 +1,8 @@
 # PhoneBio — Demo Run Sheet + 3-Minute Video Plan
 
+> **Live in-person script:** use `docs/LIVE_DEMO_SCRIPT.md`.
+> This file keeps the combined demo notes and 3-minute recorded-video plan.
+
 > ⭐ **Reference recording (best call session):** [`media/demo-2026-06-19-1515.mov`](../media/demo-2026-06-19-1515.mov)
 
 **Stack on screen:** Vapi (phone) → **Nebius Llama-3.3-70B** via an InsForge edge proxy → InsForge tools + Postgres + hosting. **No OpenAI. Voice-only-capable. Hands-free, camera-free.**

@@ -10,10 +10,14 @@ Public demo page:
 https://qfdp5nuv.insforge.site/live.html
 ```
 
-The page is designed for the recorded script: the left panel shows what
-PhoneBio needs, the right panel shows what to say, and the lower panels show
-laptop mic/sensor signals, edge-vs-70B routing, shorthand compression, and
-bandwidth savings.
+Use [`docs/LIVE_DEMO_SCRIPT.md`](docs/LIVE_DEMO_SCRIPT.md) for the in-person
+judge run sheet. Use [`docs/DEMO_VIDEO_SCRIPT.md`](docs/DEMO_VIDEO_SCRIPT.md)
+for the recorded-video script.
+
+The page is designed for the live and recorded scripts: the left panel shows
+what PhoneBio needs, the right panel shows what to say, and the lower panels
+show laptop mic/sensor signals, edge-vs-70B routing, shorthand compression,
+and bandwidth savings.
 
 ![PhoneBio live desktop dashboard](docs/assets/live-desktop.png)
 
