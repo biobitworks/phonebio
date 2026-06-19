@@ -37,8 +37,33 @@ def is_placeholder_url(value: str | None) -> bool:
     return "your-forwarded-or-hosted-url" in lowered or PLACEHOLDER_HOST in lowered
 
 
+def _api_key_from_env_with_source() -> tuple[str, str | None, list[str]]:
+    candidates = [
+        ("VAPI_PRIVATE_KEY", (os.getenv("VAPI_PRIVATE_KEY") or "").strip()),
+        ("VAPI_API_KEY", (os.getenv("VAPI_API_KEY") or "").strip()),
+    ]
+    set_names = [name for name, value in candidates if value]
+    for name, value in candidates:
+        if value:
+            return value, name, [other for other in set_names if other != name]
+    return "", None, []
+
+
 def api_key_from_env() -> str:
-    return os.getenv("VAPI_API_KEY") or os.getenv("VAPI_PRIVATE_KEY") or ""
+    key, _, _ = _api_key_from_env_with_source()
+    return key
+
+
+def _api_key_state(key: str, source: str | None, shadowed_sources: list[str]) -> dict[str, Any]:
+    return {
+        "set": bool(key),
+        "source": source,
+        "shadowedSources": shadowed_sources,
+        "length": len(key) if key else 0,
+        "hasWhitespace": bool(key and key != key.strip()),
+        "startsWithSk": key.startswith("sk-") if key else False,
+        "looksLikeJwt": key.count(".") == 2 if key else False,
+    }
 
 
 def vapi_base_url_from_env() -> str:
@@ -162,10 +187,34 @@ def redacted_phone_number_record(record: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": record.get("id"),
         "provider": record.get("provider"),
+        "assistantId": record.get("assistantId"),
         "assistantIdSet": bool(record.get("assistantId")),
         "createdAt": record.get("createdAt"),
         "updatedAt": record.get("updatedAt"),
         "numberPresent": bool(record.get("number") or record.get("fallbackDestination", {}).get("number")),
+    }
+
+
+def redacted_call_record(record: dict[str, Any]) -> dict[str, Any]:
+    artifact = record.get("artifact") if isinstance(record.get("artifact"), dict) else {}
+    analysis = record.get("analysis") if isinstance(record.get("analysis"), dict) else {}
+    return {
+        "id": record.get("id"),
+        "type": record.get("type"),
+        "status": record.get("status"),
+        "endedReason": record.get("endedReason"),
+        "createdAt": record.get("createdAt"),
+        "updatedAt": record.get("updatedAt"),
+        "startedAt": record.get("startedAt"),
+        "endedAt": record.get("endedAt"),
+        "assistantId": record.get("assistantId"),
+        "phoneNumberId": record.get("phoneNumberId"),
+        "customerNumberPresent": bool(record.get("customer", {}).get("number")),
+        "messageCount": len(record.get("messages", []) or []),
+        "artifactPresent": bool(artifact),
+        "transcriptPresent": bool(artifact.get("transcript")),
+        "recordingPresent": bool(artifact.get("recordingUrl") or artifact.get("recording")),
+        "analysisSummaryPresent": bool(analysis.get("summary")),
     }
 
 
@@ -193,45 +242,81 @@ def _assistant_payload_ready(payload: dict[str, Any]) -> bool:
     return True
 
 
-def _phone_selection_state(phone_numbers: list[dict[str, Any]], explicit_phone_number_id: str) -> dict[str, Any]:
+def _phone_selection_state(
+    phone_numbers: list[dict[str, Any]],
+    explicit_phone_number_id: str,
+    expected_assistant_id: str = "",
+) -> dict[str, Any]:
+    def selected_state(
+        record: dict[str, Any] | None,
+        *,
+        status: str,
+        source: str,
+        explicit: bool,
+    ) -> dict[str, Any]:
+        selected_assistant_id = str(record.get("assistantId", "")) if record else ""
+        assistant_match = (
+            selected_assistant_id == expected_assistant_id
+            if expected_assistant_id and selected_assistant_id
+            else None
+        )
+        return {
+            "status": status,
+            "source": source,
+            "phoneNumberIdSet": explicit,
+            "selectedPhoneNumberId": record.get("id") if record else (explicit_phone_number_id or None),
+            "selectedPhoneNumberFound": bool(record),
+            "selectedAssistantId": selected_assistant_id or None,
+            "expectedAssistantIdSet": bool(expected_assistant_id),
+            "expectedAssistantMatch": assistant_match,
+        }
+
     if explicit_phone_number_id:
         matching = next(
             (record for record in phone_numbers if str(record.get("id", "")) == explicit_phone_number_id),
             None,
         )
-        return {
-            "status": "pass" if matching else "fail",
-            "source": "VAPI_PHONE_NUMBER_ID",
-            "phoneNumberIdSet": True,
-            "selectedPhoneNumberId": explicit_phone_number_id,
-            "selectedPhoneNumberFound": bool(matching),
-        }
+        return selected_state(
+            matching,
+            status="pass" if matching else "fail",
+            source="VAPI_PHONE_NUMBER_ID",
+            explicit=True,
+        )
     if len(phone_numbers) == 1 and phone_numbers[0].get("id"):
-        return {
-            "status": "pass",
-            "source": "single-vapi-phone-number",
-            "phoneNumberIdSet": False,
-            "selectedPhoneNumberId": phone_numbers[0]["id"],
-            "selectedPhoneNumberFound": True,
-        }
+        return selected_state(
+            phone_numbers[0],
+            status="pass",
+            source="single-vapi-phone-number",
+            explicit=False,
+        )
     return {
         "status": "blocked",
         "source": "missing-or-ambiguous",
         "phoneNumberIdSet": False,
         "selectedPhoneNumberId": None,
         "selectedPhoneNumberFound": False,
+        "selectedAssistantId": None,
+        "expectedAssistantIdSet": bool(expected_assistant_id),
+        "expectedAssistantMatch": None,
     }
 
 
 def vapi_preflight(api_key: str | None = None, webhook_url: str | None = None) -> dict[str, Any]:
-    key = api_key if api_key is not None else api_key_from_env()
+    if api_key is not None:
+        key = api_key.strip()
+        key_source = "argument"
+        shadowed_key_sources: list[str] = []
+    else:
+        key, key_source, shadowed_key_sources = _api_key_from_env_with_source()
     payload = assistant_payload(webhook_url)
     server_url = payload.get("server", {}).get("url", "")
     model_url = payload.get("model", {}).get("url", "")
     model_provider = payload.get("model", {}).get("provider")
     explicit_phone_number_id = os.getenv("VAPI_PHONE_NUMBER_ID", "")
+    expected_assistant_id = os.getenv("VAPI_ASSISTANT_ID", "")
     result: dict[str, Any] = {
         "apiKeySet": bool(key),
+        "apiKey": _api_key_state(key, key_source, shadowed_key_sources),
         "assistantPayloadReady": _assistant_payload_ready(payload),
         "modelProvider": model_provider,
         "customLlmRequired": _model_url_required(payload),
@@ -244,6 +329,9 @@ def vapi_preflight(api_key: str | None = None, webhook_url: str | None = None) -
             "phoneNumberIdSet": bool(explicit_phone_number_id),
             "selectedPhoneNumberId": explicit_phone_number_id or None,
             "selectedPhoneNumberFound": False,
+            "selectedAssistantId": None,
+            "expectedAssistantIdSet": bool(expected_assistant_id),
+            "expectedAssistantMatch": None,
         },
     }
     if not key:
@@ -276,7 +364,7 @@ def vapi_preflight(api_key: str | None = None, webhook_url: str | None = None) -
         "count": len(phone_numbers),
         "items": [redacted_phone_number_record(record) for record in phone_numbers],
     }
-    result["phoneSelection"] = _phone_selection_state(phone_numbers, explicit_phone_number_id)
+    result["phoneSelection"] = _phone_selection_state(phone_numbers, explicit_phone_number_id, expected_assistant_id)
     result["liveReady"] = (
         bool(result["apiKeySet"])
         and bool(result["assistantPayloadReady"])
@@ -284,6 +372,47 @@ def vapi_preflight(api_key: str | None = None, webhook_url: str | None = None) -
         and result["phoneSelection"]["status"] == "pass"
     )
     return result
+
+
+def list_calls(api_key: str, limit: int = 10, base_url: str | None = None) -> list[dict[str, Any]]:
+    if not api_key:
+        raise RuntimeError("Missing VAPI_API_KEY or VAPI_PRIVATE_KEY.")
+    response = httpx.get(
+        f"{(base_url or vapi_base_url_from_env()).rstrip('/')}/call",
+        headers=auth_headers(api_key),
+        params={"limit": limit},
+        timeout=30,
+    )
+    response.raise_for_status()
+    body = response.json()
+    if isinstance(body, list):
+        return body
+    if isinstance(body, dict) and isinstance(body.get("results"), list):
+        return body["results"]
+    raise RuntimeError("Unexpected Vapi call list response.")
+
+
+def verify_recent_call(
+    calls: list[dict[str, Any]],
+    assistant_id: str,
+    phone_number_id: str,
+) -> dict[str, Any]:
+    redacted = [redacted_call_record(record) for record in calls]
+    matching = [
+        record
+        for record in redacted
+        if (not assistant_id or record.get("assistantId") == assistant_id)
+        and (not phone_number_id or record.get("phoneNumberId") == phone_number_id)
+    ]
+    return {
+        "assistantIdSet": bool(assistant_id),
+        "phoneNumberIdSet": bool(phone_number_id),
+        "count": len(redacted),
+        "matchingCount": len(matching),
+        "verified": bool(matching),
+        "matches": matching,
+        "recentCalls": redacted,
+    }
 
 
 def phone_assignment_payload(assistant_id: str, webhook_url: str | None = None) -> dict[str, Any]:

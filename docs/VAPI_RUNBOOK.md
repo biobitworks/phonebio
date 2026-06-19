@@ -2,20 +2,27 @@
 
 **Goal:** Create the PhoneBio assistant, attach the webhook, assign the existing Vapi phone number, and make a test call without committing secrets or phone numbers.
 
+See `docs/VAPI_RESOURCE_STRATEGY.md` for how PhoneBio uses Vapi Assistants,
+Tools, Phone Numbers, Logs, Outbound, Files, Evals, and Squads across v1 and
+later phases.
+
 ## Prerequisites
 
-- Vapi private/API key in the shell as `VAPI_API_KEY` or `VAPI_PRIVATE_KEY`.
+- Vapi private/API key in the shell as `VAPI_PRIVATE_KEY` or `VAPI_API_KEY`. Prefer `VAPI_PRIVATE_KEY`; if both are set, PhoneBio uses `VAPI_PRIVATE_KEY`.
 - Existing Vapi phone number ID in `VAPI_PHONE_NUMBER_ID`.
-- Public webhook URL in `VAPI_WEBHOOK_URL` or `PUBLIC_BASE_URL`.
-- Public custom-LLM base URL in `VAPI_CUSTOM_LLM_URL`, or derive it from `PUBLIC_BASE_URL` as `/custom-llm`.
+- Public webhook URL in `VAPI_WEBHOOK_URL` or `PUBLIC_BASE_URL` when using a local tunnel or alternate deployment. The checked-in assistant already uses the hosted InsForge webhook.
+- Public custom-LLM base URL in `VAPI_CUSTOM_LLM_URL` only when switching the assistant model provider to `custom-llm`. The current live path uses Vapi's `google` provider, so this is not required.
 - Optional outbound test destination in `VAPI_TEST_NUMBER`.
 - Optional bearer secret in `VAPI_WEBHOOK_SECRET` for both `/webhook` and `/custom-llm/chat/completions`.
 
 ## Credential Timing
 
-The Vapi API bundle is needed only after a public webhook URL exists. At that point, provide the Vapi API key, phone number ID, webhook URL, custom-LLM URL, and optional webhook secret.
+The hosted InsForge webhook already exists, so the next required API bundle is Vapi only: a valid Vapi API/private key and the phone number ID or dashboard access to assign the assistant. If you replace the hosted webhook with a tunnel, also set `VAPI_WEBHOOK_URL`.
 
-InsForge is not needed until persistent hosted storage is selected. OpenAI is not used. Nebius is not part of the current funded/API path.
+InsForge is already hosting the webhook. InsForge credentials are needed only
+to redeploy the function or add persistence. OpenAI is not used. Nebius is
+configured as an optional Token Factory provider and remains disabled until
+`NEBIUS_API_KEY` plus approved free credits/API access are available.
 
 ## Local Webhook
 
@@ -69,17 +76,85 @@ python3 vapi/wire.py list-phone-numbers
 
 This makes read-only Vapi checks and prints readiness state, URL host/path, count, IDs, provider, and assignment presence without raw phone numbers or API keys. A `401 Unauthorized` means the local Vapi key is missing, expired, or not the correct private/API key.
 
-`make vapi-preflight` exits nonzero until all live prerequisites are true: valid Vapi auth, usable phone-number selection, non-placeholder webhook URL, and non-placeholder custom-LLM URL.
+The preflight output includes redacted key diagnostics:
+
+- `apiKey.source` — which environment variable was used.
+- `apiKey.shadowedSources` — set key variables ignored because a higher-priority source was present.
+- `apiKey.startsWithSk` / `apiKey.looksLikeJwt` — shape hints only; the key value is never printed.
+
+`make vapi-preflight` exits nonzero until all live prerequisites are true: valid Vapi auth, usable phone-number selection, non-placeholder webhook URL, and, only for `custom-llm` assistants, a non-placeholder custom-LLM URL.
 
 ## Live Create and Assign
 
 ```bash
 export VAPI_API_KEY
 export VAPI_PHONE_NUMBER_ID
-export VAPI_WEBHOOK_URL="https://your-forwarded-url/webhook"
-export VAPI_CUSTOM_LLM_URL="https://your-forwarded-url/custom-llm"
+# Optional when using the checked-in hosted InsForge webhook:
+# export VAPI_WEBHOOK_URL="https://your-forwarded-url/webhook"
+# Required only if model.provider is changed to custom-llm:
+# export VAPI_CUSTOM_LLM_URL="https://your-forwarded-url/custom-llm"
 
 make wire
+```
+
+After a successful live run, copy the returned assistant ID into the current shell
+for verification:
+
+```bash
+export VAPI_ASSISTANT_ID="returned-assistant-id"
+make vapi-preflight
+```
+
+`phoneSelection.expectedAssistantMatch: true` proves the selected Vapi phone
+number is attached to that assistant.
+
+If `expectedAssistantMatch` is `false` but `selectedAssistantId` shows the
+newly returned assistant ID, the local `VAPI_ASSISTANT_ID` value is stale. The
+phone assignment can still be valid; update the shell value or rely on
+`make vapi-verify-call`, which defaults to the assistant currently attached to
+the selected phone number.
+
+## Real Call Verification
+
+After calling the assigned Vapi phone number, verify that Vapi has a recent
+call for the selected assistant and phone-number pair:
+
+```bash
+export VAPI_ASSISTANT_ID="returned-assistant-id"
+make vapi-verify-call
+export PHONEBIO_CALL_VERIFIED=1
+make readiness
+```
+
+For live demo testing, start the polling verifier first, then place the inbound
+call while it is running:
+
+```bash
+make vapi-wait-call
+```
+
+The default wait is 180 seconds with a 5 second polling interval. For a shorter
+manual check:
+
+```bash
+python3 vapi/wire.py wait-call --timeout 30 --interval 3
+```
+
+If Vapi has a transient read timeout while polling, the command keeps waiting
+and reports only the error type/count in the final redacted output.
+
+This calls `GET https://api.vapi.ai/call` and prints redacted call records only:
+call IDs, status/timestamps, assistant ID, phone-number ID, and booleans for
+whether transcript/recording/analysis artifacts exist. It does not print raw
+phone numbers, transcripts, recordings, or summaries.
+
+Only set `PHONEBIO_CALL_VERIFIED=1` after `make vapi-verify-call` exits
+successfully for the intended assistant/phone pair.
+
+For inspection without enforcing a match:
+
+```bash
+python3 vapi/wire.py list-calls --limit 10
 ```
 
 This calls:

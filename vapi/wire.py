@@ -11,7 +11,10 @@ import argparse
 import json
 import os
 import sys
+import time
 from pathlib import Path
+from typing import Any
+from urllib.parse import urlparse
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from fieldbio.vapi_client import (
@@ -20,12 +23,15 @@ from fieldbio.vapi_client import (
     assistant_payload,
     create_assistant,
     create_outbound_call,
+    list_calls,
     list_phone_numbers,
     outbound_call_payload,
     phone_assignment_payload,
     phone_number_id_from_env_or_single,
+    redacted_call_record,
     redacted_phone_number_record,
     vapi_preflight,
+    verify_recent_call,
     webhook_url_from_env,
 )
 
@@ -41,6 +47,37 @@ def _redacted_env_state() -> dict[str, bool]:
 
 def _print_json(value: object) -> None:
     print(json.dumps(value, indent=2, sort_keys=True))
+
+
+def _redacted_url(value: str) -> dict[str, str | None]:
+    parsed = urlparse(value)
+    return {
+        "scheme": parsed.scheme or None,
+        "host": parsed.netloc or None,
+        "path": parsed.path or None,
+    }
+
+
+def _redacted_assistant_record(record: dict[str, Any]) -> dict[str, Any]:
+    tools = [
+        tool.get("function", {}).get("name")
+        for tool in record.get("model", {}).get("tools", [])
+        if tool.get("type") == "function" and tool.get("function", {}).get("name")
+    ]
+    return {
+        "id": record.get("id"),
+        "name": record.get("name"),
+        "createdAt": record.get("createdAt"),
+        "updatedAt": record.get("updatedAt"),
+        "serverUrl": _redacted_url(record.get("server", {}).get("url", "")),
+        "modelProvider": record.get("model", {}).get("provider"),
+        "model": record.get("model", {}).get("model"),
+        "toolNames": tools,
+    }
+
+
+def _redacted_call_record(record: dict[str, Any]) -> dict[str, Any]:
+    return redacted_call_record(record)
 
 
 def create_assistant_command(args: argparse.Namespace) -> int:
@@ -63,7 +100,7 @@ def create_assistant_command(args: argparse.Namespace) -> int:
 
     assistant = create_assistant(api_key_from_env(), payload)
     assistant_id = assistant.get("id")
-    result: dict[str, object] = {"assistant": assistant}
+    result: dict[str, object] = {"assistant": _redacted_assistant_record(assistant)}
     if args.assign_phone:
         result["phoneNumber"] = assign_phone_number(
             api_key_from_env(),
@@ -71,6 +108,7 @@ def create_assistant_command(args: argparse.Namespace) -> int:
             assistant_id,
             args.webhook_url,
         )
+        result["phoneNumber"] = redacted_phone_number_record(result["phoneNumber"])
     _print_json(result)
     return 0
 
@@ -91,7 +129,7 @@ def assign_phone_command(args: argparse.Namespace) -> int:
         )
         return 0
     phone_number_id = phone_number_id or phone_number_id_from_env_or_single(api_key_from_env())
-    _print_json(assign_phone_number(api_key_from_env(), phone_number_id, assistant_id, args.webhook_url))
+    _print_json(redacted_phone_number_record(assign_phone_number(api_key_from_env(), phone_number_id, assistant_id, args.webhook_url)))
     return 0
 
 
@@ -114,8 +152,84 @@ def outbound_call_command(args: argparse.Namespace) -> int:
         )
         return 0
     phone_number_id = phone_number_id or phone_number_id_from_env_or_single(api_key_from_env())
-    _print_json(create_outbound_call(api_key_from_env(), assistant_id, phone_number_id, customer_number))
+    _print_json(_redacted_call_record(create_outbound_call(api_key_from_env(), assistant_id, phone_number_id, customer_number)))
     return 0
+
+
+def list_calls_command(args: argparse.Namespace) -> int:
+    calls = list_calls(api_key_from_env(), limit=args.limit)
+    _print_json(
+        {
+            "count": len(calls),
+            "calls": [redacted_call_record(record) for record in calls],
+        }
+    )
+    return 0
+
+
+def _selected_phone_record(phone_numbers: list[dict[str, Any]], phone_number_id: str) -> dict[str, Any] | None:
+    return next((record for record in phone_numbers if str(record.get("id", "")) == phone_number_id), None)
+
+
+def verify_call_command(args: argparse.Namespace) -> int:
+    result = _verify_recent_call_result(args)
+    _print_json(result)
+    return 0 if result["verified"] else 1
+
+
+def _verify_recent_call_result(args: argparse.Namespace) -> dict[str, Any]:
+    phone_number_id = args.phone_number_id or os.getenv("VAPI_PHONE_NUMBER_ID", "")
+    if not phone_number_id:
+        phone_number_id = phone_number_id_from_env_or_single(api_key_from_env())
+    phone_numbers = list_phone_numbers(api_key_from_env())
+    selected_phone = _selected_phone_record(phone_numbers, phone_number_id)
+    attached_assistant_id = str(selected_phone.get("assistantId", "")) if selected_phone else ""
+    assistant_id = args.assistant_id or attached_assistant_id
+    calls = list_calls(api_key_from_env(), limit=args.limit)
+    result = verify_recent_call(calls, assistant_id, phone_number_id)
+    result["assistantIdSource"] = "argument" if args.assistant_id else "selected-phone-number"
+    result["selectedPhoneNumberFound"] = bool(selected_phone)
+    return result
+
+
+def wait_call_command(args: argparse.Namespace) -> int:
+    started_at = time.monotonic()
+    attempts = 0
+    last_result: dict[str, Any] = {}
+    polling_errors: list[dict[str, Any]] = []
+    while True:
+        attempts += 1
+        try:
+            last_result = _verify_recent_call_result(args)
+            if last_result["verified"]:
+                last_result["wait"] = {
+                    "status": "verified",
+                    "attempts": attempts,
+                    "elapsedSeconds": round(time.monotonic() - started_at, 3),
+                    "pollingErrorCount": len(polling_errors),
+                }
+                _print_json(last_result)
+                return 0
+        except Exception as error:
+            polling_errors.append(
+                {
+                    "attempt": attempts,
+                    "errorType": error.__class__.__name__,
+                }
+            )
+        elapsed = time.monotonic() - started_at
+        if elapsed >= args.timeout:
+            last_result["wait"] = {
+                "status": "timeout",
+                "attempts": attempts,
+                "elapsedSeconds": round(elapsed, 3),
+                "timeoutSeconds": args.timeout,
+                "pollingErrorCount": len(polling_errors),
+                "pollingErrors": polling_errors[-3:],
+            }
+            _print_json(last_result)
+            return 1
+        time.sleep(args.interval)
 
 
 def list_phone_numbers_command(args: argparse.Namespace) -> int:
@@ -165,6 +279,24 @@ def build_parser() -> argparse.ArgumentParser:
     outbound.add_argument("--customer-number", default=None)
     outbound.add_argument("--dry-run", action="store_true")
     outbound.set_defaults(func=outbound_call_command)
+
+    calls = subparsers.add_parser("list-calls", help="List recent Vapi calls with transcripts and numbers redacted.")
+    calls.add_argument("--limit", type=int, default=10)
+    calls.set_defaults(func=list_calls_command)
+
+    verify = subparsers.add_parser("verify-call", help="Verify a recent call for the selected assistant/phone pair.")
+    verify.add_argument("--assistant-id", default=None)
+    verify.add_argument("--phone-number-id", default=None)
+    verify.add_argument("--limit", type=int, default=10)
+    verify.set_defaults(func=verify_call_command)
+
+    wait = subparsers.add_parser("wait-call", help="Poll until a recent call matches the selected assistant/phone pair.")
+    wait.add_argument("--assistant-id", default=None)
+    wait.add_argument("--phone-number-id", default=None)
+    wait.add_argument("--limit", type=int, default=10)
+    wait.add_argument("--timeout", type=float, default=180.0)
+    wait.add_argument("--interval", type=float, default=5.0)
+    wait.set_defaults(func=wait_call_command)
     return parser
 
 

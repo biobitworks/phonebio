@@ -40,5 +40,11 @@ class Settings:
     ollama_base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
     ollama_model = os.getenv("OLLAMA_MODEL", "qwen3:1.7b")
 
+    # Optional Nebius Token Factory route. Disabled unless NEBIUS_API_KEY is set
+    # and "nebius" appears in LLM_PROVIDER_ORDER.
+    nebius_api_key = os.getenv("NEBIUS_API_KEY", "")
+    nebius_base_url = os.getenv("NEBIUS_BASE_URL", "https://api.tokenfactory.nebius.com/v1")
+    nebius_model = os.getenv("NEBIUS_MODEL", "Qwen/Qwen3-30B-A3B-Instruct-2507")
+
 
 settings = Settings()

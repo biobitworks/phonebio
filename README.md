@@ -36,7 +36,9 @@ export PUBLIC_BASE_URL="https://your-public-url"
 make public-probe
 ```
 
-`make expose` starts Vapi CLI webhook forwarding only; use `make tunnel` or a hosted deployment when the assistant also needs the custom-LLM endpoint.
+`make expose` starts Vapi CLI webhook forwarding only. The current checked-in
+assistant uses the hosted InsForge webhook and Vapi's `google` model provider,
+so a custom-LLM URL is not required for the live hackathon path.
 
 Configure the Vapi assistant using `vapi/assistant.field-biology-worker.json` as the dashboard/API reference. Set the assistant server URL to the forwarded webhook URL.
 
@@ -46,6 +48,8 @@ Dry-run Vapi wiring:
 make wire-dry-run
 make hosted-probe
 make vapi-preflight
+make vapi-verify-call
+make vapi-wait-call
 python3 vapi/wire.py list-phone-numbers
 ```
 
@@ -64,6 +68,22 @@ make llm-probe
 ```
 
 This verifies the configured local model emits a Vapi-compatible tool call and that model reasoning fields are scrubbed before returning to Vapi.
+
+Optional Nebius Token Factory probe, after hackathon/free credits are active:
+
+```bash
+export NEBIUS_API_KEY="..."
+export LLM_PROVIDER_ORDER=nebius,local
+make nebius-models
+make nebius-probe
+```
+
+This follows the cookbook `NEBIUS_API_KEY` setup and uses Nebius's
+OpenAI-compatible chat-completions endpoint. It is not required for the live
+Vapi + InsForge demo.
+
+Provider/credit routing is documented in `docs/PROVIDER_STRATEGY.md`.
+Vapi dashboard resource usage is documented in `docs/VAPI_RESOURCE_STRATEGY.md`.
 
 Local hackathon call-script replay:
 
@@ -95,7 +115,10 @@ Live Vapi wiring needs `VAPI_API_KEY` or `VAPI_PRIVATE_KEY`, `VAPI_PHONE_NUMBER_
 
 ## Runtime Boundary
 
-The webhook does not call the internet. Vapi is the only API needed for the live phone agent; InsForge is deferred until persistent storage/backend features are needed. No OpenAI API key is used.
+The local webhook does not call the internet. The live hackathon path uses Vapi
+for the phone agent and the hosted InsForge function for tool dispatch. No
+OpenAI API key is used. InsForge credentials are needed only to redeploy or
+change the hosted function or to add persistence.
 
 Ollarma status on 2026-06-19: reachable but degraded with `SELECTION_STALE`; Watchtower bridge aggregator unreachable. See `docs/OLLARMA_CLAUDE_HANDOFF.md`.
 

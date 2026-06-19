@@ -23,5 +23,11 @@
 - Server URLs are the right bridge for call transcripts, function calls, assistant requests, and end-of-call reports.
 - Gregg shorthand suggests a voice UX pattern: capture compact phonetic/semantic observations, then ask clarifying questions only when omitted detail changes safety or protocol selection.
 - Nebius was reviewed but is not part of the current funded/API path.
+- Nebius Token Factory cookbook setup is now represented as an optional path:
+  `NEBIUS_API_KEY` in `.env`, OpenAI-compatible chat-completions base URL, and
+  `make nebius-probe` after free credits/API access are active.
+- Provider/credit strategy is captured in `docs/PROVIDER_STRATEGY.md`: Vapi
+  for phone/call evidence, InsForge for deterministic tools, Nebius for
+  optional non-safety model capacity, and Ollama for local no-cost fallback.
 - InsForge is the candidate backend if persistent auth, database, storage, functions, hosting, or model-gateway features are needed.
 - Phone sensor access is platform-specific. Core Motion covers accelerometer, gyroscope, magnetometer, pedometer, and barometer when available. Nearby Interaction covers UWB distance/direction on supported devices. ARKit scene depth is LiDAR-device-gated and should be treated as unavailable unless the device reports support.

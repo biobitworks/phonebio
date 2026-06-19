@@ -23,7 +23,7 @@ A field worker can call in and get the next safe, protocol-grounded action from 
 - [ ] Support camera-free sensor workflows for accelerometer, gyroscope, barometer, UWB, and LiDAR readings when available.
 - [ ] Document sensor variation, expected accuracy limits, and fallback behavior.
 - [ ] Prepare local git/GitHub publication path without committing secrets or phone numbers.
-- [ ] Keep Nebius, InsForge, and Ollarma integration points explicit but optional for v1.
+- [ ] Keep Nebius, InsForge, and Ollarma integration points explicit: Vapi plus the hosted InsForge webhook are active for the live demo, while Nebius and local Ollama remain optional/non-blocking.
 
 ### Out of Scope
 
@@ -38,7 +38,7 @@ A field worker can call in and get the next safe, protocol-grounded action from 
 - Vapi custom tool responses return a `results` array keyed by `toolCallId`.
 - Gregg shorthand is useful as a design metaphor for compact phonetic capture: store only the discriminating parts of field observations, prefer phrase forms, and ask clarifying questions when omitted detail affects safety.
 - Nebius Token Factory is an OpenAI-compatible inference surface and has a public cookbook for agents, RAG, and function/tool calling examples.
-- InsForge is an AI-native backend platform with Postgres, auth, storage, functions, hosting, and model gateway primitives. It is a candidate backend if the hackathon requires persistent users or hosted knowledge.
+- InsForge is an AI-native backend platform with Postgres, auth, storage, functions, hosting, and model gateway primitives. PhoneBio now uses an InsForge edge function as the hosted Vapi tool webhook; database persistence remains optional.
 - Ollarma can later route local/offline inference, but the v1 webhook must work without it.
 
 ## Constraints
@@ -58,7 +58,8 @@ A field worker can call in and get the next safe, protocol-grounded action from 
 | Offline local knowledge before RAG | The field worker may not have internet and safety answers need deterministic provenance. | - Pending |
 | Camera-free sensor descriptions | The objective explicitly excludes camera use while preserving other phone sensors. | - Pending |
 | Node webhook with no runtime dependencies | Fast to demo and easy to expose through Vapi CLI forwarding. | - Pending |
-| Nebius/InsForge deferred | API credits and backend account decisions are not yet available. | - Pending |
+| Vapi + InsForge live path | Vapi handles phone orchestration; InsForge hosts the Vapi tool webhook without requiring OpenAI. | - Active |
+| Nebius deferred | Nebius credits are not yet available and no Nebius runtime is required for v1. | - Accepted |
 
 ## Evolution
 
@@ -79,4 +80,3 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 *Last updated: 2026-06-19 after initialization*
-

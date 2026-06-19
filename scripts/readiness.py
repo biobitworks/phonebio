@@ -41,12 +41,13 @@ def _env_ready() -> dict[str, bool]:
     assistant_server_url = assistant.get("server", {}).get("url", "")
     custom_llm_required = assistant.get("model", {}).get("provider") == "custom-llm"
     custom_llm_url = custom_llm_url_from_env_or_webhook(assistant_server_url)
+    call_verified = os.getenv("PHONEBIO_CALL_VERIFIED") == "1" or os.getenv("PHONEBIO_LIVE_VAPI_VERIFIED") == "1"
     return {
         "vapi_api_key": bool(api_key_from_env()),
         "vapi_phone_number_id": bool(os.getenv("VAPI_PHONE_NUMBER_ID")),
         "vapi_webhook_url": bool(webhook_url) or not is_placeholder_url(assistant_server_url),
         "vapi_custom_llm_url": (not custom_llm_required) or not is_placeholder_url(custom_llm_url),
-        "vapi_live_verified": os.getenv("PHONEBIO_LIVE_VAPI_VERIFIED") == "1",
+        "vapi_call_verified": call_verified,
         "insforge_api_key": bool(os.getenv("INSFORGE_API_KEY")),
     }
 
@@ -90,13 +91,13 @@ async def audit() -> dict[str, Any]:
     custom_llm_required = model_provider == "custom-llm"
     live_vapi_ready = env["vapi_api_key"] and env["vapi_phone_number_id"] and env["vapi_webhook_url"] and (
         env["vapi_custom_llm_url"] or not custom_llm_required
-    ) and env["vapi_live_verified"]
+    ) and env["vapi_call_verified"]
     requirements["VOICE-01"] = {
         "status": _status(
             live_vapi_ready,
-            blocker="Needs successful live Vapi preflight/wire verification with API key, phone number ID, and public server URL.",
+            blocker="Needs a successful real inbound or outbound Vapi call verified by make vapi-verify-call.",
         ),
-        "evidence": "Local wiring exists; live Vapi assignment is not counted complete until PHONEBIO_LIVE_VAPI_VERIFIED=1 after successful live wire/preflight.",
+        "evidence": "Live Vapi assistant creation and phone assignment are tracked separately; VOICE-01 is not counted complete until make vapi-verify-call finds a matching call and PHONEBIO_CALL_VERIFIED=1 is set for the readiness audit.",
     }
     requirements["VOICE-02"] = {
         "status": _status(

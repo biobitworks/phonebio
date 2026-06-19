@@ -1,4 +1,4 @@
-.PHONY: install dev test test-python test-node expose tunnel push wire wire-dry-run vapi-preflight public-probe hosted-probe hosted-demo smoke readiness llm-probe demo-call insforge-export
+.PHONY: install dev test test-python test-node expose tunnel push wire wire-dry-run vapi-preflight vapi-verify-call vapi-wait-call public-probe hosted-probe hosted-demo smoke readiness llm-probe nebius-probe nebius-models demo-call insforge-export
 
 install:
 	python3 -m pip install -r requirements.txt
@@ -34,6 +34,12 @@ wire-dry-run:
 vapi-preflight:
 	@python3 vapi/wire.py preflight
 
+vapi-verify-call:
+	@python3 vapi/wire.py verify-call
+
+vapi-wait-call:
+	@python3 vapi/wire.py wait-call
+
 public-probe:
 	@python3 scripts/public_probe.py
 
@@ -51,6 +57,12 @@ readiness:
 
 llm-probe:
 	@python3 scripts/llm_probe.py
+
+nebius-probe:
+	@python3 scripts/nebius_probe.py
+
+nebius-models:
+	@python3 scripts/nebius_probe.py --list-models
 
 demo-call:
 	@python3 scripts/demo_call.py

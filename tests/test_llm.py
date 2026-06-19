@@ -18,6 +18,39 @@ def test_provider_order_respects_keys(monkeypatch):
     assert names == ["local"]  # cloud names are ignored; no paid fallback path
 
 
+def test_nebius_provider_requires_key(monkeypatch):
+    monkeypatch.setattr(llm.settings, "provider_order", ["nebius", "local"])
+    monkeypatch.setattr(llm.settings, "nebius_api_key", "")
+
+    names = [p.name for p in llm.providers()]
+
+    assert names == ["local"]
+
+
+def test_nebius_provider_can_be_enabled_with_key(monkeypatch):
+    monkeypatch.setattr(llm.settings, "provider_order", ["nebius", "local"])
+    monkeypatch.setattr(llm.settings, "nebius_api_key", "test-nebius-key")
+    monkeypatch.setattr(llm.settings, "nebius_base_url", "https://api.tokenfactory.nebius.com/v1")
+    monkeypatch.setattr(llm.settings, "nebius_model", "Qwen/Qwen3-30B-A3B-Instruct-2507")
+
+    providers = llm.providers()
+
+    assert [p.name for p in providers] == ["nebius", "local"]
+    assert providers[0].base_url == "https://api.tokenfactory.nebius.com/v1"
+    assert providers[0].model == "Qwen/Qwen3-30B-A3B-Instruct-2507"
+    assert providers[0].offline is False
+
+
+def test_nebius_headers_use_nebius_key_not_openai(monkeypatch):
+    monkeypatch.setattr(llm.settings, "nebius_api_key", "test-nebius-key")
+    provider = llm.Provider("nebius", "https://api.tokenfactory.nebius.com/v1", "model", False)
+
+    headers = llm._headers(provider)
+
+    assert headers["authorization"] == "Bearer test-nebius-key"
+    assert "OPENAI" not in str(headers)
+
+
 def test_custom_llm_non_stream(monkeypatch):
     def fake_raw_completion(body):
         return {

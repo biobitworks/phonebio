@@ -58,6 +58,26 @@ OLLAMA_BASE_URL=http://host.docker.internal:11434/v1
 
 No OpenAI key is used. InsForge credentials are optional and only needed once persistent storage/backend features are enabled.
 
+## Option D: Hosted InsForge Function
+
+The checked-in assistant currently points at the deployed InsForge edge
+function:
+
+```text
+https://qfdp5nuv.function2.insforge.app/phonebio-vapi-webhook
+```
+
+Verify it before live Vapi wiring:
+
+```bash
+make hosted-probe
+make hosted-demo
+```
+
+This hosted path does not need a local tunnel or custom-LLM URL. It still needs
+valid Vapi auth and phone-number assignment before an inbound call can reach the
+assistant.
+
 Health check:
 
 ```bash

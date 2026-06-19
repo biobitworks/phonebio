@@ -1,9 +1,9 @@
-"""Offline-only LLM router.
+"""LLM router.
 
 The optional custom-LLM endpoint talks to local Ollama through a
-chat-completions HTTP shape, but it does not use an OpenAI API key or any paid
-cloud fallback. External API work for PhoneBio is limited to Vapi now and
-InsForge later when persistence is needed.
+chat-completions HTTP shape by default. Nebius Token Factory can be enabled
+explicitly with free hackathon credits; it uses an OpenAI-compatible HTTP API
+but does not use an OpenAI key.
 
 The deterministic tool layer (fieldbio/tools.py) stays separate and pure; this
 router only powers free-form reasoning / summarization and the optional
@@ -38,9 +38,12 @@ class ChatResult:
 
 
 def _catalog() -> dict[str, Provider]:
-    return {
+    catalog = {
         "local": Provider("local", settings.ollama_base_url, settings.ollama_model, True),
     }
+    if settings.nebius_api_key:
+        catalog["nebius"] = Provider("nebius", settings.nebius_base_url, settings.nebius_model, False)
+    return catalog
 
 
 def providers() -> list[Provider]:
@@ -62,6 +65,8 @@ def _headers(p: Provider) -> dict[str, str]:
     headers = {"content-type": "application/json"}
     if p.name == "local":
         headers["authorization"] = "Bearer ollama"
+    elif p.name == "nebius":
+        headers["authorization"] = f"Bearer {settings.nebius_api_key}"
     return headers
 
 
@@ -128,7 +133,7 @@ def stream_chat(
 
 
 def health() -> list[dict[str, Any]]:
-    """Lightweight local provider report."""
+    """Lightweight provider report."""
     report: list[dict[str, Any]] = []
     for p in providers():
         entry: dict[str, Any] = {"name": p.name, "model": p.model, "offline": p.offline}

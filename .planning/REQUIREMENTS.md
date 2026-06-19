@@ -7,7 +7,7 @@
 
 ### Voice Agent
 
-- [ ] **VOICE-01**: Caller can reach a Vapi assistant assigned to the project phone number. **Status:** blocked pending Vapi API key, phone number ID, and public webhook/custom-LLM URLs.
+- [ ] **VOICE-01**: Caller can reach a Vapi assistant assigned to the project phone number. **Status:** live assistant created and phone number assigned through Vapi API; pending inbound or outbound call verification. The hosted InsForge webhook is reachable; no OpenAI key or custom-LLM URL is required for the current `google` provider assistant.
 - [x] **VOICE-02**: Assistant uses a field-biology system prompt that keeps responses short, asks one clarifying question at a time, and escalates safety uncertainty.
 - [x] **VOICE-03**: Assistant can call custom tools through a server URL and receive structured results.
 
@@ -64,7 +64,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| VOICE-01 | Phase 2 | Blocked - live Vapi credential/URL bundle required |
+| VOICE-01 | Phase 2 | Partial - Vapi assistant created and selected phone number assignment verified; inbound/outbound call verification still required |
 | VOICE-02 | Phase 1 | Pass - `make readiness` |
 | VOICE-03 | Phase 1 | Pass - `make readiness` |
 | KNOW-01 | Phase 1 | Pass - `make readiness` |
