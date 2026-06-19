@@ -174,7 +174,7 @@ export default async function (req: Request): Promise<Response> {
     if (typeof args === "string") { try { args = JSON.parse(args); } catch { args = { description: args }; } }
     const fn = TOOLS[name];
     const result = fn ? await fn(args) : { status: "error", answer: `Unsupported tool: ${name}` };
-    results.push({ toolCallId: id, name, result: JSON.stringify(result) });
+    results.push({ toolCallId: id, name, result });
   }
   return json({ results });
 }
