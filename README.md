@@ -44,6 +44,7 @@ Dry-run Vapi wiring:
 
 ```bash
 make wire-dry-run
+make hosted-probe
 make vapi-preflight
 python3 vapi/wire.py list-phone-numbers
 ```

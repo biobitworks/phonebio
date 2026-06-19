@@ -47,6 +47,7 @@ Vapi's current CLI docs describe `vapi listen` as a local forwarder only, not a 
 
 ```bash
 make wire-dry-run
+make hosted-probe
 ```
 
 This prints:
@@ -54,6 +55,8 @@ This prints:
 - assistant payload with `assistant.server.url`
 - phone-number assignment payload with `assistantId`
 - redacted readiness booleans
+
+`make hosted-probe` sends a Vapi-style tool-call payload to the assistant server URL and verifies the hosted function returns object tool results, not stringified JSON.
 
 Placeholder URLs such as `your-tunnel-or-deploy.example.com` are treated as not ready.
 

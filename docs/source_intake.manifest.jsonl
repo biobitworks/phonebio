@@ -15,3 +15,4 @@
 {"id":"SRC-VAPI-CALL-CREATE","type":"documentation","url":"https://docs.vapi.ai/api-reference/calls/create","title":"Vapi create call","captured_at":"2026-06-19","status":"implementation_reference"}
 {"id":"SRC-OLLARMA-LOCAL-HEALTH","type":"local_runtime_probe","url":"http://127.0.0.1:8484/health","title":"Ollarma degraded fallback status","captured_at":"2026-06-19","status":"runtime_reference"}
 {"id":"SRC-VAPI-CLI-WEBHOOK","type":"documentation","url":"https://docs.vapi.ai/cli/webhook","title":"Vapi CLI local webhook forwarding","captured_at":"2026-06-19","status":"implementation_reference"}
+{"id":"SRC-INSFORGE-HOSTED-VAPI-WEBHOOK","type":"runtime_probe","url":"https://qfdp5nuv.function2.insforge.app/phonebio-vapi-webhook","title":"Hosted PhoneBio Vapi webhook runtime probe","captured_at":"2026-06-19","status":"runtime_reference"}
