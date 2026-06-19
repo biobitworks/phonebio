@@ -11,7 +11,7 @@
 - Say once, honestly: *"The phone call, InsForge tools, and Nebius 70B bursts are live. The dashboard sensor streams and edge model are labeled simulations for the stage."*
 
 ## 1. Hook (15s)
-> "Field and disaster workers can't tap an app, can't use a camera, and barely have signal — but a **phone call** still gets through. PhoneBio is a hands-free call-in safety agent."
+> "Field and disaster workers can't tap an app, can't use a camera, and barely have signal - but a **phone call** still gets through. PhoneBio is a hands-free call-in safety agent."
 
 ## 2. Start the call (15s)
 - Say: **"Hey Siri, call PhoneBio."**
@@ -49,12 +49,12 @@ Narrate:
 
 > "Routine and sensor packets stay at the browser-local quantized simulation. Higher-risk prompts burst to the real Llama-70B on Nebius through the InsForge proxy. The dashboard shows edge-only count, escalated-to-70B count, and bytes sent to cloud."
 
-## 4. Two quick proof beats (30s)
-- **Shorthand:** *"Log this: three juveniles near the burrow at 12 meters, 18 degrees."* → ~50% smaller, fits one SMS.
-- **No hallucination:** *"How do I neutralize a tank of [unknown chemical]?"* → "Stop work, don't mix, call your supervisor."
+## 5. Two quick proof beats (30s)
+- **Shorthand:** *"Log this: three juveniles near the burrow at 12 meters, 18 degrees."* -> ~50% smaller, fits one SMS.
+- **No hallucination:** *"How do I neutralize a tank of [unknown chemical]?"* -> "Stop work, don't mix, call your supervisor."
 
-## 5. Close (20s)
-> "Three sponsors, one agent: **Vapi** is the always-available voice line, **InsForge** is the DB + tools + dashboard, **Nebius Llama‑70B** is the brain. Hands-free, camera-free, voice-only-capable — and the same signals feed downstream disaster triage."
+## 6. Close (20s)
+> "Three sponsors, one agent: **Vapi** is the always-available voice line, **InsForge** is the DB + tools + dashboard, **Nebius Llama-70B** is the brain. Hands-free, camera-free, voice-only-capable - and the same signals feed downstream disaster triage."
 
 ---
 
