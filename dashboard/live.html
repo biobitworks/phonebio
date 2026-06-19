@@ -57,6 +57,7 @@
     <div class="scriptBox"><h2>What I say</h2><p class="say">Low-level formaldehyde cleanup. No fire. No skin contact. I forgot the SDS location step. Ask me where I am relative to ventilation, eyewash, spill kit, exits, and other people before cleanup.</p></div>
   </div>
   <div class="controls">
+    <button id="mic">🎙 Arm laptop mic</button>
     <button id="auto">▶ Auto demo</button>
     <button data-x="Observed three juvenile specimens near the burrow at 12 meters, temperature 18 degrees" class="ev0">routine note</button>
     <button data-x="My barometer read 1003 then 998 over an hour">sensor</button>
@@ -114,14 +115,50 @@ function spark(id,col){const cv=$(id),x=cv.getContext('2d');const b=[];const W=c
   return v=>{b.push(v);if(b.length>W/2)b.shift();const lo=Math.min(...b),hi=Math.max(...b)||1;x.clearRect(0,0,W,H);x.beginPath();
     b.forEach((y,i)=>{const px=i*2,py=H-((y-lo)/((hi-lo)||1))*H;i?x.lineTo(px,py):x.moveTo(px,py);});x.strokeStyle=col;x.lineWidth=2*devicePixelRatio;x.stroke();};}
 const SL=spark('c-loud','#4cc2ff'),SA=spark('c-acc','#ffb454'),SP=spark('c-prs','#b48cff');
-let loud=-46,acc=0.3,prs=1010,boom=0,sensorTimer=null;
+let loud=-46,acc=0.3,prs=1010,boom=0,sensorTimer=null,micLive=false,micCooldown=0;
 function startSensors(){if(sensorTimer)return;sensorTimer=setInterval(()=>{
-  loud=-46+Math.random()*6+boom*30; acc=0.3+Math.random()*0.4+boom*4.5; prs=1010+Math.sin(Date.now()/9000)*2;
+  if(!micLive)loud=-46+Math.random()*6+boom*30; acc=0.3+Math.random()*0.4+boom*4.5; prs=1010+Math.sin(Date.now()/9000)*2;
   if(boom>0){flash($('f-loud'));flash($('f-acc'));boom*=0.5;if(boom<0.05)boom=0;}
   $('v-loud').textContent=Math.round(loud);$('v-acc').textContent=acc.toFixed(2);$('v-prs').textContent=prs.toFixed(1);
   SL(loud);SA(acc);SP(prs);
 },120);}
 function flash(e){e.style.opacity=.5;setTimeout(()=>e.style.opacity=0,80);}
+
+async function armMic(){
+  startSensors();
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    const ac=new (window.AudioContext||window.webkitAudioContext)();
+    const an=ac.createAnalyser();an.fftSize=512;
+    ac.createMediaStreamSource(stream).connect(an);
+    const d=new Uint8Array(an.fftSize);micLive=true;$('src').textContent='LAPTOP MIC FEATURE';
+    $('mic').textContent='🎙 mic armed';
+    function loop(){
+      an.getByteTimeDomainData(d);let s=0;
+      for(const v of d){const n=(v-128)/128;s+=n*n;}
+      loud=Math.round(20*Math.log10(Math.sqrt(s/d.length)+1e-7));
+      const now=Date.now();
+      if(loud>-28&&now>micCooldown){
+        micCooldown=now+3500;flash($('f-loud'));
+        nE++;$('nE').textContent=nE;chip($('edgeTrack'),'AUDIO','edge','e');
+        $('d-heard').textContent='Laptop mic detected loud room audio / possible speech.';
+        $('d-gregg').textContent='aud-lvl '+loud+'db noisy-room';
+        $('d-map').textContent='microphone→dBFS · raw audio stays local';
+        $('d-tier').innerHTML='<span class="tier-AMBER">AMBER</span>';
+        $('d-raw').textContent='~768 kbps';
+        $('d-short').textContent='~24 B';
+        $('d-save').textContent='>99%';
+        $('d-dec').textContent='edge audio gate only; use Vapi/Nebius when speech context or hazard phrase is needed';
+        $('d-cloud').textContent='standby — no raw laptop audio sent';
+      }
+      requestAnimationFrame(loop);
+    }
+    loop();
+  }catch(e){
+    $('src').textContent='MIC BLOCKED';
+    $('d-dec').textContent='microphone permission blocked; use simulator buttons';
+  }
+}
 
 let nE=0,nC=0,nB=0;
 function chip(track,label,sub,cls){const d=document.createElement('div');d.className='ev '+cls;d.innerHTML='<b>'+label+'</b>'+sub;track.appendChild(d);track.scrollLeft=track.scrollWidth;return d;}
@@ -141,6 +178,7 @@ async function run(text){
   const c=chip($('cloudTrack'),'70B','…','c');const o=await ask70b(text);nC++;$('nC').textContent=nC;c.lastChild.textContent=o.ms+'ms';$('d-cloud').textContent=o.a;
 }
 document.querySelectorAll('button[data-x]').forEach(b=>b.onclick=()=>run(b.dataset.x));
+$('mic').onclick=armMic;
 // auto demo: one finite pass for recording, no triage loop
 let timer=null,seq=['Observed three juvenile specimens near the burrow at 12 meters, temperature 18 degrees','My barometer read 1003 then 998 over an hour','Small formaldehyde spill on my outer glove. No fire and no skin contact. I forgot to check where I am relative to ventilation, eyewash, and the spill kit. What should I confirm first?'];let si=0;
 function stopAuto(){if(timer){clearInterval(timer);timer=null;}$('auto').textContent='▶ Auto demo';si=0;}
