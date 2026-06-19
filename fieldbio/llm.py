@@ -143,3 +143,38 @@ def health() -> list[dict[str, Any]]:
     if not report:
         report.append({"name": "none", "status": "no providers configured", "model": None})
     return report
+
+
+def _primary() -> Provider:
+    ps = providers()
+    if not ps:
+        raise RuntimeError("No local provider configured (set LLM_PROVIDER_ORDER=local).")
+    return ps[0]
+
+
+def raw_completion(body: dict[str, Any], *, timeout: float = 120.0) -> dict[str, Any]:
+    """Forward a chat-completions request (messages + tools) to local Ollama and
+    return the raw completion dict, including any tool_calls. Lets the offline
+    model drive Vapi function calling via the custom-LLM endpoint."""
+    p = _primary()
+    payload = dict(body)
+    payload["model"] = p.model  # force the local model; ignore caller's model name
+    payload.pop("stream", None)
+    with httpx.Client(timeout=timeout) as client:
+        resp = client.post(_url(p, "/chat/completions"), headers=_headers(p), json=payload)
+        resp.raise_for_status()
+    return resp.json()
+
+
+def raw_stream(body: dict[str, Any], *, timeout: float = 120.0) -> Iterator[bytes]:
+    """Stream local Ollama's SSE bytes verbatim, forcing the local model."""
+    p = _primary()
+    payload = dict(body)
+    payload["model"] = p.model
+    payload["stream"] = True
+    with httpx.Client(timeout=timeout) as client:
+        with client.stream("POST", _url(p, "/chat/completions"), headers=_headers(p), json=payload) as resp:
+            resp.raise_for_status()
+            for chunk in resp.iter_raw():
+                if chunk:
+                    yield chunk

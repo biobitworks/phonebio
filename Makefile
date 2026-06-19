@@ -1,4 +1,4 @@
-.PHONY: install dev test test-python test-node expose push wire wire-dry-run smoke
+.PHONY: install dev test test-python test-node expose push wire wire-dry-run smoke readiness
 
 install:
 	python3 -m pip install -r requirements.txt
@@ -30,3 +30,6 @@ wire-dry-run:
 
 smoke:
 	python3 scripts/smoke.py
+
+readiness:
+	@python3 scripts/readiness.py

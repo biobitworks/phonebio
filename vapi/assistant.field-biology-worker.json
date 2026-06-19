@@ -7,7 +7,7 @@
   "model": {
     "provider": "custom-llm",
     "url": "https://YOUR-FORWARDED-OR-HOSTED-URL/custom-llm",
-    "model": "qwen2.5:1.5b",
+    "model": "qwen3:1.7b",
     "messages": [
       {
         "role": "system",

@@ -17,6 +17,7 @@ Primary FastAPI runtime:
 ```bash
 python3 -m pip install -r requirements.txt
 make test
+make readiness
 make dev
 ```
 
@@ -40,6 +41,14 @@ Dry-run Vapi wiring:
 ```bash
 make wire-dry-run
 ```
+
+Local v1 readiness status:
+
+```bash
+make readiness
+```
+
+This reports all locally provable requirements and leaves live Vapi phone assignment blocked until credentials and public URLs are supplied.
 
 Live Vapi wiring needs `VAPI_API_KEY` or `VAPI_PRIVATE_KEY`, `VAPI_PHONE_NUMBER_ID`, and `VAPI_WEBHOOK_URL` or `PUBLIC_BASE_URL`. See `docs/VAPI_RUNBOOK.md`.
 

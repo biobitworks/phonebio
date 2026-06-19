@@ -24,15 +24,15 @@
 3. Public repo contains only PhoneBio project files.
 4. Secrets, private phone numbers, and transcripts are excluded.
 
-### Phase 3: Optional Model and Backend Expansion
-**Goal:** Add optional Nebius, InsForge, and Ollarma integration points after credits/accounts are ready.
+### Phase 3: Optional Backend Expansion
+**Goal:** Add InsForge persistence after the hackathon backend decision is ready; keep local Ollama as the only v1 LLM route.
 **Mode:** mvp
 **Requirements:** APP-01, APP-02, APP-03, INT-01, INT-02, INT-03
 
 **Success Criteria:**
-1. Nebius client uses OpenAI-compatible configuration with `NEBIUS_API_KEY`.
-2. InsForge schema draft covers protocols, safety sheets, observations, and audit receipts.
-3. Ollarma routing remains optional and does not block offline tool-server operation.
+1. InsForge schema draft covers protocols, safety sheets, observations, and audit receipts.
+2. Ollarma routing remains optional and does not block offline tool-server operation.
+3. No OpenAI API key or paid cloud model fallback is required for v1.
 
 ## Coverage
 
@@ -55,4 +55,3 @@
 | GOV-02 | Phase 1 |
 | GOV-03 | Phase 1 |
 | GOV-04 | Phase 2 |
-

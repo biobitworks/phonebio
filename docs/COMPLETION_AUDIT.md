@@ -8,12 +8,12 @@ This audit checks the original objective against current repo and runtime eviden
 |-------------|----------|--------|
 | Create a new Vapi voice agent for hackathon | `vapi/assistant.field-biology-worker.json`; `fieldbio/vapi_client.py`; `vapi/wire.py`; `make wire-dry-run` passes; `.github/workflows/ci.yml` validates dry-run payloads. | Partial - assistant template and API wiring exist; live Vapi assistant not created from this shell because no Vapi key is present. |
 | Field biology worker can call in for protocols, safety material, SDS, hardware troubleshooting | FastAPI tools in `fieldbio/tools.py`; content under `content/protocols`, `content/sds`, `content/troubleshooting`; Vapi webhook fixtures in `tests/fixtures`; tests pass. | Implemented locally; live call not verified. |
-| Processing is offline and can work through description | Tool server reads local files only; `make smoke` works without network. | Implemented for local webhook. |
+| Processing is offline and can work through description | Tool server reads local files only; `make smoke` and `make readiness` work without network. | Implemented for local webhook. |
 | Improve voice/scientific understanding through Gregg shorthand | `fieldbio/shorthand.py`; `content/shorthand/lexicon.json`; `compress_observation` tool; tests cover compression. | Implemented as deterministic field-note compression. |
 | Consider InsForge and Nebius | `.env.example`; `.planning/PROJECT.md`; `docs/RESEARCH.md`; `docs/INSFORGE_SCHEMA.md`; `docs/NEBIUS_INTEGRATION.md`; `docs/deferred_writeback_candidates.jsonl`. | InsForge remains the funded/free-credit backend path; Nebius is documented as deferred and not part of v1. |
 | Set up local git and push public GitHub | `origin=https://github.com/biobitworks/phonebio.git`; `origin/main` pushed. | Complete. |
 | Use GSD new project | `.planning/PROJECT.md`, `REQUIREMENTS.md`, `ROADMAP.md`, `STATE.md`, config and sidecars exist. | Complete. |
-| Phone sensors: accelerometer, UWB, LiDAR, gyroscope, barometer variations/accuracy | `content/sensors/sensors.json`; `docs/SENSOR_CAPABILITY_MATRIX.md`; sensor tool returns accuracy/error/confidence. | Implemented as reference guidance; device-specific manufacturer validation remains future work. |
+| Phone sensors: accelerometer, UWB, LiDAR, gyroscope, barometer variations/accuracy | `content/sensors/sensors.json`; `docs/SENSOR_CAPABILITY_MATRIX.md`; `scripts/readiness.py`; sensor tool returns accuracy/error/confidence/availability and exact ID matching. | Implemented as reference guidance; device-specific manufacturer validation remains future work. |
 | Use Ollarma connect with Claude Code in PhoneBio to get to version 1 | `docs/OLLARMA_CLAUDE_HANDOFF.md`; `docs/OLLARMA_LOCAL_REVIEW.md`; read-only Ollarma probes run; `/chat` review returned through fallback `qwen2.5:1.5b`. | Partial - bounded local review completed; Ollarma remains degraded with `SELECTION_STALE`; Watchtower bridge aggregator unreachable; no swarm/preflight run per bring-up stop rule. |
 | Act as PI, PM, operator | Planning, implementation, verification, GitHub push, sidecar logging, and runbooks completed in this session. | Complete for local project work. |
 | Existing Vapi test number/phone number is set up | No `VAPI_PHONE_NUMBER_ID` or Vapi API key available in shell; no dashboard evidence inspectable. | Not verified. |
@@ -30,6 +30,6 @@ This audit checks the original objective against current repo and runtime eviden
 
 ## Current Verdict
 
-PhoneBio v1 is locally implemented and publicly published, but the full objective is not complete until the live Vapi assistant is created or updated, assigned to the phone number, and verified through an inbound call.
+PhoneBio v1 is locally implemented and publicly published. `make readiness` currently proves 16 of 17 v1 requirements locally; `VOICE-01` remains blocked until the live Vapi assistant is created or updated, assigned to the phone number, and verified through an inbound call.
 
 The repo now includes both local-tunnel and container deployment paths, so the next external dependency is the Vapi credential/phone-number bundle plus the selected public webhook/custom-LLM URLs. InsForge credentials are needed later only when persistence is implemented.

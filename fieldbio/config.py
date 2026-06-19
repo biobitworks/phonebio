@@ -38,7 +38,7 @@ class Settings:
     provider_order = _split_csv(os.getenv("LLM_PROVIDER_ORDER", "local"))
 
     ollama_base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
-    ollama_model = os.getenv("OLLAMA_MODEL", "qwen2.5:1.5b")
+    ollama_model = os.getenv("OLLAMA_MODEL", "qwen3:1.7b")
 
 
 settings = Settings()

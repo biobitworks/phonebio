@@ -7,35 +7,35 @@
 
 ### Voice Agent
 
-- [ ] **VOICE-01**: Caller can reach a Vapi assistant assigned to the project phone number.
-- [ ] **VOICE-02**: Assistant uses a field-biology system prompt that keeps responses short, asks one clarifying question at a time, and escalates safety uncertainty.
-- [ ] **VOICE-03**: Assistant can call custom tools through a server URL and receive structured results.
+- [ ] **VOICE-01**: Caller can reach a Vapi assistant assigned to the project phone number. **Status:** blocked pending Vapi API key, phone number ID, and public webhook/custom-LLM URLs.
+- [x] **VOICE-02**: Assistant uses a field-biology system prompt that keeps responses short, asks one clarifying question at a time, and escalates safety uncertainty.
+- [x] **VOICE-03**: Assistant can call custom tools through a server URL and receive structured results.
 
 ### Offline Knowledge
 
-- [ ] **KNOW-01**: Tool server can retrieve a local protocol by organism, task, or hazard keyword.
-- [ ] **KNOW-02**: Tool server can retrieve a local safety-material summary by substance or hazard.
-- [ ] **KNOW-03**: Tool server can return "not found" guidance without hallucinating a protocol.
-- [ ] **KNOW-04**: Every local answer includes source IDs or local record IDs for later audit.
+- [x] **KNOW-01**: Tool server can retrieve a local protocol by organism, task, or hazard keyword.
+- [x] **KNOW-02**: Tool server can retrieve a local safety-material summary by substance or hazard.
+- [x] **KNOW-03**: Tool server can return "not found" guidance without hallucinating a protocol.
+- [x] **KNOW-04**: Every local answer includes source IDs or local record IDs for later audit.
 
 ### Hardware Support
 
-- [ ] **HARD-01**: Tool server can troubleshoot common field hardware issues from a natural-language symptom.
-- [ ] **HARD-02**: Troubleshooting answers include safe stop conditions and when to call a supervisor.
+- [x] **HARD-01**: Tool server can troubleshoot common field hardware issues from a natural-language symptom.
+- [x] **HARD-02**: Troubleshooting answers include safe stop conditions and when to call a supervisor.
 
 ### Sensor Reasoning
 
-- [ ] **SENS-01**: Tool server can interpret caller-provided accelerometer or gyroscope readings for orientation, vibration, or handling checks.
-- [ ] **SENS-02**: Tool server can interpret caller-provided barometer readings for relative elevation or weather-change context.
-- [ ] **SENS-03**: Tool server can explain UWB and LiDAR availability limits and confidence bands without requiring camera use.
-- [ ] **SENS-04**: Sensor guidance distinguishes measured data, inferred state, and uncertainty.
+- [x] **SENS-01**: Tool server can interpret caller-provided accelerometer or gyroscope readings for orientation, vibration, or handling checks.
+- [x] **SENS-02**: Tool server can interpret caller-provided barometer readings for relative elevation or weather-change context.
+- [x] **SENS-03**: Tool server can explain UWB and LiDAR availability limits and confidence bands without requiring camera use.
+- [x] **SENS-04**: Sensor guidance distinguishes measured data, inferred state, and uncertainty.
 
 ### Deployment and Governance
 
-- [ ] **GOV-01**: Repo includes a Vapi assistant configuration template with no secrets.
-- [ ] **GOV-02**: Repo includes source-intake and deferred-writeback JSONL sidecars.
-- [ ] **GOV-03**: Repo includes local tests for webhook parsing and offline tool answers.
-- [ ] **GOV-04**: Public GitHub publication path excludes secrets, phone numbers, and private transcripts.
+- [x] **GOV-01**: Repo includes a Vapi assistant configuration template with no secrets.
+- [x] **GOV-02**: Repo includes source-intake and deferred-writeback JSONL sidecars.
+- [x] **GOV-03**: Repo includes local tests for webhook parsing and offline tool answers.
+- [x] **GOV-04**: Public GitHub publication path excludes secrets, phone numbers, and private transcripts.
 
 ## v2 Requirements
 
@@ -47,9 +47,9 @@
 
 ### Model and Backend Integrations
 
-- **INT-01**: Nebius Token Factory supports optional model inference through OpenAI-compatible API settings.
-- **INT-02**: InsForge stores versioned protocol records, safety sheets, and call summaries.
-- **INT-03**: Ollarma routes local model tasks when cloud inference is unavailable.
+- **INT-01**: InsForge stores versioned protocol records, safety sheets, and call summaries after backend persistence is approved.
+- **INT-02**: Ollarma routes local model tasks when local routing is healthy.
+- **INT-03**: Nebius remains deferred outside the current funded/API path unless a separate approved credit source exists.
 
 ## Out of Scope
 
@@ -64,23 +64,23 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| VOICE-01 | Phase 2 | Pending |
-| VOICE-02 | Phase 1 | Pending |
-| VOICE-03 | Phase 1 | Pending |
-| KNOW-01 | Phase 1 | Pending |
-| KNOW-02 | Phase 1 | Pending |
-| KNOW-03 | Phase 1 | Pending |
-| KNOW-04 | Phase 1 | Pending |
-| HARD-01 | Phase 1 | Pending |
-| HARD-02 | Phase 1 | Pending |
-| SENS-01 | Phase 1 | Pending |
-| SENS-02 | Phase 1 | Pending |
-| SENS-03 | Phase 1 | Pending |
-| SENS-04 | Phase 1 | Pending |
-| GOV-01 | Phase 1 | Pending |
-| GOV-02 | Phase 1 | Pending |
-| GOV-03 | Phase 1 | Pending |
-| GOV-04 | Phase 2 | Pending |
+| VOICE-01 | Phase 2 | Blocked - live Vapi credential/URL bundle required |
+| VOICE-02 | Phase 1 | Pass - `make readiness` |
+| VOICE-03 | Phase 1 | Pass - `make readiness` |
+| KNOW-01 | Phase 1 | Pass - `make readiness` |
+| KNOW-02 | Phase 1 | Pass - `make readiness` |
+| KNOW-03 | Phase 1 | Pass - `make readiness` |
+| KNOW-04 | Phase 1 | Pass - `make readiness` |
+| HARD-01 | Phase 1 | Pass - `make readiness` |
+| HARD-02 | Phase 1 | Pass - `make readiness` |
+| SENS-01 | Phase 1 | Pass - `make readiness` |
+| SENS-02 | Phase 1 | Pass - `make readiness` |
+| SENS-03 | Phase 1 | Pass - `make readiness` |
+| SENS-04 | Phase 1 | Pass - `make readiness` |
+| GOV-01 | Phase 1 | Pass - `make readiness` |
+| GOV-02 | Phase 1 | Pass - `make readiness` |
+| GOV-03 | Phase 1 | Pass - `make readiness` |
+| GOV-04 | Phase 2 | Pass - `make readiness` |
 
 **Coverage:**
 - v1 requirements: 17 total
@@ -89,5 +89,4 @@
 
 ---
 *Requirements defined: 2026-06-19*
-*Last updated: 2026-06-19 after initialization*
-
+*Last updated: 2026-06-19 after readiness audit*

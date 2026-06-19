@@ -98,6 +98,23 @@ def test_vapi_tool_call_list_fixture_through_http():
     assert body["results"][0]["result"]["id"] == "barometer"
 
 
+def test_sensor_lookup_prefers_exact_sensor_id():
+    result = get_result(
+        {
+            "toolCalls": [
+                {
+                    "id": "call_lidar",
+                    "name": "interpret_sensor_report",
+                    "arguments": {"sensor": "lidar", "reading": "device says unavailable"},
+                }
+            ]
+        }
+    )
+    assert result["status"] == "ok"
+    assert result["id"] == "lidar"
+    assert "Only some phones" in result["availability"]
+
+
 def test_unknown_hardware_does_not_hallucinate():
     result = get_result(
         {

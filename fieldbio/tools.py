@@ -74,20 +74,34 @@ def troubleshoot_hardware(args: dict[str, Any]) -> dict[str, Any]:
 
 
 def interpret_sensor_report(args: dict[str, Any]) -> dict[str, Any]:
-    match = best_match(load_sensors(), _join_args(args, ["sensor", "reading", "context", "description"]))
+    sensors = load_sensors()
+    requested_sensor = str(args.get("sensor", "")).lower().strip()
+    record = next(
+        (
+            item
+            for item in sensors
+            if requested_sensor
+            and requested_sensor
+            in {str(item.get("id", "")).lower(), *(str(alias).lower() for alias in item.get("aka", []))}
+        ),
+        None,
+    )
+    match = None if record else best_match(sensors, _join_args(args, ["sensor", "reading", "context", "description"]))
     if not match or match.score == 0:
-        return {
-            "status": "not_found",
-            "answer": "Sensor type not recognized. Ask for sensor name, units, phone model, and whether the reading was repeated.",
-            "confidence": "unknown",
-        }
-    record = match.record
+        if not record:
+            return {
+                "status": "not_found",
+                "answer": "Sensor type not recognized. Ask for sensor name, units, phone model, and whether the reading was repeated.",
+                "confidence": "unknown",
+            }
+    record = record or match.record
     return {
         "status": "ok",
         "id": record["id"],
         "name": record["name"],
         "measures": record.get("measures"),
         "accuracy": record.get("accuracy", {}),
+        "availability": record.get("device_variation"),
         "errorSources": record.get("error_sources", []),
         "calibration": record.get("calibration"),
         "voiceGuidance": record.get("voice_guidance"),
@@ -109,4 +123,3 @@ TOOLS = {
     "interpret_sensor_report": interpret_sensor_report,
     "compress_observation": compress_observation,
 }
-
