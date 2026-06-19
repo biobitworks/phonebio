@@ -43,9 +43,13 @@ def _parse_frontmatter(markdown: str) -> tuple[dict[str, Any], str]:
     _, frontmatter, body = markdown.split("---", 2)
     meta: dict[str, Any] = {}
     current_key: str | None = None
+    collecting_block = False
     for raw_line in frontmatter.splitlines():
         line = raw_line.strip()
         if not line:
+            continue
+        if collecting_block and current_key and ":" not in line and not line.startswith("-"):
+            meta[current_key] = f"{meta.get(current_key, '')} {line}".strip()
             continue
         if line.startswith("-") and current_key:
             meta.setdefault(current_key, []).append(line.lstrip("- ").strip())
@@ -58,10 +62,13 @@ def _parse_frontmatter(markdown: str) -> tuple[dict[str, Any], str]:
         current_key = key
         if value.startswith("[") and value.endswith("]"):
             meta[key] = [item.strip() for item in value.strip("[]").split(",") if item.strip()]
+            collecting_block = False
         elif value in {">", "|"}:
             meta[key] = ""
+            collecting_block = True
         else:
             meta[key] = value
+            collecting_block = False
     return meta, body.strip()
 
 
@@ -74,6 +81,7 @@ def _load_markdown_dir(path: Path) -> list[dict[str, Any]]:
             {
                 "id": meta.get("id", file_path.stem),
                 "title": meta.get("title", file_path.stem.replace("_", " ")),
+                "domain": meta.get("domain"),
                 "keywords": meta.get("keywords", []),
                 "hazards": meta.get("hazards", []),
                 "read_aloud_summary": meta.get("read_aloud_summary", ""),
@@ -108,4 +116,3 @@ def load_troubleshooting() -> list[dict[str, Any]]:
 def load_sensors() -> list[dict[str, Any]]:
     data = json.loads((CONTENT_DIR / "sensors" / "sensors.json").read_text(encoding="utf-8"))
     return data.get("sensors", [])
-

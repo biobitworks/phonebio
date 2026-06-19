@@ -1,4 +1,4 @@
-.PHONY: install dev test test-python test-node expose push wire wire-dry-run smoke readiness llm-probe
+.PHONY: install dev test test-python test-node expose push wire wire-dry-run smoke readiness llm-probe insforge-export
 
 install:
 	python3 -m pip install -r requirements.txt
@@ -36,3 +36,6 @@ readiness:
 
 llm-probe:
 	@python3 scripts/llm_probe.py
+
+insforge-export:
+	@python3 scripts/insforge_export.py

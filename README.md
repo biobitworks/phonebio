@@ -59,6 +59,15 @@ make llm-probe
 
 This verifies the configured local model emits a Vapi-compatible tool call and that model reasoning fields are scrubbed before returning to Vapi.
 
+InsForge backend preview:
+
+```bash
+python3 scripts/insforge_export.py --summary
+make insforge-export > /tmp/phonebio-insforge-seed.jsonl
+```
+
+The migration in `migrations/` and seed export are for reviewed persistence only; v1 still runs file-local.
+
 Live Vapi wiring needs `VAPI_API_KEY` or `VAPI_PRIVATE_KEY`, `VAPI_PHONE_NUMBER_ID`, and `VAPI_WEBHOOK_URL` or `PUBLIC_BASE_URL`. See `docs/VAPI_RUNBOOK.md`.
 
 ## Tool Names

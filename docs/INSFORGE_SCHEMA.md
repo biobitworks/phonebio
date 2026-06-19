@@ -2,6 +2,22 @@
 
 PhoneBio v1 runs file-local. Use InsForge only if the hackathon demo needs hosted persistence or a lightweight admin surface.
 
+InsForge's database docs describe each project as a Postgres database where tables become REST/SDK endpoints, and its migration docs use timestamped SQL files in `migrations/` applied with `npx @insforge/cli db migrations up --all`.
+
+This repo therefore includes:
+
+- `migrations/20260619191000_phonebio-initial-schema.sql` — forward-only schema for the tables below.
+- `make insforge-export` — deterministic JSONL seed export from local source files, with SHA-256 source hashes and no private call data.
+
+Apply only after backend persistence is explicitly approved:
+
+```bash
+npx @insforge/cli login
+npx @insforge/cli link
+npx @insforge/cli db migrations up --all
+make insforge-export > /tmp/phonebio-insforge-seed.jsonl
+```
+
 ## Candidate Tables
 
 ### `protocols`
@@ -69,4 +85,3 @@ PhoneBio v1 runs file-local. Use InsForge only if the hackathon demo needs hoste
 - Do not store raw transcripts by default.
 - Do not mark InsForge rows as authoritative writeback into any portfolio system.
 - Keep local file content as v1 source of truth until an explicit migration is approved.
-
