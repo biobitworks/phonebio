@@ -27,7 +27,7 @@ HOSTED_DEFAULTS = {
     "VAPI_WEBHOOK_URL": "https://qfdp5nuv.function2.insforge.app/phonebio-vapi-webhook",
     "VAPI_CUSTOM_LLM_URL": "https://qfdp5nuv.function2.insforge.app/phonebio-llm",
     "NEBIUS_BASE_URL": "https://api.tokenfactory.nebius.com/v1",
-    "NEBIUS_MODEL": "Qwen/Qwen3-30B-A3B-Instruct-2507",
+    "NEBIUS_MODEL": "meta-llama/Llama-3.3-70B-Instruct",
     "OLLAMA_BASE_URL": "http://localhost:11434/v1",
     "OLLAMA_MODEL": "qwen3:1.7b",
 }

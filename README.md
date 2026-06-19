@@ -2,13 +2,33 @@
 
 PhoneBio is a hackathon voice-agent prototype for a field biology worker with limited or degraded connectivity. The worker can call a Vapi phone number and ask for protocols, safety material, hardware troubleshooting, disaster triage capture, or sensor-based reasoning even when mobile data/app sync is unavailable. Screen/app interaction can help when available, but it is not required.
 
+## Live Demo
+
+Public demo page:
+
+```text
+https://qfdp5nuv.insforge.site/live.html
+```
+
+The page is designed for the recorded script: the left panel shows what
+PhoneBio needs, the right panel shows what to say, and the lower panels show
+laptop mic/sensor signals, edge-vs-70B routing, shorthand compression, and
+bandwidth savings.
+
+![PhoneBio live desktop dashboard](docs/assets/live-desktop.png)
+
+The same page can be saved to an iPhone Home Screen for the pre-field setup
+story. Sensor/microphone permissions should be granted before the no-touch demo.
+
+![PhoneBio live mobile view](docs/assets/live-mobile.png)
+
 ## v1 Shape
 
 - Vapi answers inbound calls and uses custom tools.
-- InsForge is the website/app hosting and deterministic backend surface.
-- Nebius is the optional GPU/model acceleration layer.
+- InsForge is the website/app hosting, custom-LLM proxy, and deterministic backend surface.
+- Nebius Token Factory is the live GPU/model reasoning layer when `NEBIUS_API_KEY` is configured.
 - A local FastAPI webhook serves tool results from repository data only.
-- A dependency-free Node webhook remains available as a fallback.
+- A dependency-free Node webhook remains available as a local fallback.
 - Phone sensor support is treated as narrated or app-provided readings: accelerometer, gyroscope, gesture/pocket context, magnetometer, barometer, microphone/acoustic context, UWB, LiDAR, and GPS where available.
 - Camera-dependent workflows are out of scope for v1.
 - Voice-first operation is required: the caller may be wearing PPE, handling contaminated equipment, or collecting disaster-relief observations. Screen/app interaction is optional when safe and available.
@@ -41,8 +61,8 @@ make public-probe
 ```
 
 `make expose` starts Vapi CLI webhook forwarding only. The current checked-in
-assistant uses the hosted InsForge webhook and Vapi's `google` model provider,
-so a custom-LLM URL is not required for the live hackathon path.
+assistant uses the hosted InsForge webhook plus the hosted InsForge
+`phonebio-llm` custom-LLM proxy for Nebius Token Factory.
 
 Configure the Vapi assistant using `vapi/assistant.field-biology-worker.json` as the dashboard/API reference. Set the assistant server URL to the forwarded webhook URL.
 
@@ -74,7 +94,7 @@ make llm-probe
 
 This verifies the configured local model emits a Vapi-compatible tool call and that model reasoning fields are scrubbed before returning to Vapi.
 
-Optional Nebius Token Factory probe, after hackathon/free credits are active:
+Nebius Token Factory probe, after hackathon/free credits are active:
 
 ```bash
 export NEBIUS_API_KEY="..."
@@ -84,8 +104,9 @@ make nebius-probe
 ```
 
 This follows the cookbook `NEBIUS_API_KEY` setup and uses Nebius's
-OpenAI-compatible chat-completions endpoint. It is not required for the live
-Vapi + InsForge demo.
+OpenAI-compatible chat-completions endpoint. The live demo path tries Nebius
+first; deterministic fallback responses are allowed only when the Nebius/network
+path fails and must be labeled as fallback output.
 
 Provider/credit routing is documented in `docs/PROVIDER_STRATEGY.md`.
 Vapi dashboard resource usage is documented in `docs/VAPI_RESOURCE_STRATEGY.md`.
@@ -109,8 +130,12 @@ The simulated local quantized orchestrator and ExecuTorch target path are in `do
 Public demo dashboard:
 
 ```text
-https://qfdp5nuv.insforge.site/dashboard.html
+https://qfdp5nuv.insforge.site/live.html
 ```
+
+The live page shows the simple demo surface: sensor lines, laptop microphone
+loudness, edge-vs-70B processing, bandwidth/shorthand compression, and the
+low-level formaldehyde location-check script.
 
 Local hackathon call-script replay:
 
@@ -140,15 +165,17 @@ Live Vapi wiring needs `VAPI_API_KEY` or `VAPI_PRIVATE_KEY`, `VAPI_PHONE_NUMBER_
 - `interpret_sensor_report`
 - `compress_observation`
 - `assess_environment_risk`
+- `get_public_alert_context`
 
 ## Runtime Boundary
 
 The local webhook does not call the internet. The live hackathon path uses Vapi
-for the phone agent and the hosted InsForge function for tool dispatch. The
-field device only needs enough cellular service to place a voice call; server
-side services handle tool dispatch and downstream records. No OpenAI API key is
-used. InsForge credentials are needed only to redeploy or change the hosted
-function or to add persistence.
+for the phone agent, the hosted InsForge function for tool dispatch, and the
+hosted InsForge custom-LLM proxy for Nebius GPU reasoning. The field device only
+needs enough cellular service to place a voice call; server-side services handle
+tool dispatch and downstream records. No OpenAI API key is used. InsForge
+credentials are needed only to redeploy or change the hosted functions or to add
+persistence.
 
 Ollarma status on 2026-06-19: reachable but degraded with `SELECTION_STALE`; Watchtower bridge aggregator unreachable. See `docs/OLLARMA_CLAUDE_HANDOFF.md`.
 

@@ -46,7 +46,7 @@ sensor, shorthand/readback, unknown fallback, and emergency triage.
 
 Capture these windows:
 
-- public dashboard: `https://qfdp5nuv.insforge.site/dashboard.html`
+- public dashboard: `https://qfdp5nuv.insforge.site/live.html`
 - terminal running `make recording-preflight` or `make vapi-wait-call`
 - optional Vapi dashboard only if keys, raw phone numbers, transcripts, and
   recordings are hidden
@@ -86,6 +86,15 @@ The redacted output should show `recordingPresent: true` if Vapi retained call
 audio. The helper intentionally does not print the recording URL or download the
 file. Export raw audio from the Vapi dashboard only after the take, and keep it
 out of git.
+
+Best local take reference for the current demo:
+
+```text
+/Users/byron/Movies/2026-06-19 15-15-53.mov
+```
+
+Use it as a local editing reference only; do not commit the MOV or derived raw
+call artifacts.
 
 ## Take Order
 

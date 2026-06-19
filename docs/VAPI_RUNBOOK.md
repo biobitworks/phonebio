@@ -11,7 +11,7 @@ later phases.
 - Vapi private/API key in the shell as `VAPI_PRIVATE_KEY` or `VAPI_API_KEY`. Prefer `VAPI_PRIVATE_KEY`; if both are set, PhoneBio uses `VAPI_PRIVATE_KEY`.
 - Existing Vapi phone number ID in `VAPI_PHONE_NUMBER_ID`.
 - Public webhook URL in `VAPI_WEBHOOK_URL` or `PUBLIC_BASE_URL` when using a local tunnel or alternate deployment. The checked-in assistant already uses the hosted InsForge webhook.
-- Public custom-LLM base URL in `VAPI_CUSTOM_LLM_URL` only when switching the assistant model provider to `custom-llm`. The current live path uses Vapi's `google` provider, so this is not required.
+- Public custom-LLM base URL in `VAPI_CUSTOM_LLM_URL` only when replacing the checked-in hosted InsForge custom-LLM proxy.
 - Optional outbound test destination in `VAPI_TEST_NUMBER`.
 - Optional bearer secret in `VAPI_WEBHOOK_SECRET` for both `/webhook` and `/custom-llm/chat/completions`.
 
@@ -19,10 +19,10 @@ later phases.
 
 The hosted InsForge webhook already exists, so the next required API bundle is Vapi only: a valid Vapi API/private key and the phone number ID or dashboard access to assign the assistant. If you replace the hosted webhook with a tunnel, also set `VAPI_WEBHOOK_URL`.
 
-InsForge is already hosting the webhook. InsForge credentials are needed only
-to redeploy the function or add persistence. OpenAI is not used. Nebius is
-configured as an optional Token Factory provider and remains disabled until
-`NEBIUS_API_KEY` plus approved free credits/API access are available.
+InsForge is already hosting the webhook and the `phonebio-llm` custom-LLM
+proxy. InsForge credentials are needed only to redeploy the functions or add
+persistence. OpenAI is not used. Nebius Token Factory is the live GPU reasoning
+lane when `NEBIUS_API_KEY` is configured in the hosted function environment.
 
 ## Local Webhook
 
@@ -204,26 +204,36 @@ make tts-stress
 Public dashboard for the video:
 
 ```text
-https://qfdp5nuv.insforge.site/dashboard.html
+https://qfdp5nuv.insforge.site/live.html
 ```
 
-Use handset or earbud microphone for the primary proof. Speakerphone on stage is
-useful only as a noisy-condition demonstration because it can feed room audio and
-assistant speech back into the call. See `docs/STAGE_TEST_CALL_GUIDE.md`.
+Use the live page for the OBS/browser visual. It shows simulated sensor lines,
+the laptop microphone loudness lane, edge-vs-70B processing, shorthand
+compression, and the exact formaldehyde location-check line to say.
+
+Use handset or earbud microphone for the cleanest primary proof. Speakerphone on
+stage is useful as a noisy-condition demonstration because it can feed room
+audio and assistant speech back into the call. See
+`docs/STAGE_TEST_CALL_GUIDE.md`.
 
 1. Call the Vapi phone number hands-free.
-2. Say: "I am in PPE and cannot touch the phone. I am collecting a surface water grab sample and the bottle has an air bubble. What do I do?"
-3. Confirm the assistant calls `get_protocol`.
-4. Say: "I spilled formaldehyde on a glove."
-5. Confirm the assistant calls `get_safety_sheet` and escalates safety uncertainty.
-6. Say: "The centrifuge is vibrating after balancing."
-7. Confirm the assistant calls `troubleshoot_hardware`.
-8. Say: "My barometer dropped 4 hPa in two hours."
-9. Confirm the assistant calls `interpret_sensor_report` and explains confidence.
-10. Say: "Disaster triage note. Loud machinery, possible fuel smell, two workers nearby, GPS accuracy 8 meters."
-11. Confirm the assistant asks one spoken follow-up and does not request app taps, photos, or screen interaction.
-12. Say: "Mobile data is down. I can only keep this call open."
-13. Confirm the assistant continues by voice, captures location/hazard/action fields, and does not ask for app sync or upload.
+2. Say: "Low-level formaldehyde cleanup. No fire. No skin contact. I forgot the SDS location step. Ask me where I am relative to ventilation, eyewash, spill kit, exits, and other people before cleanup."
+3. Confirm the assistant asks for missing location context before cleanup instructions.
+4. Confirm it can call `get_safety_sheet` for formaldehyde.
+5. Say: "The centrifuge is vibrating after balancing."
+6. Confirm the assistant calls `troubleshoot_hardware`.
+7. Say: "My barometer dropped 4 hPa in two hours."
+8. Confirm the assistant calls `interpret_sensor_report` and explains confidence.
+9. Say: "Disaster triage note. Loud machinery, possible fuel smell, two workers nearby, GPS accuracy 8 meters."
+10. Confirm the assistant asks one spoken follow-up and does not request app taps, photos, or screen interaction.
+11. Say: "Mobile data is down. I can only keep this call open."
+12. Confirm the assistant continues by voice, captures location/hazard/action fields, and does not ask for app sync or upload.
+
+If the voice agent loops on filler such as "one moment" or "this will take a
+sec", do not wait through the take. Narrate the fallback path on the live page:
+Vapi owns the phone call, Nebius is attempted first, InsForge tools remain the
+SDS/protocol authority, and a deterministic fallback is used only when the
+network/model path fails.
 
 ## Nearby People / Devices Test Script
 
@@ -239,7 +249,7 @@ Use this when ready to test the “ask me, do not infer” behavior:
 
 Use this when the demo room audio is bleeding into the call:
 
-1. Open `https://qfdp5nuv.insforge.site/dashboard.html`.
+1. Open `https://qfdp5nuv.insforge.site/live.html`.
 2. Place the Vapi call from your real phone.
 3. Say: "Stage demo mode. I am not close to the microphone, and the room is noisy."
 4. Click `Stage speaker` on the dashboard.

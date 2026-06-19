@@ -22,10 +22,9 @@
 - Vapi can be tested quickly through dashboard-created assistants and phone numbers. Custom tools require a reachable server URL and return `results` keyed by tool-call ID.
 - Server URLs are the right bridge for call transcripts, function calls, assistant requests, and end-of-call reports.
 - Gregg shorthand suggests a voice UX pattern: capture compact phonetic/semantic observations, then ask clarifying questions only when omitted detail changes safety or protocol selection.
-- Nebius was reviewed but is not part of the current funded/API path.
-- Nebius Token Factory cookbook setup is now represented as an optional path:
-  `NEBIUS_API_KEY` in `.env`, OpenAI-compatible chat-completions base URL, and
-  `make nebius-probe` after free credits/API access are active.
+- Nebius Token Factory is part of the live funded/API path when hackathon free
+  credits are active: `NEBIUS_API_KEY` in the hosted function environment,
+  OpenAI-compatible chat-completions base URL, and `make nebius-probe` locally.
 - Provider/credit strategy is captured in `docs/PROVIDER_STRATEGY.md`: Vapi
   for phone/call evidence, InsForge for deterministic tools, Nebius for
   optional non-safety model capacity, and Ollama for local no-cost fallback.

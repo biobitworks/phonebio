@@ -8,7 +8,7 @@ to the caller's mouth.
 Open this before recording:
 
 ```text
-https://qfdp5nuv.insforge.site/dashboard.html
+https://qfdp5nuv.insforge.site/live.html
 ```
 
 The hosted dashboard runs in static demo mode. It does not need local server
@@ -52,18 +52,19 @@ If you must use speakerphone:
    dialing if available.
 3. Put the phone on speaker and do not touch it during the take.
 4. Say: "Stage demo mode. Sensors were pre-authorized before the field run. I am on speaker only, I cannot touch the phone, mobile data is down, and the room is noisy."
-5. If a separate operator controls the dashboard, click `Stage speaker`.
-6. Expected dashboard state: `risk: medium`, `lane: noisy_confirmation`.
-   The local quantized orchestrator panel should show `ask confirmation` and
-   `ExecuTorch filter, then Vapi`.
+5. If a separate operator controls the dashboard, click `sensor` or arm the
+   laptop mic to show noisy-context spikes.
+6. Expected dashboard state: the edge line moves first, loudness/sensor spikes
+   appear, and cloud/Nebius processing lights up only for higher-risk prompts.
 7. Expected agent behavior: it asks one confirmation question before using the
    noisy context, such as: "Are you alone, with another worker, near a radio, or
    near powered equipment?"
 8. Reply: "One other worker is nearby, and the centrifuge is running."
-9. If a separate operator controls the dashboard, click `Biohazard`.
-10. Expected dashboard state: `risk: high`, `lane: emergency_priority`.
-   The local quantized orchestrator panel should show `short safety action` and
-   `Vapi + InsForge priority`.
+9. If a separate operator controls the dashboard, click `formaldehyde location
+   check`.
+10. Expected dashboard state: `risk: amber`, low-bandwidth packet/shorthand
+   compression updates, and the 70B lane shows when the scenario needs cloud
+   reasoning.
 11. Say: "Now there is a biohazard spill cue. What is the immediate action?"
 
 For sensor interpretation boundaries, use `docs/SENSOR_TRIAGE_MATRIX.md`.

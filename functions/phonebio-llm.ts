@@ -4,7 +4,7 @@
 // streams the reply back verbatim (content AND tool_calls). The Nebius key is
 // an InsForge secret, injected server-side — never exposed to Vapi or the repo.
 const NEBIUS_BASE = (Deno.env.get("NEBIUS_BASE_URL") || "https://api.tokenfactory.nebius.com/v1").replace(/\/+$/, "");
-const NEBIUS_MODEL = Deno.env.get("NEBIUS_MODEL") || "Qwen/Qwen3-30B-A3B";
+const NEBIUS_MODEL = Deno.env.get("NEBIUS_MODEL") || "meta-llama/Llama-3.3-70B-Instruct";
 const FALLBACK_MODEL = "phonebio-deterministic-fallback";
 
 const cors = {

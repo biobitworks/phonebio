@@ -1,9 +1,10 @@
 # Nebius Token Factory Integration
 
-Nebius is optional and gated on hackathon/free credits. PhoneBio's active live
-services are Vapi for phone orchestration and InsForge for the hosted webhook.
-The deterministic protocol, SDS, hardware, sensor, and shorthand tool layer
-does not call Nebius.
+Nebius is active for the live GPU reasoning lane when hackathon/free credits and
+`NEBIUS_API_KEY` are configured. PhoneBio's active live services are Vapi for
+phone orchestration, InsForge for the hosted webhook and custom-LLM proxy, and
+Nebius Token Factory for the model call behind that proxy. The deterministic
+protocol, SDS, hardware, sensor, and shorthand tool layer does not call Nebius.
 
 ## Cookbook-Aligned Environment
 
@@ -11,12 +12,12 @@ does not call Nebius.
 cp .env.example .env
 NEBIUS_API_KEY=your_api_key_here
 NEBIUS_BASE_URL=https://api.tokenfactory.nebius.com/v1
-NEBIUS_MODEL=Qwen/Qwen3-30B-A3B-Instruct-2507
+NEBIUS_MODEL=meta-llama/Llama-3.3-70B-Instruct
 LLM_PROVIDER_ORDER=nebius,local
 ```
 
 This mirrors the Nebius Token Factory cookbook's local `.env` pattern while
-keeping Nebius disabled by default.
+keeping secrets local or hosted in InsForge, not committed.
 
 ## Probe
 
@@ -46,22 +47,24 @@ If a configured model is unavailable, first check:
 python3 scripts/nebius_probe.py --list-models
 ```
 
-## Optional Custom-LLM Endpoint
+## Hosted Custom-LLM Endpoint
 
 PhoneBio exposes an optional Vapi-compatible custom-LLM route:
 
 ```text
-POST /custom-llm/chat/completions
+POST https://qfdp5nuv.function2.insforge.app/phonebio-llm/chat/completions
 ```
 
-If `LLM_PROVIDER_ORDER=nebius,local` and `NEBIUS_API_KEY` is set, this endpoint
-can route free-form reasoning through Nebius. Use this only for
-non-safety-critical summarization or experiments. Deterministic protocol, SDS,
-hardware, sensor, and shorthand work stays on `/webhook`.
+If `NEBIUS_API_KEY` is set in the hosted function environment, this endpoint
+routes live Vapi model turns through Nebius. Deterministic protocol, SDS,
+hardware, sensor, and shorthand work stays on the hosted Vapi webhook.
+
+Fallback is failure-only: the proxy tries Nebius first, and if the key/network
+path fails it may return a clearly labeled deterministic response with model
+`phonebio-deterministic-fallback`.
 
 ## Hackathon Policy
 
-- Do not require Nebius for v1 demo.
 - Use Nebius only after free credits/API access are approved.
 - No OpenAI key is used; Nebius uses its own `NEBIUS_API_KEY`.
 - Keep all safety-critical protocol lookup deterministic and source-backed.

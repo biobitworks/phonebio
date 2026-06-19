@@ -163,6 +163,18 @@ make shorthand-stress
 make readiness
 ```
 
+## Best Take Reference
+
+Local reference recording for the submitted/demo take:
+
+```text
+/Users/byron/Movies/2026-06-19 15-15-53.mov
+```
+
+Keep this file local or in private editing storage. Do not commit raw call
+recordings, transcripts, phone numbers, exact private locations, or recording
+URLs.
+
 ## What Not To Say
 
 - Do not say the system replaces SDS, emergency services, or a site supervisor.

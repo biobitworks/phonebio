@@ -4,6 +4,7 @@
 
 **Stack on screen:** Vapi (phone) → **Nebius Llama-3.3-70B** via an InsForge edge proxy → InsForge tools + Postgres + hosting. **No OpenAI. Voice-only-capable (no caller data). Hands-free, camera-free.**
 **Call-in:** **+1 541‑526‑9723** (backup line +1 541‑526‑9684) · **"Hey Siri, call PhoneBio"** · **Dashboard:** https://qfdp5nuv.insforge.site/live.html
+**Best local take reference:** `/Users/byron/Movies/2026-06-19 15-15-53.mov` (keep local; do not commit/export raw call artifacts).
 
 ---
 
@@ -15,8 +16,8 @@
 ## A. The call beats (what to say → what it does)
 **0. Hands-free start:** "Hey Siri, call PhoneBio." → *"PhoneBio here. Tell me the task, material, or device, and what changed."*
 
-**1. Proactive coach (asks where you are):** "I spilled a little formaldehyde on the bench."
-> Agent asks **WHERE/ventilation** and flags a forgotten step before reading steps → `get_safety_sheet` → PPE + **spill cleanup** (absorb, ventilate, don't drain) + first aid. Tier **AMBER** (contain + PPE).
+**1. Proactive coach (asks where you are):** "Low-level formaldehyde cleanup. No fire. No skin contact. I forgot the SDS location step. Ask me where I am relative to ventilation, eyewash, spill kit, exits, and other people before cleanup."
+> Agent asks **WHERE/ventilation/eyewash/spill kit/exits/nearby people** before cleanup → `get_safety_sheet` → PPE + **spill cleanup boundaries**. Tier **AMBER** (contain + PPE), not emergency by default.
 
 **2. Severity gradation → emergency:** "Now there's a small fire and I can't reach 911."
 > Tier **RED** → life-safety **first** ("move away/upwind, protect airway"), then the **can't-reach-ER** path (self-rescue + log + relay GPS). Same substance, harder tier.

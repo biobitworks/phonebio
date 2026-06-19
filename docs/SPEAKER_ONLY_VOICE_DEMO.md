@@ -37,12 +37,11 @@ PhoneBio, I cannot use my hands. This is a speaker-only field demo.
 The public dashboard may be opened on a laptop before recording as a visual aid:
 
 ```text
-https://qfdp5nuv.insforge.site/dashboard.html
+https://qfdp5nuv.insforge.site/live.html
 ```
 
-If used, start `Run live simulation` before the speaker-only section or have a
-separate operator control the laptop. Do not require the caller to touch the
-phone.
+If used, start `Auto demo` before the speaker-only section or have a separate
+operator control the laptop. Do not require the caller to touch the phone.
 
 For OBS and audio capture, use:
 
@@ -58,7 +57,7 @@ that Vapi captured the call and retained transcript/audio artifacts.
 If sensor access is part of the story, do this once before recording:
 
 1. Open the sensor/dashboard page on the phone:
-   `https://qfdp5nuv.insforge.site/dashboard.html`.
+   `https://qfdp5nuv.insforge.site/live.html`.
 2. In Safari, use Share -> Add to Home Screen, then name it `PhoneBio`.
 3. Open the new `PhoneBio` Home Screen icon once.
 4. Grant any browser or app permissions while touching the phone is still
