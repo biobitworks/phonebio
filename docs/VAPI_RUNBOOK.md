@@ -41,6 +41,8 @@ vapi listen --forward-to localhost:8080/webhook
 
 Vapi's current CLI docs describe `vapi listen` as a local forwarder only, not a public tunnel. For the PhoneBio custom-LLM path, use `make tunnel` or a hosted deployment that exposes the full app.
 
+`make tunnel` tries `ngrok`, `cloudflared`, `lt`, then `npx --yes localtunnel` so a hackathon laptop with npm can still create a no-cost public URL without a global tunnel install.
+
 ## Dry Run
 
 ```bash

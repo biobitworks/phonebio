@@ -35,3 +35,21 @@ venv/
 *.log
 .cache/
 content/_local_cache/
+
+# InsForge & AI agent skills
+.insforge
+.agent
+.agents
+.augment
+.claude
+.cline
+.github/copilot*
+.kilocode
+.qoder
+.qwen
+.roo
+.trae
+.windsurf
+
+# InsForge admin keys — never publish
+.insforge/

@@ -24,6 +24,8 @@ make wire
 
 `make tunnel` exposes the full FastAPI app, so both `/webhook` and `/custom-llm/chat/completions` are reachable through the same public base URL.
 
+Tunnel command selection is automatic: `ngrok`, `cloudflared`, `lt`, then `npx --yes localtunnel`. On a machine with npm but no global tunnel binary, the localtunnel fallback avoids a separate install.
+
 ## Option B: Vapi CLI Webhook Forwarder
 
 Useful for webhook-event debugging only.

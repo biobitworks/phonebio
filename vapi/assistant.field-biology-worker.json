@@ -2,12 +2,11 @@
   "name": "PhoneBio Field Biology Worker",
   "firstMessage": "PhoneBio here. Tell me the field task, material or device, and what changed.",
   "server": {
-    "url": "https://YOUR-FORWARDED-OR-HOSTED-URL/webhook"
+    "url": "https://qfdp5nuv.function2.insforge.app/phonebio-vapi-webhook"
   },
   "model": {
-    "provider": "custom-llm",
-    "url": "https://YOUR-FORWARDED-OR-HOSTED-URL/custom-llm",
-    "model": "qwen3:1.7b",
+    "provider": "google",
+    "model": "gemini-2.0-flash",
     "messages": [
       {
         "role": "system",
