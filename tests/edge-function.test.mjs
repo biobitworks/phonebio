@@ -8,3 +8,10 @@ test("InsForge Vapi webhook returns object tool results", async () => {
   assert.match(source, /results\.push\(\{\s*toolCallId: id,\s*name,\s*result\s*\}\)/s);
   assert.doesNotMatch(source, /result:\s*JSON\.stringify\(result\)/);
 });
+
+test("InsForge Vapi webhook accepts the same tool-call fields as local webhook", async () => {
+  const source = await readFile(new URL("../functions/vapi-webhook.ts", import.meta.url), "utf8");
+
+  assert.match(source, /call\.function\?\.name\s*\|\|\s*call\.name\s*\|\|\s*call\.toolName\s*\|\|\s*call\.type/);
+  assert.match(source, /call\.function\?\.arguments\s*\?\?\s*call\.parameters\s*\?\?\s*call\.arguments\s*\?\?\s*call\.args/);
+});

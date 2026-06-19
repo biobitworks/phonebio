@@ -168,9 +168,9 @@ export default async function (req: Request): Promise<Response> {
 
   const results = [];
   for (const call of calls) {
-    const name = call.name || call.function?.name || call.type || "";
+    const name = call.function?.name || call.name || call.toolName || call.type || "";
     const id = call.id || call.toolCallId || name || "unknown";
-    let args = call.parameters ?? call.arguments ?? call.function?.arguments ?? {};
+    let args = call.function?.arguments ?? call.parameters ?? call.arguments ?? call.args ?? {};
     if (typeof args === "string") { try { args = JSON.parse(args); } catch { args = { description: args }; } }
     const fn = TOOLS[name];
     const result = fn ? await fn(args) : { status: "error", answer: `Unsupported tool: ${name}` };
