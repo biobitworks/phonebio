@@ -2,24 +2,46 @@
 
 PhoneBio needs a public HTTPS webhook before Vapi can call the local tool server during an inbound phone call.
 
-## Option A: Vapi CLI Tunnel
+## Option A: Direct App Tunnel
 
 Best for a live hackathon demo from this laptop.
+
+```bash
+make dev
+make tunnel
+```
+
+Copy the forwarded HTTPS URL and set:
+
+```bash
+export PUBLIC_BASE_URL="https://forwarded-url"
+export VAPI_WEBHOOK_URL="${PUBLIC_BASE_URL}/webhook"
+export VAPI_CUSTOM_LLM_URL="${PUBLIC_BASE_URL}/custom-llm"
+make public-probe
+make wire-dry-run
+make wire
+```
+
+`make tunnel` exposes the full FastAPI app, so both `/webhook` and `/custom-llm/chat/completions` are reachable through the same public base URL.
+
+## Option B: Vapi CLI Webhook Forwarder
+
+Useful for webhook-event debugging only.
 
 ```bash
 make dev
 make expose
 ```
 
-Copy the forwarded HTTPS URL and set:
+`make expose` uses:
 
 ```bash
-export VAPI_WEBHOOK_URL="https://forwarded-url/webhook"
-make wire-dry-run
-make wire
+vapi listen --forward-to localhost:8080/webhook
 ```
 
-## Option B: Container Host
+Per Vapi's current CLI documentation, `vapi listen` is a local webhook forwarder, not a public tunnel. It still needs a separate public tunnel to receive Vapi events, and it does not expose the full custom-LLM route directly.
+
+## Option C: Container Host
 
 The repo includes a `Dockerfile` and `Procfile`.
 
@@ -61,6 +83,7 @@ For Vapi, create a Custom Credential with a bearer token and attach it to the as
 
 - [ ] `make test` passes locally.
 - [ ] `make smoke` passes locally.
+- [ ] `make public-probe` reaches `/health`, `/webhook`, and `/llm/health` through the public URL.
 - [ ] Public `/health` returns `{"status":"ok"}`.
 - [ ] Public `/webhook` returns a Vapi-style `results` array.
 - [ ] `make wire-dry-run` shows a real webhook URL.

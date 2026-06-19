@@ -21,16 +21,25 @@ InsForge is not needed until persistent hosted storage is selected. OpenAI is no
 
 ```bash
 make dev
-make expose
+make tunnel
 ```
 
-`make expose` uses the Vapi CLI forwarding path:
+Use the public HTTPS base URL for:
+
+```bash
+export PUBLIC_BASE_URL="https://your-public-url"
+export VAPI_WEBHOOK_URL="${PUBLIC_BASE_URL}/webhook"
+export VAPI_CUSTOM_LLM_URL="${PUBLIC_BASE_URL}/custom-llm"
+make public-probe
+```
+
+`make expose` remains available for Vapi CLI webhook-forwarder debugging:
 
 ```bash
 vapi listen --forward-to localhost:8080/webhook
 ```
 
-Use the forwarded URL as `VAPI_WEBHOOK_URL`.
+Vapi's current CLI docs describe `vapi listen` as a local forwarder only, not a public tunnel. For the PhoneBio custom-LLM path, use `make tunnel` or a hosted deployment that exposes the full app.
 
 ## Dry Run
 

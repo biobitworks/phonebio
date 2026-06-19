@@ -28,11 +28,15 @@ npm test
 npm start
 ```
 
-Expose the webhook for Vapi testing:
+Expose the full app for live Vapi testing:
 
 ```bash
-make expose
+make tunnel
+export PUBLIC_BASE_URL="https://your-public-url"
+make public-probe
 ```
+
+`make expose` starts Vapi CLI webhook forwarding only; use `make tunnel` or a hosted deployment when the assistant also needs the custom-LLM endpoint.
 
 Configure the Vapi assistant using `vapi/assistant.field-biology-worker.json` as the dashboard/API reference. Set the assistant server URL to the forwarded webhook URL.
 

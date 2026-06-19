@@ -1,4 +1,4 @@
-.PHONY: install dev test test-python test-node expose push wire wire-dry-run vapi-preflight smoke readiness llm-probe demo-call insforge-export
+.PHONY: install dev test test-python test-node expose tunnel push wire wire-dry-run vapi-preflight public-probe smoke readiness llm-probe demo-call insforge-export
 
 install:
 	python3 -m pip install -r requirements.txt
@@ -19,6 +19,9 @@ test-node:
 expose:
 	bash scripts/expose.sh
 
+tunnel:
+	bash scripts/tunnel.sh
+
 push:
 	python3 vapi/push.py
 
@@ -30,6 +33,9 @@ wire-dry-run:
 
 vapi-preflight:
 	@python3 vapi/wire.py preflight
+
+public-probe:
+	@python3 scripts/public_probe.py
 
 smoke:
 	python3 scripts/smoke.py
