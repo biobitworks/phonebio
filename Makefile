@@ -1,4 +1,4 @@
-.PHONY: install dev test test-python test-node expose tunnel push wire wire-dry-run vapi-preflight public-probe hosted-probe smoke readiness llm-probe demo-call insforge-export
+.PHONY: install dev test test-python test-node expose tunnel push wire wire-dry-run vapi-preflight public-probe hosted-probe hosted-demo smoke readiness llm-probe demo-call insforge-export
 
 install:
 	python3 -m pip install -r requirements.txt
@@ -39,6 +39,9 @@ public-probe:
 
 hosted-probe:
 	@python3 scripts/hosted_function_probe.py
+
+hosted-demo:
+	@python3 scripts/hosted_demo.py
 
 smoke:
 	python3 scripts/smoke.py

@@ -112,6 +112,7 @@ Local rehearsal:
 
 ```bash
 make demo-call
+make hosted-demo
 ```
 
 1. Call the Vapi phone number.

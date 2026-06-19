@@ -69,9 +69,10 @@ Local hackathon call-script replay:
 
 ```bash
 make demo-call
+make hosted-demo
 ```
 
-This replays the protocol, safety, hardware, sensor, and shorthand turns from the Vapi demo script against the local webhook tools.
+This replays the protocol, safety, hardware, sensor, and shorthand turns from the Vapi demo script against the local webhook tools and hosted InsForge function.
 
 InsForge backend preview:
 
