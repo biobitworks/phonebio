@@ -13,8 +13,11 @@ from fieldbio.vapi_client import (
 def test_assistant_payload_uses_current_server_shape():
     payload = assistant_payload("https://example.test/webhook")
     assert payload["server"]["url"] == "https://example.test/webhook"
-    assert payload["model"]["provider"] == "custom-llm"
-    assert payload["model"]["url"] == "https://example.test/custom-llm"
+    assert payload["model"]["provider"] in {"custom-llm", "google"}
+    if payload["model"]["provider"] == "custom-llm":
+        assert payload["model"]["url"] == "https://example.test/custom-llm"
+    else:
+        assert payload["model"]["model"]
     assert "serverUrl" not in payload
 
 
@@ -61,6 +64,7 @@ def test_vapi_preflight_auto_selects_single_phone_number(monkeypatch):
     result = vapi_preflight(api_key="test-key", webhook_url="https://example.test/webhook")
 
     assert result["liveReady"] is True
+    assert result["assistantPayloadReady"] is True
     assert result["phoneSelection"]["source"] == "single-vapi-phone-number"
     assert result["phoneSelection"]["selectedPhoneNumberId"] == "pn_123"
     assert fake_number not in str(result)

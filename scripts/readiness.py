@@ -22,6 +22,7 @@ from fieldbio.vapi_client import (
     assistant_payload,
     api_key_from_env,
     custom_llm_url_from_env_or_webhook,
+    is_placeholder_url,
     webhook_url_from_env,
 )
 
@@ -36,11 +37,16 @@ def _read(path: str) -> str:
 
 def _env_ready() -> dict[str, bool]:
     webhook_url = webhook_url_from_env()
+    assistant = assistant_payload()
+    assistant_server_url = assistant.get("server", {}).get("url", "")
+    custom_llm_required = assistant.get("model", {}).get("provider") == "custom-llm"
+    custom_llm_url = custom_llm_url_from_env_or_webhook(assistant_server_url)
     return {
         "vapi_api_key": bool(api_key_from_env()),
         "vapi_phone_number_id": bool(os.getenv("VAPI_PHONE_NUMBER_ID")),
-        "vapi_webhook_url": bool(webhook_url),
-        "vapi_custom_llm_url": bool(custom_llm_url_from_env_or_webhook(webhook_url)) if webhook_url else False,
+        "vapi_webhook_url": bool(webhook_url) or not is_placeholder_url(assistant_server_url),
+        "vapi_custom_llm_url": (not custom_llm_required) or not is_placeholder_url(custom_llm_url),
+        "vapi_live_verified": os.getenv("PHONEBIO_LIVE_VAPI_VERIFIED") == "1",
         "insforge_api_key": bool(os.getenv("INSFORGE_API_KEY")),
     }
 
@@ -80,14 +86,17 @@ async def audit() -> dict[str, Any]:
 
     requirements: dict[str, dict[str, Any]] = {}
 
-    live_vapi_ready = (
-        env["vapi_api_key"] and env["vapi_phone_number_id"] and env["vapi_webhook_url"] and env["vapi_custom_llm_url"]
-    )
+    model_provider = assistant.get("model", {}).get("provider")
+    custom_llm_required = model_provider == "custom-llm"
+    live_vapi_ready = env["vapi_api_key"] and env["vapi_phone_number_id"] and env["vapi_webhook_url"] and (
+        env["vapi_custom_llm_url"] or not custom_llm_required
+    ) and env["vapi_live_verified"]
     requirements["VOICE-01"] = {
         "status": _status(
-            live_vapi_ready, blocker="Needs Vapi API key, phone number ID, public webhook URL, and custom-LLM URL."
+            live_vapi_ready,
+            blocker="Needs successful live Vapi preflight/wire verification with API key, phone number ID, and public server URL.",
         ),
-        "evidence": "Local wiring exists; live Vapi assignment cannot be proven without credentials.",
+        "evidence": "Local wiring exists; live Vapi assignment is not counted complete until PHONEBIO_LIVE_VAPI_VERIFIED=1 after successful live wire/preflight.",
     }
     requirements["VOICE-02"] = {
         "status": _status(
@@ -98,10 +107,10 @@ async def audit() -> dict[str, Any]:
     requirements["VOICE-03"] = {
         "status": _status(
             assistant.get("server", {}).get("url") == "https://example.test/webhook"
-            and assistant.get("model", {}).get("provider") == "custom-llm"
+            and bool(model_provider)
             and {"get_protocol", "get_safety_sheet", "troubleshoot_hardware", "interpret_sensor_report"}.issubset(tools)
         ),
-        "evidence": "Assistant payload has server.url, custom-LLM model, and required tool declarations.",
+        "evidence": "Assistant payload has server.url, model provider, and required tool declarations.",
     }
     requirements["KNOW-01"] = {
         "status": _status(protocol.get("status") == "ok" and protocol.get("sourceIds")),

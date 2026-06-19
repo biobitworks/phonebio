@@ -180,6 +180,19 @@ def _redacted_url_state(value: str) -> dict[str, Any]:
     }
 
 
+def _model_url_required(payload: dict[str, Any]) -> bool:
+    return payload.get("model", {}).get("provider") == "custom-llm"
+
+
+def _assistant_payload_ready(payload: dict[str, Any]) -> bool:
+    server_url = payload.get("server", {}).get("url", "")
+    if is_placeholder_url(server_url):
+        return False
+    if _model_url_required(payload):
+        return not is_placeholder_url(payload.get("model", {}).get("url", ""))
+    return True
+
+
 def _phone_selection_state(phone_numbers: list[dict[str, Any]], explicit_phone_number_id: str) -> dict[str, Any]:
     if explicit_phone_number_id:
         matching = next(
@@ -215,10 +228,13 @@ def vapi_preflight(api_key: str | None = None, webhook_url: str | None = None) -
     payload = assistant_payload(webhook_url)
     server_url = payload.get("server", {}).get("url", "")
     model_url = payload.get("model", {}).get("url", "")
+    model_provider = payload.get("model", {}).get("provider")
     explicit_phone_number_id = os.getenv("VAPI_PHONE_NUMBER_ID", "")
     result: dict[str, Any] = {
         "apiKeySet": bool(key),
-        "assistantPayloadReady": not is_placeholder_url(server_url) and not is_placeholder_url(model_url),
+        "assistantPayloadReady": _assistant_payload_ready(payload),
+        "modelProvider": model_provider,
+        "customLlmRequired": _model_url_required(payload),
         "serverUrl": _redacted_url_state(server_url),
         "customLlmUrl": _redacted_url_state(model_url),
         "phoneNumbers": {"status": "blocked", "reason": "missing_api_key", "count": 0, "items": []},
