@@ -1,4 +1,4 @@
-.PHONY: install dev test test-python test-node expose push wire wire-dry-run smoke readiness llm-probe demo-call insforge-export
+.PHONY: install dev test test-python test-node expose push wire wire-dry-run vapi-preflight smoke readiness llm-probe demo-call insforge-export
 
 install:
 	python3 -m pip install -r requirements.txt
@@ -27,6 +27,9 @@ wire:
 
 wire-dry-run:
 	@python3 vapi/wire.py create-assistant --assign-phone --dry-run
+
+vapi-preflight:
+	@python3 vapi/wire.py preflight
 
 smoke:
 	python3 scripts/smoke.py

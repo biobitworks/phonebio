@@ -49,10 +49,13 @@ Placeholder URLs such as `your-tunnel-or-deploy.example.com` are treated as not 
 ## Redacted Vapi Auth and Phone Check
 
 ```bash
+make vapi-preflight
 python3 vapi/wire.py list-phone-numbers
 ```
 
-This makes a read-only `GET /phone-number` request and prints count, IDs, provider, and assignment presence without raw phone numbers. A `401 Unauthorized` means the local Vapi key is missing, expired, or not the correct private/API key.
+This makes read-only Vapi checks and prints readiness state, URL host/path, count, IDs, provider, and assignment presence without raw phone numbers or API keys. A `401 Unauthorized` means the local Vapi key is missing, expired, or not the correct private/API key.
+
+`make vapi-preflight` exits nonzero until all live prerequisites are true: valid Vapi auth, usable phone-number selection, non-placeholder webhook URL, and non-placeholder custom-LLM URL.
 
 ## Live Create and Assign
 

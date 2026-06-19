@@ -1,8 +1,12 @@
+import httpx
+
+import fieldbio.vapi_client as vapi_client
 from fieldbio.vapi_client import (
     assistant_payload,
     outbound_call_payload,
     phone_assignment_payload,
     redacted_phone_number_record,
+    vapi_preflight,
 )
 
 
@@ -43,3 +47,50 @@ def test_phone_number_redaction_does_not_return_raw_number():
     assert redacted["id"] == "pn_123"
     assert redacted["numberPresent"] is True
     assert fake_number not in str(redacted)
+
+
+def test_vapi_preflight_auto_selects_single_phone_number(monkeypatch):
+    fake_number = "+" + "15555550123"
+    monkeypatch.delenv("VAPI_PHONE_NUMBER_ID", raising=False)
+    monkeypatch.setattr(
+        vapi_client,
+        "list_phone_numbers",
+        lambda api_key: [{"id": "pn_123", "provider": "vapi", "number": fake_number}],
+    )
+
+    result = vapi_preflight(api_key="test-key", webhook_url="https://example.test/webhook")
+
+    assert result["liveReady"] is True
+    assert result["phoneSelection"]["source"] == "single-vapi-phone-number"
+    assert result["phoneSelection"]["selectedPhoneNumberId"] == "pn_123"
+    assert fake_number not in str(result)
+
+
+def test_vapi_preflight_reports_missing_explicit_phone_number(monkeypatch):
+    monkeypatch.setenv("VAPI_PHONE_NUMBER_ID", "pn_missing")
+    monkeypatch.setattr(
+        vapi_client,
+        "list_phone_numbers",
+        lambda api_key: [{"id": "pn_123", "provider": "vapi", "assistantId": "asst_123"}],
+    )
+
+    result = vapi_preflight(api_key="test-key", webhook_url="https://example.test/webhook")
+
+    assert result["liveReady"] is False
+    assert result["phoneSelection"]["status"] == "fail"
+    assert result["phoneSelection"]["selectedPhoneNumberId"] == "pn_missing"
+
+
+def test_vapi_preflight_reports_unauthorized_without_key_value(monkeypatch):
+    request = httpx.Request("GET", "https://api.vapi.ai/phone-number")
+    response = httpx.Response(401, request=request)
+    error = httpx.HTTPStatusError("unauthorized", request=request, response=response)
+    monkeypatch.delenv("VAPI_PHONE_NUMBER_ID", raising=False)
+    monkeypatch.setattr(vapi_client, "list_phone_numbers", lambda api_key: (_ for _ in ()).throw(error))
+
+    result = vapi_preflight(api_key="secret-test-key", webhook_url="https://example.test/webhook")
+
+    assert result["liveReady"] is False
+    assert result["phoneNumbers"]["status"] == "fail"
+    assert result["phoneNumbers"]["httpStatus"] == 401
+    assert "secret-test-key" not in str(result)

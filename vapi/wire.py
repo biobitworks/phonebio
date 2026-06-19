@@ -25,6 +25,7 @@ from fieldbio.vapi_client import (
     phone_assignment_payload,
     phone_number_id_from_env_or_single,
     redacted_phone_number_record,
+    vapi_preflight,
     webhook_url_from_env,
 )
 
@@ -128,6 +129,12 @@ def list_phone_numbers_command(args: argparse.Namespace) -> int:
     return 0
 
 
+def preflight_command(args: argparse.Namespace) -> int:
+    result = vapi_preflight(webhook_url=args.webhook_url)
+    _print_json(result)
+    return 0 if result["liveReady"] else 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Wire PhoneBio to Vapi without storing secrets.")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -147,6 +154,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     list_numbers = subparsers.add_parser("list-phone-numbers", help="List Vapi phone numbers with phone values redacted.")
     list_numbers.set_defaults(func=list_phone_numbers_command)
+
+    preflight = subparsers.add_parser("preflight", help="Check live Vapi readiness without exposing secrets.")
+    preflight.add_argument("--webhook-url", default=None)
+    preflight.set_defaults(func=preflight_command)
 
     outbound = subparsers.add_parser("outbound-call", help="Create an outbound test call.")
     outbound.add_argument("--assistant-id", default=None)

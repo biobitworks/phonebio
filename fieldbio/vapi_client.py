@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 import httpx
 
@@ -131,6 +132,20 @@ def list_phone_numbers(api_key: str, base_url: str | None = None) -> list[dict[s
     raise RuntimeError("Unexpected Vapi phone-number list response.")
 
 
+def get_phone_number(api_key: str, phone_number_id: str, base_url: str | None = None) -> dict[str, Any]:
+    if not api_key:
+        raise RuntimeError("Missing VAPI_API_KEY or VAPI_PRIVATE_KEY.")
+    if not phone_number_id:
+        raise RuntimeError("Missing VAPI_PHONE_NUMBER_ID.")
+    response = httpx.get(
+        f"{(base_url or vapi_base_url_from_env()).rstrip('/')}/phone-number/{phone_number_id}",
+        headers=auth_headers(api_key),
+        timeout=30,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
 def phone_number_id_from_env_or_single(api_key: str) -> str:
     explicit = os.getenv("VAPI_PHONE_NUMBER_ID", "")
     if explicit:
@@ -152,6 +167,107 @@ def redacted_phone_number_record(record: dict[str, Any]) -> dict[str, Any]:
         "updatedAt": record.get("updatedAt"),
         "numberPresent": bool(record.get("number") or record.get("fallbackDestination", {}).get("number")),
     }
+
+
+def _redacted_url_state(value: str) -> dict[str, Any]:
+    parsed = urlparse(value)
+    return {
+        "set": bool(value),
+        "placeholder": is_placeholder_url(value),
+        "scheme": parsed.scheme or None,
+        "host": parsed.netloc or None,
+        "path": parsed.path or None,
+    }
+
+
+def _phone_selection_state(phone_numbers: list[dict[str, Any]], explicit_phone_number_id: str) -> dict[str, Any]:
+    if explicit_phone_number_id:
+        matching = next(
+            (record for record in phone_numbers if str(record.get("id", "")) == explicit_phone_number_id),
+            None,
+        )
+        return {
+            "status": "pass" if matching else "fail",
+            "source": "VAPI_PHONE_NUMBER_ID",
+            "phoneNumberIdSet": True,
+            "selectedPhoneNumberId": explicit_phone_number_id,
+            "selectedPhoneNumberFound": bool(matching),
+        }
+    if len(phone_numbers) == 1 and phone_numbers[0].get("id"):
+        return {
+            "status": "pass",
+            "source": "single-vapi-phone-number",
+            "phoneNumberIdSet": False,
+            "selectedPhoneNumberId": phone_numbers[0]["id"],
+            "selectedPhoneNumberFound": True,
+        }
+    return {
+        "status": "blocked",
+        "source": "missing-or-ambiguous",
+        "phoneNumberIdSet": False,
+        "selectedPhoneNumberId": None,
+        "selectedPhoneNumberFound": False,
+    }
+
+
+def vapi_preflight(api_key: str | None = None, webhook_url: str | None = None) -> dict[str, Any]:
+    key = api_key if api_key is not None else api_key_from_env()
+    payload = assistant_payload(webhook_url)
+    server_url = payload.get("server", {}).get("url", "")
+    model_url = payload.get("model", {}).get("url", "")
+    explicit_phone_number_id = os.getenv("VAPI_PHONE_NUMBER_ID", "")
+    result: dict[str, Any] = {
+        "apiKeySet": bool(key),
+        "assistantPayloadReady": not is_placeholder_url(server_url) and not is_placeholder_url(model_url),
+        "serverUrl": _redacted_url_state(server_url),
+        "customLlmUrl": _redacted_url_state(model_url),
+        "phoneNumbers": {"status": "blocked", "reason": "missing_api_key", "count": 0, "items": []},
+        "phoneSelection": {
+            "status": "blocked",
+            "source": "missing-or-ambiguous",
+            "phoneNumberIdSet": bool(explicit_phone_number_id),
+            "selectedPhoneNumberId": explicit_phone_number_id or None,
+            "selectedPhoneNumberFound": False,
+        },
+    }
+    if not key:
+        result["liveReady"] = False
+        return result
+    try:
+        phone_numbers = list_phone_numbers(key)
+    except httpx.HTTPStatusError as error:
+        result["phoneNumbers"] = {
+            "status": "fail",
+            "reason": "http_error",
+            "httpStatus": error.response.status_code,
+            "count": 0,
+            "items": [],
+        }
+        result["liveReady"] = False
+        return result
+    except httpx.HTTPError as error:
+        result["phoneNumbers"] = {
+            "status": "fail",
+            "reason": error.__class__.__name__,
+            "count": 0,
+            "items": [],
+        }
+        result["liveReady"] = False
+        return result
+
+    result["phoneNumbers"] = {
+        "status": "pass",
+        "count": len(phone_numbers),
+        "items": [redacted_phone_number_record(record) for record in phone_numbers],
+    }
+    result["phoneSelection"] = _phone_selection_state(phone_numbers, explicit_phone_number_id)
+    result["liveReady"] = (
+        bool(result["apiKeySet"])
+        and bool(result["assistantPayloadReady"])
+        and result["phoneNumbers"]["status"] == "pass"
+        and result["phoneSelection"]["status"] == "pass"
+    )
+    return result
 
 
 def phone_assignment_payload(assistant_id: str, webhook_url: str | None = None) -> dict[str, Any]:
