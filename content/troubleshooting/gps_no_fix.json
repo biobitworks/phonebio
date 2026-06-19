@@ -1,0 +1,15 @@
+{
+  "id": "gps_no_fix",
+  "device": "Phone / handheld GNSS",
+  "symptom": "No GPS fix, or accuracy radius stuck large",
+  "keywords": ["gps", "gnss", "no fix", "location", "accuracy", "coordinates"],
+  "steps": [
+    {"do": "Move to open sky, away from canopy, cliffs, and vehicles.", "why": "Canopy and walls cause multipath and block satellites."},
+    {"do": "Wait 60-90 seconds without moving for a cold fix.", "why": "The receiver needs time to download almanac/ephemeris."},
+    {"do": "Toggle airplane mode off/on or restart location services.", "why": "Clears a stuck receiver state."},
+    {"do": "Confirm location permission and high-accuracy mode are enabled.", "why": "Battery-saver modes drop GNSS to network-only."},
+    {"do": "Check the reported accuracy radius before recording.", "why": "Record only when it has settled (e.g. <5 m)."},
+    {"do": "If still failing, geotag via barometer elevation + compass bearing from a known landmark.", "why": "Camera-free fallback when GNSS is unavailable."}
+  ],
+  "escalate_if": "No fix after 5 minutes in open sky -> suspect hardware/antenna; log position by landmark + bearing and report to base."
+}

@@ -1,0 +1,181 @@
+{
+  "_meta": {
+    "purpose": "Reference characterization of phone sensors usable by an offline field biologist who CANNOT use the camera. Numbers are typical consumer-grade phone/MEMS ranges, not a single device datasheet. Each entry carries a confidence flag. Per project policy, treat these as engineering reference ranges; for a specific handset, override with the manufacturer datasheet before publishing measurements.",
+    "camera_status": "DISABLED for this deployment. All ranging/dimension tasks route to LiDAR/ToF (infrared time-of-flight), which does not require RGB imagery.",
+    "schema_version": "1.0"
+  },
+  "sensors": [
+    {
+      "id": "accelerometer",
+      "name": "Accelerometer",
+      "aka": ["accel", "g-sensor"],
+      "measures": "Linear acceleration along 3 axes, including gravity (so it senses tilt at rest).",
+      "output_units": "m/s^2 (or g)",
+      "range": "Typically +/-2g to +/-16g (selectable)",
+      "typical_sampling_rate_hz": "100-500 (up to ~1000 on flagships)",
+      "accuracy": {
+        "best_case": "Tilt/inclination +/-0.3 deg when static and calibrated",
+        "typical": "Tilt +/-1-2 deg; acceleration noise ~0.01-0.05 m/s^2 RMS",
+        "worst_case": ">3 deg under vibration or thermal drift",
+        "confidence": "high"
+      },
+      "device_variation": "Tilt accuracy varies ~2-3x between budget and flagship MEMS parts; bias shifts with temperature and after drops.",
+      "error_sources": ["Vibration/motion", "Temperature drift", "Mounting/grip angle", "Gravity vs. linear-accel ambiguity without gyro fusion"],
+      "calibration": "Lay phone flat on a level surface; zero the offset. Re-zero if readings drift after temperature change.",
+      "field_bio_use_cases": [
+        {"use": "Level a microscope, balance, antenna mast, or camera trap mount", "how": "Read pitch/roll aloud; adjust until both near 0 deg", "expected_accuracy": "+/-1 deg", "caveat": "Hold still; wind/vibration adds noise"},
+        {"use": "Slope/aspect of a sampling plot or stream bank", "how": "Lay phone on a rigid board across the slope, read incline", "expected_accuracy": "+/-1-2 deg", "caveat": "Soft ground flexes the board"},
+        {"use": "Detect equipment vibration / pump or centrifuge imbalance", "how": "Rest phone on the housing, watch peak acceleration", "expected_accuracy": "relative, not absolute", "caveat": "Useful for trend, not calibrated amplitude"}
+      ],
+      "voice_guidance": "Ask the worker to lay the phone flat on the object and read the pitch and roll numbers. Confirm units. If numbers jump, ask them to hold still and re-read.",
+      "confidence": "high"
+    },
+    {
+      "id": "gyroscope",
+      "name": "Gyroscope",
+      "aka": ["gyro", "angular rate sensor"],
+      "measures": "Angular velocity (rate of rotation) about 3 axes.",
+      "output_units": "deg/s (or rad/s)",
+      "range": "Typically +/-250 to +/-2000 deg/s",
+      "typical_sampling_rate_hz": "100-500",
+      "accuracy": {
+        "best_case": "Short-term rotation +/-0.5 deg over a few seconds",
+        "typical": "Heading drifts 1-10 deg/min from bias without fusion",
+        "worst_case": "Tens of deg/min drift when hot or uncalibrated",
+        "confidence": "high"
+      },
+      "device_variation": "Bias-instability differs widely; cheaper parts drift several times faster. Always fuse with accelerometer (and magnetometer) for stable orientation.",
+      "error_sources": ["Bias drift / integration error over time", "Temperature", "High-rate clipping past full-scale range"],
+      "calibration": "Hold the phone still for a few seconds so the OS can estimate zero-rate bias before relying on rotation.",
+      "field_bio_use_cases": [
+        {"use": "Measure turn/pan angle when sweeping a transect or antenna", "how": "Start still, rotate smoothly, read accumulated angle", "expected_accuracy": "+/-2-5 deg over <30 s", "caveat": "Error grows the longer you integrate"},
+        {"use": "Stabilize tilt readings on a moving boat/vehicle", "how": "Fuse with accelerometer (OS fused orientation)", "expected_accuracy": "+/-1-2 deg", "caveat": "Use the fused 'orientation' value, not raw gyro"}
+      ],
+      "voice_guidance": "Tell the worker to hold the phone still first (lets it find zero), then rotate slowly. Read the fused orientation if available rather than raw rate. Warn that long, slow measurements drift.",
+      "confidence": "high"
+    },
+    {
+      "id": "magnetometer",
+      "name": "Magnetometer (compass)",
+      "aka": ["compass", "mag"],
+      "measures": "Magnetic field vector -> compass heading (used with accel/gyro for absolute orientation).",
+      "output_units": "microtesla (uT) -> heading in degrees",
+      "range": "+/-~4900 uT",
+      "typical_sampling_rate_hz": "10-100",
+      "accuracy": {
+        "best_case": "Heading +/-1-2 deg after figure-8 calibration, away from metal",
+        "typical": "+/-5 deg",
+        "worst_case": ">15-30 deg near vehicles, rebar, electronics, or magnets",
+        "confidence": "high"
+      },
+      "device_variation": "Hard/soft-iron offsets vary per device and per case (magnetic clasps wreck it).",
+      "error_sources": ["Local ferrous metal / DC currents", "Phone case magnets", "Needs calibration after power cycles", "Declination (true vs magnetic north) not applied automatically"],
+      "calibration": "Wave the phone in a figure-8 a few times. Step away from gear, vehicles, and metal tables.",
+      "field_bio_use_cases": [
+        {"use": "Record compass bearing of a transect, burrow entrance, or animal travel direction", "how": "Hold flat, away from metal, read heading; note magnetic vs true north", "expected_accuracy": "+/-5 deg", "caveat": "Apply local declination for true north"},
+        {"use": "Re-orient a fixed plot or grid the same way each visit", "how": "Align to a recorded bearing", "expected_accuracy": "+/-5 deg", "caveat": "Metal stakes nearby bias it"}
+      ],
+      "voice_guidance": "Have the worker do a figure-8 calibration and step away from metal before reading a bearing. Remind them to say whether they want magnetic or true north.",
+      "confidence": "high"
+    },
+    {
+      "id": "barometer",
+      "name": "Barometer (pressure sensor)",
+      "aka": ["pressure", "altimeter"],
+      "measures": "Atmospheric pressure -> relative altitude change and weather trend.",
+      "output_units": "hPa (mbar); derived meters of altitude",
+      "range": "~300-1100 hPa",
+      "typical_sampling_rate_hz": "1-25",
+      "accuracy": {
+        "best_case": "Relative altitude +/-0.3 m over minutes (~0.04 hPa resolution)",
+        "typical": "Relative altitude +/-1 m; absolute altitude +/-5-10 m",
+        "worst_case": "Absolute altitude error >10 m as weather pressure drifts",
+        "confidence": "high"
+      },
+      "device_variation": "Resolution is similar across modern phones (~0.01-0.06 hPa); absolute accuracy needs a known reference altitude to anchor.",
+      "error_sources": ["Weather pressure changes over hours", "Wind gusts / HVAC / car cabin pressure", "Temperature", "No anchor for absolute altitude"],
+      "calibration": "Anchor at a known elevation (GPS or a benchmark) to convert pressure to absolute altitude; relative deltas need no calibration.",
+      "field_bio_use_cases": [
+        {"use": "Elevation difference between two sample sites", "how": "Read at site A, walk to site B, read again; report the delta", "expected_accuracy": "+/-1 m over <30 min", "caveat": "Do both reads close in time so weather doesn't drift"},
+        {"use": "Vertical position in a canopy/cliff/cave transect", "how": "Zero at base, climb, read delta", "expected_accuracy": "+/-1 m", "caveat": "Avoid wind blasts on the port"},
+        {"use": "Incoming weather front detection", "how": "Watch pressure trend over 1-3 h; falling fast = storm risk", "expected_accuracy": "trend, qualitative", "caveat": "Safety-relevant for remote fieldwork"}
+      ],
+      "voice_guidance": "For elevation differences, have the worker read pressure at both points within the same half hour and report the difference, not absolute altitude. Flag a fast-falling trend as a weather/safety warning.",
+      "confidence": "high"
+    },
+    {
+      "id": "uwb",
+      "name": "Ultra-Wideband (UWB) ranging",
+      "aka": ["UWB", "U1/U2 chip", "ranging radio"],
+      "measures": "Precise distance (time-of-flight) and angle-of-arrival between two UWB devices/tags.",
+      "output_units": "meters (range), degrees (AoA on supported devices)",
+      "range": "Line-of-sight ~30-50 m; reliable ranging often <10-15 m",
+      "typical_sampling_rate_hz": "1-10 (ranging sessions)",
+      "accuracy": {
+        "best_case": "Distance +/-5 cm line-of-sight",
+        "typical": "Distance +/-10-30 cm; AoA +/-5-15 deg",
+        "worst_case": "Multipath/NLOS errors of 0.5-2 m through bodies, foliage, walls",
+        "confidence": "medium"
+      },
+      "device_variation": "Requires UWB hardware on BOTH ends (phone + UWB tag, or two phones). Not present on budget phones. AoA only on some models.",
+      "error_sources": ["Non-line-of-sight / multipath", "Foliage and bodies absorbing the signal", "Antenna orientation", "Need for a paired UWB anchor/tag"],
+      "calibration": "Pair devices; if possible take one known-distance reference reading to check the offset.",
+      "field_bio_use_cases": [
+        {"use": "Find a UWB-tagged trap, logger, or cached sample", "how": "Walk while reading range + direction to the tag", "expected_accuracy": "+/-10-30 cm close in", "caveat": "Foliage degrades it; expect to close the last meter by hand"},
+        {"use": "Lay out precise short baselines / quadrat spacing", "how": "Range between two phones/anchors", "expected_accuracy": "+/-10 cm LOS", "caveat": "Keep line of sight"},
+        {"use": "Geofence / spacing alerts around sensitive nests", "how": "Alert when range drops below a threshold", "expected_accuracy": "+/-0.3 m", "caveat": "Needs tag on the boundary"}
+      ],
+      "voice_guidance": "First confirm BOTH the phone and the target have UWB. If only one side has it, fall back to LiDAR (short range) or GPS (coarse). Warn that foliage and going around objects inflates the distance.",
+      "confidence": "medium"
+    },
+    {
+      "id": "lidar",
+      "name": "LiDAR / Time-of-Flight (ToF) scanner",
+      "aka": ["dToF", "depth sensor", "ToF"],
+      "measures": "Distance/depth to surfaces via infrared time-of-flight; produces ranges and a coarse depth map WITHOUT using the RGB camera.",
+      "output_units": "meters (depth)",
+      "range": "~0.1-5 m (degrades past ~5 m and in bright sun)",
+      "typical_sampling_rate_hz": "Depth frames at 5-60 Hz on supported devices",
+      "accuracy": {
+        "best_case": "+/-1 cm at <1 m on a matte surface indoors",
+        "typical": "+/-1-3% of distance (e.g. +/-3-6 cm at 2 m)",
+        "worst_case": "Fails on dark/specular/transparent/wet surfaces and in direct sunlight; errors >10 cm or dropouts",
+        "confidence": "medium"
+      },
+      "device_variation": "Only some phones have a dedicated LiDAR/ToF emitter (e.g. Pro tiers). Where absent, there is NO camera-free depth option — fall back to UWB or a tape/known-object reference.",
+      "error_sources": ["Ambient infrared / direct sunlight", "Dark, shiny, transparent, or wet surfaces", "Beyond ~5 m range", "Edge/mixed-pixel artifacts on thin objects"],
+      "calibration": "Sanity-check against a known-length object (e.g. a 30 cm ruler) at the start of a session.",
+      "field_bio_use_cases": [
+        {"use": "Measure plant height, burrow/cavity depth, log diameter, gap width", "how": "Aim at the surface, hold steady, read distance", "expected_accuracy": "+/-1-3% indoors/shade", "caveat": "Bright sun and shiny/wet surfaces break it"},
+        {"use": "Microtopography / surface profile of a small plot", "how": "Sweep slowly to capture depth, note min/max", "expected_accuracy": "cm-scale in shade", "caveat": "Needs steady hand and overcast/shade"},
+        {"use": "Standoff distance to a nest/animal without approaching", "how": "Read range to the target", "expected_accuracy": "+/-cm to dm", "caveat": "Limited to ~5 m"}
+      ],
+      "voice_guidance": "Have the worker shade the target or work in shade, hold steady, and read the distance. Start the session by checking against a 30 cm ruler. If the phone has no LiDAR, switch to UWB or a tape/known-object method.",
+      "confidence": "medium"
+    },
+    {
+      "id": "gps",
+      "name": "GNSS / GPS (supporting)",
+      "aka": ["GPS", "GNSS", "location"],
+      "measures": "Absolute geographic position, altitude, speed.",
+      "output_units": "lat/lon (deg), altitude (m)",
+      "range": "Global, outdoors with sky view",
+      "typical_sampling_rate_hz": "1-10",
+      "accuracy": {
+        "best_case": "Horizontal +/-1-2 m with dual-frequency GNSS, open sky",
+        "typical": "Horizontal +/-3-5 m; vertical 2-3x worse",
+        "worst_case": ">10-50 m under canopy, in canyons, or near cliffs",
+        "confidence": "high"
+      },
+      "device_variation": "Dual-frequency (L1+L5) phones are markedly better under canopy than single-frequency.",
+      "error_sources": ["Tree canopy / multipath", "Urban/canyon walls", "Poor sky view", "Vertical error large; prefer barometer for relative altitude"],
+      "calibration": "Let it settle 30-60 s for a fix; check reported accuracy radius before recording.",
+      "field_bio_use_cases": [
+        {"use": "Geotag a sample, observation, or plot corner", "how": "Wait for the accuracy radius to shrink, then read coordinates", "expected_accuracy": "+/-3-5 m", "caveat": "Canopy degrades it; pair with barometer for elevation"},
+        {"use": "Anchor barometric altitude to an absolute elevation", "how": "Take GPS altitude in the open, then use barometer for deltas", "expected_accuracy": "elevation +/-5 m anchor", "caveat": "GPS vertical alone is poor"}
+      ],
+      "voice_guidance": "Have the worker wait for the accuracy radius to settle and read it aloud before recording coordinates. Note that altitude from GPS is weak; use the barometer for relative elevation.",
+      "confidence": "high"
+    }
+  ]
+}

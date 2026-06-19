@@ -1,0 +1,15 @@
+{
+  "id": "data_logger_no_connect",
+  "device": "Bluetooth data logger / sensor",
+  "symptom": "Logger will not pair or keeps dropping connection",
+  "keywords": ["logger", "bluetooth", "pair", "connect", "sensor", "dropout"],
+  "steps": [
+    {"do": "Confirm the logger is powered and in pairing mode (check LED pattern).", "why": "Most loggers only advertise for a short window."},
+    {"do": "Check battery — cold weather drops voltage fast.", "why": "Low/cold batteries cause intermittent radios."},
+    {"do": "Move within 1-2 m, line of sight, away from metal and other radios.", "why": "2.4 GHz is absorbed by bodies/metal and congested by other devices."},
+    {"do": "Forget the device in phone Bluetooth settings, then re-pair.", "why": "Stale bonding keys block reconnection."},
+    {"do": "Toggle phone Bluetooth off/on or restart the phone.", "why": "Resets the host stack."},
+    {"do": "If it pairs but drops: reduce distance, keep the phone screen on, disable battery optimization for the app.", "why": "Aggressive power saving suspends the BLE connection."}
+  ],
+  "escalate_if": "Logger never advertises even with fresh battery -> suspect logger fault; record readings manually and flag for swap."
+}

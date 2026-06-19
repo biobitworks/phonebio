@@ -1,0 +1,27 @@
+# PhoneBio Research Notes
+
+**Date:** 2026-06-19
+
+## Sources Checked
+
+- Vapi quickstart introduction: `https://docs.vapi.ai/quickstart/introduction`
+- Vapi phone quickstart: `https://docs.vapi.ai/quickstart/phone`
+- Vapi custom tools: `https://docs.vapi.ai/tools/custom-tools`
+- Vapi server URLs: `https://docs.vapi.ai/server-url`
+- Gregg shorthand index: `https://greggshorthand.github.io/anindex.html`
+- Nebius Token Factory cookbook: `https://github.com/nebius/token-factory-cookbook`
+- Nebius Token Factory API intro: `https://docs.tokenfactory.nebius.com/api-reference/introduction`
+- InsForge repository: `https://github.com/InsForge/InsForge`
+- Apple Core Motion docs: `https://developer.apple.com/documentation/coremotion/`
+- Apple Nearby Interaction docs: `https://developer.apple.com/documentation/nearbyinteraction`
+- Apple ARKit scene depth docs: `https://developer.apple.com/documentation/arkit/arconfiguration/framesemantics-swift.struct/scenedepth`
+
+## Design Implications
+
+- Vapi can be tested quickly through dashboard-created assistants and phone numbers. Custom tools require a reachable server URL and return `results` keyed by tool-call ID.
+- Server URLs are the right bridge for call transcripts, function calls, assistant requests, and end-of-call reports.
+- Gregg shorthand suggests a voice UX pattern: capture compact phonetic/semantic observations, then ask clarifying questions only when omitted detail changes safety or protocol selection.
+- Nebius can be added later through an OpenAI-compatible API base URL. Keep model calls optional until credits are available.
+- InsForge is a candidate backend if persistent auth, database, storage, functions, hosting, or model-gateway features are needed.
+- Phone sensor access is platform-specific. Core Motion covers accelerometer, gyroscope, magnetometer, pedometer, and barometer when available. Nearby Interaction covers UWB distance/direction on supported devices. ARKit scene depth is LiDAR-device-gated and should be treated as unavailable unless the device reports support.
+

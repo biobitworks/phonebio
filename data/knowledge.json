@@ -1,0 +1,106 @@
+{
+  "protocols": [
+    {
+      "id": "PROT-FIELD-SAMPLE-001",
+      "title": "Field sample handling when cold chain is uncertain",
+      "keywords": ["sample", "cold chain", "tube", "specimen", "field"],
+      "steps": [
+        "Stop movement and label the container before changing conditions.",
+        "Record current time, approximate temperature, container type, and visible leakage.",
+        "Keep the sample shaded and insulated; do not freeze unless the protocol explicitly requires freezing.",
+        "If leakage, unknown preservative, or exposure occurred, isolate the container and request supervisor review."
+      ],
+      "sourceIds": ["LOCAL-PROT-DRAFT-001"]
+    },
+    {
+      "id": "PROT-DECON-001",
+      "title": "Basic non-spill decontamination checkpoint",
+      "keywords": ["decon", "decontamination", "gloves", "bench", "wipe"],
+      "steps": [
+        "Confirm gloves are intact and remove loose materials from the work surface.",
+        "Use the locally approved disinfectant contact time from the site protocol.",
+        "Work from clean areas toward dirty areas and avoid aerosol generation.",
+        "Bag waste according to the field kit label and log completion."
+      ],
+      "sourceIds": ["LOCAL-PROT-DRAFT-002"]
+    }
+  ],
+  "safetySheets": [
+    {
+      "id": "SAFE-ETHANOL-70",
+      "substance": "70 percent ethanol",
+      "keywords": ["ethanol", "alcohol", "flammable"],
+      "hazards": ["flammable liquid", "eye irritation", "vapor exposure"],
+      "firstActions": [
+        "Move away from ignition sources.",
+        "Ventilate if safe to do so.",
+        "For eye exposure, rinse with clean water and follow site emergency protocol.",
+        "For large spills or symptoms, stop work and call the site safety lead."
+      ],
+      "sourceIds": ["LOCAL-SDS-SUMMARY-ETHANOL-001"]
+    },
+    {
+      "id": "SAFE-BLEACH-DILUTE",
+      "substance": "dilute bleach",
+      "keywords": ["bleach", "hypochlorite", "chlorine"],
+      "hazards": ["corrosive irritation", "toxic gas if mixed with acids or ammonia"],
+      "firstActions": [
+        "Do not mix with acids, ammonia, or unknown cleaners.",
+        "Increase ventilation if odor is strong and safe to do so.",
+        "For skin exposure, rinse with water and remove contaminated clothing.",
+        "For breathing difficulty, leave the area and activate the site emergency plan."
+      ],
+      "sourceIds": ["LOCAL-SDS-SUMMARY-BLEACH-001"]
+    }
+  ],
+  "hardware": [
+    {
+      "id": "HARD-THERMAL-LOGGER",
+      "name": "temperature logger",
+      "keywords": ["logger", "temperature", "battery", "cold chain", "not recording"],
+      "checks": [
+        "Confirm the logger clock and run indicator.",
+        "Check battery seating and note whether the case is wet or cracked.",
+        "Compare against a second thermometer if available.",
+        "If logger stopped during sample custody, preserve the sample and flag chain-of-custody review."
+      ],
+      "stopConditions": ["wet electronics", "battery heating", "unknown sample excursion"]
+    },
+    {
+      "id": "HARD-FIELD-CENTRIFUGE",
+      "name": "portable centrifuge",
+      "keywords": ["centrifuge", "spin", "vibration", "rotor", "noise"],
+      "checks": [
+        "Stop the rotor before opening the lid.",
+        "Confirm tubes are balanced by mass and placed opposite each other.",
+        "Inspect rotor, lid seal, and tube caps for cracks or leakage.",
+        "If vibration persists after balancing, do not run again until inspected."
+      ],
+      "stopConditions": ["visible crack", "leakage", "burning smell", "persistent vibration"]
+    }
+  ],
+  "sensorGuidance": [
+    {
+      "id": "SENS-INERTIAL",
+      "sensors": ["accelerometer", "gyroscope"],
+      "keywords": ["accelerometer", "gyro", "gyroscope", "tilt", "vibration", "dropped"],
+      "guidance": "Use short, repeatable checks. A still phone should show stable gravity direction; rotation-rate spikes suggest handling or vibration. Treat single noisy samples as weak evidence.",
+      "confidence": "medium when repeated readings agree; low when phone position is unknown"
+    },
+    {
+      "id": "SENS-BAROMETER",
+      "sensors": ["barometer"],
+      "keywords": ["barometer", "pressure", "altitude", "elevation", "weather"],
+      "guidance": "Use pressure as a relative trend. Absolute altitude needs calibration against weather and a known reference point.",
+      "confidence": "medium for short-term relative change; low for absolute elevation without calibration"
+    },
+    {
+      "id": "SENS-UWB-LIDAR",
+      "sensors": ["uwb", "lidar"],
+      "keywords": ["uwb", "nearby", "distance", "direction", "lidar", "depth"],
+      "guidance": "UWB needs a compatible nearby device or tag. LiDAR scene depth only exists on supported devices and should not be required in this camera-free workflow.",
+      "confidence": "medium for supported UWB proximity zones; low or unavailable otherwise"
+    }
+  ]
+}
+

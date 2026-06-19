@@ -1,0 +1,5 @@
+{"id":"WB-001","target":"Vapi dashboard","status":"candidate","summary":"Create or update PhoneBio Field Biology Worker assistant using vapi/assistant.field-biology-worker.json after confirming Vapi API key and target phone number."}
+{"id":"WB-002","target":"public GitHub repository","status":"candidate","summary":"Publish clean PhoneBio repo after local verification and secret scan."}
+{"id":"WB-003","target":"InsForge backend","status":"needs_review","summary":"Create protocol/safety/hardware schema only if hackathon backend persistence is required."}
+{"id":"WB-004","target":"Nebius Token Factory","status":"blocked","summary":"Add optional inference adapter after NEBIUS_API_KEY credits are available."}
+

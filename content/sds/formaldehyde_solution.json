@@ -1,0 +1,26 @@
+{
+  "id": "formaldehyde_solution",
+  "name": "Formaldehyde solution ~37% (formalin) / buffered formalin",
+  "synonyms": ["formalin", "methanal solution", "10% neutral buffered formalin (diluted)"],
+  "cas": "50-00-0",
+  "_disclaimer": "FIELD QUICK-REFERENCE ONLY. This is NOT the authoritative Safety Data Sheet. Always consult the manufacturer's current SDS for the exact product and concentration. In an emergency call your local poison control / emergency number.",
+  "ghs_signal_word": "Danger",
+  "hazards": [
+    "Toxic if swallowed/inhaled/in contact with skin (H301/H311/H331)",
+    "Causes severe skin burns and eye damage (H314)",
+    "May cause an allergic skin reaction (H317)",
+    "Suspected of causing cancer (H351) / carcinogen per IARC",
+    "May cause respiratory irritation"
+  ],
+  "ppe": ["Chemical-resistant (nitrile/neoprene) gloves", "Goggles + face shield for pouring", "Respiratory protection / strong ventilation", "Apron/coverall"],
+  "first_aid": {
+    "eyes": "Rinse immediately with water 15+ min, hold lids open, get medical attention urgently.",
+    "skin": "Remove contaminated clothing, wash with plenty of water/soap, seek medical attention for burns.",
+    "inhalation": "Move to fresh air immediately; get medical attention if coughing/breathing difficulty.",
+    "ingestion": "Do NOT induce vomiting. Rinse mouth, drink water if conscious, call poison control immediately."
+  },
+  "fire": "Non-/low-flammable as dilute solution but concentrated formaldehyde vapor is combustible. Use water spray, foam, CO2, dry chemical. Toxic fumes in fire.",
+  "spill": "Evacuate/ventilate, wear full PPE, absorb with inert material, neutralize per institutional protocol, do NOT flush to drains.",
+  "storage": "Cool, well-ventilated, tightly closed, away from oxidizers and incompatible materials; segregate from acids/bases.",
+  "field_notes": "Serious inhalation and skin hazard — prefer pre-buffered dilute formalin, work upwind/ventilated, and minimize open transfers. Consider ethanol or propylene glycol where the study allows."
+}

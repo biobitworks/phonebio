@@ -1,0 +1,24 @@
+{
+  "id": "ethanol_70",
+  "name": "Ethanol 70% (v/v) aqueous solution",
+  "synonyms": ["ethyl alcohol", "70% EtOH", "denatured alcohol (if denatured)"],
+  "cas": "64-17-5 (ethanol component)",
+  "_disclaimer": "FIELD QUICK-REFERENCE ONLY. This is NOT the authoritative Safety Data Sheet. Always consult the manufacturer's current SDS for the exact product. In an emergency call your local poison control / emergency number.",
+  "ghs_signal_word": "Danger",
+  "hazards": [
+    "Highly flammable liquid and vapor (H225)",
+    "Causes serious eye irritation (H319)",
+    "May cause drowsiness or dizziness from vapor (H336)"
+  ],
+  "ppe": ["Nitrile gloves", "Safety glasses/goggles", "Ventilation; avoid enclosed spaces", "No ignition sources"],
+  "first_aid": {
+    "eyes": "Rinse cautiously with water 15+ min, remove contacts if easy, seek medical attention.",
+    "skin": "Wash with soap and water. Remove contaminated clothing.",
+    "inhalation": "Move to fresh air; rest. If breathing is difficult, get medical help.",
+    "ingestion": "Do NOT induce vomiting. Rinse mouth, call poison control."
+  },
+  "fire": "Use alcohol-resistant foam, CO2, dry chemical, or water spray. Vapor is heavier than air and can travel to an ignition source.",
+  "spill": "Eliminate ignition sources, ventilate, absorb with inert material, collect for disposal. Keep out of drains/waterways.",
+  "storage": "Cool, ventilated, away from heat/sparks/open flame. Keep container closed and grounded when transferring.",
+  "field_notes": "Common as a specimen preservative. Flammability is the main field hazard — keep away from camp stoves, vehicle exhaust, and electronics that spark."
+}

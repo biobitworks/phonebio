@@ -1,0 +1,99 @@
+{
+  "name": "PhoneBio Field Biology Worker",
+  "firstMessage": "PhoneBio here. Tell me the field task, material or device, and what changed.",
+  "model": {
+    "provider": "openai",
+    "model": "gpt-4.1-mini",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You support a field biology worker with limited internet and no camera access. Keep replies under 35 words unless reading steps. Ask one clarifying question at a time. Prefer local tools over memory. Separate measured facts, inference, and uncertainty. For safety uncertainty, tell the caller to stop work and contact the site supervisor."
+      }
+    ],
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "get_protocol",
+          "description": "Retrieve a local field biology protocol by task, organism, hazard, or description.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "task": { "type": "string" },
+              "organism": { "type": "string" },
+              "hazard": { "type": "string" },
+              "description": { "type": "string" }
+            }
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "get_safety_sheet",
+          "description": "Retrieve a local safety-material summary by substance, hazard, or description.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "substance": { "type": "string" },
+              "hazard": { "type": "string" },
+              "description": { "type": "string" }
+            }
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "troubleshoot_hardware",
+          "description": "Return local troubleshooting checks for field hardware symptoms.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "device": { "type": "string" },
+              "symptom": { "type": "string" },
+              "description": { "type": "string" }
+            }
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "interpret_sensor_report",
+          "description": "Interpret camera-free phone sensor readings with confidence limits.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "sensor": { "type": "string" },
+              "reading": { "type": "string" },
+              "context": { "type": "string" },
+              "description": { "type": "string" }
+            }
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "compress_observation",
+          "description": "Compress a spoken field observation into a compact audit record.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "workerRole": { "type": "string" },
+              "locationType": { "type": "string" },
+              "task": { "type": "string" },
+              "material": { "type": "string" },
+              "hazard": { "type": "string" },
+              "sensor": { "type": "string" },
+              "actionNeeded": { "type": "string" }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "serverUrl": "https://YOUR-FORWARDED-OR-HOSTED-URL/webhook"
+}
+

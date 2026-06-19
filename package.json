@@ -1,0 +1,15 @@
+{
+  "name": "phonebio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Offline-first voice agent tools for camera-free field biology support calls.",
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
+

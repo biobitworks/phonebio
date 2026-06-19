@@ -1,0 +1,26 @@
+[project]
+name = "phonebio"
+version = "0.1.0"
+description = "FieldBio — a call-in voice agent that gives offline field biologists protocols, safety data sheets, hardware troubleshooting, and phone-sensor guidance over a regular phone call."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+authors = [{ name = "biobitworks" }]
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "pydantic>=2.7",
+  "python-dotenv>=1.0",
+  "httpx>=0.27",
+  "openai>=1.40",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.setuptools]
+packages = ["fieldbio"]
