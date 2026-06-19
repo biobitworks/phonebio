@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PhoneBio — Live Triage (demo)</title>
+<style>
+  :root{--bg:#0a0e14;--panel:#121826;--line:#1f2a3d;--ink:#e6edf3;--mut:#7d8aa0;--edge:#ffb454;--cloud:#4cc2ff;--red:#ff5d62;--ok:#33d17a}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 ui-monospace,Menlo,Consolas,monospace}
+  header{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+  h1{font-size:17px;margin:0;letter-spacing:.5px}
+  .badge{font-size:12px;border:1px solid var(--edge);color:var(--edge);border-radius:999px;padding:2px 10px}
+  .wrap{max-width:1100px;margin:auto;padding:16px;display:grid;gap:14px}
+  .controls{display:flex;gap:10px;flex-wrap:wrap}
+  button{background:#16314a;color:var(--ink);border:1px solid var(--cloud);border-radius:8px;padding:10px 16px;font:inherit;cursor:pointer}
+  .sensors{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;position:relative;overflow:hidden}
+  .card h2{font-size:12px;margin:0 0 4px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
+  .row{display:flex;justify-content:space-between;align-items:baseline} .big{font-size:28px;font-weight:600} .unit{font-size:12px;color:var(--mut)}
+  canvas{width:100%;height:54px;display:block;margin-top:6px}
+  .flash{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .4s;background:var(--red)}
+  .lanes{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .lane{display:flex;align-items:center;gap:10px;height:60px}
+  .laneName{width:150px;font-size:12px;text-transform:uppercase;letter-spacing:1px}
+  .edgeN{color:var(--edge)} .cloudN{color:var(--cloud)}
+  .track{flex:1;display:flex;gap:10px;overflow-x:auto;height:100%;align-items:center}
+  .ev{min-width:70px;height:44px;border-radius:8px;border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;color:var(--mut);flex:0 0 auto}
+  .ev.e{border-color:var(--edge);color:var(--edge)} .ev.c{border-color:var(--cloud);color:var(--cloud)} .ev b{font-size:14px}
+  .mid{text-align:center;color:var(--mut);font-size:11px}
+  .detail{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .kv{display:grid;grid-template-columns:110px 1fr;gap:6px 12px;font-size:15px}
+  .kv span:first-child{color:var(--mut)} .gregg{color:var(--edge)}
+  .tier-RED{color:var(--red)} .tier-AMBER{color:var(--edge)} .tier-GREEN{color:var(--ok)}
+  .tally{display:flex;gap:22px;font-size:13px} .tally b{font-size:20px} .te{color:var(--edge)} .tc{color:var(--cloud)}
+  .eff{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+  .eff div{background:#0c1320;border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+  .eff span{display:block;color:var(--mut);font-size:10px;text-transform:uppercase;letter-spacing:1px}
+  .eff b{font-size:22px}.eff .save{color:var(--ok)}
+  .setup{background:#0c1320;border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--mut)}
+  .setup b{color:var(--ink)}
+  .scriptGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .scriptBox{background:#0c1320;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .scriptBox h2{font-size:12px;margin:0 0 6px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
+  .scriptBox p{margin:0;font-size:14px}.say{color:var(--ok)}.needs{color:var(--cloud)}
+</style>
+</head>
+<body>
+<header><h1>PHONEBIO · LIVE FIELD TRIAGE</h1><span class="badge" id="src">SIMULATED SENSOR DATA</span>
+  <span style="margin-left:auto"><select id="env" style="background:#0c1320;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit">
+   <option>Amazon rainforest</option><option>Desert field station</option><option>Open field</option></select></span></header>
+
+<div class="wrap">
+  <div class="setup"><b>Start state:</b> turn iPhone call audio to Speaker manually, then tap one demo button. Sensor animation waits until you start.</div>
+  <div class="scriptGrid">
+    <div class="scriptBox"><h2>What PhoneBio needs</h2><p class="needs">Location context: ventilation/open air, eyewash or water, spill kit, exits, and whether anyone is nearby.</p></div>
+    <div class="scriptBox"><h2>What I say</h2><p class="say">Low-level formaldehyde cleanup. No fire. No skin contact. I forgot the SDS location step. Ask me where I am relative to ventilation, eyewash, spill kit, exits, and other people before cleanup.</p></div>
+  </div>
+  <div class="controls">
+    <button id="auto">▶ Auto demo</button>
+    <button data-x="Observed three juvenile specimens near the burrow at 12 meters, temperature 18 degrees" class="ev0">routine note</button>
+    <button data-x="My barometer read 1003 then 998 over an hour">sensor</button>
+    <button data-x="Small formaldehyde spill on my outer glove. No fire and no skin contact. I forgot to check where I am relative to ventilation, eyewash, and the spill kit. What should I confirm first?" id="emg">formaldehyde location check</button>
+  </div>
+
+  <div class="sensors">
+    <div class="card"><div class="flash" id="f-loud"></div><h2>Loudness · mic (EDGE)</h2><div class="row"><span class="big" id="v-loud">—</span><span class="unit">dBFS</span></div><canvas id="c-loud"></canvas></div>
+    <div class="card"><div class="flash" id="f-acc"></div><h2>Motion · accel (EDGE)</h2><div class="row"><span class="big" id="v-acc">—</span><span class="unit">m/s²</span></div><canvas id="c-acc"></canvas></div>
+    <div class="card"><h2>Pressure · barometer</h2><div class="row"><span class="big" id="v-prs">—</span><span class="unit">hPa</span></div><canvas id="c-prs"></canvas></div>
+  </div>
+
+  <div class="lanes">
+    <div class="lane"><div class="laneName edgeN">▮ Edge · quantized<br><span style="color:var(--mut)">on-device · offline</span></div><div class="track" id="edgeTrack"></div></div>
+    <div class="mid">▲ escalates to the 70B only on high severity ▲</div>
+    <div class="lane"><div class="laneName cloudN">▮ Cloud · Llama-70B<br><span style="color:var(--mut)">Nebius GPU</span></div><div class="track" id="cloudTrack"></div></div>
+  </div>
+
+  <div class="tally"><div>edge-only (offline): <b class="te" id="nE">0</b></div><div>escalated to 70B: <b class="tc" id="nC">0</b></div><div>bytes to cloud: <b id="nB">0</b></div></div>
+
+  <div class="detail"><div class="kv">
+    <span>heard</span><span id="d-heard">— press Auto demo —</span>
+    <span>edge → shorthand</span><span class="gregg" id="d-gregg">—</span>
+    <span>lab jargon map</span><span id="d-map">—</span>
+    <span>edge tier</span><span id="d-tier">—</span>
+    <span>decision</span><span id="d-dec">—</span>
+    <span>70B says</span><span id="d-cloud">—</span>
+  </div>
+  <div class="eff">
+    <div><span>original</span><b id="d-raw">0 B</b></div>
+    <div><span>shorthand packet</span><b id="d-short">0 B</b></div>
+    <div><span>bandwidth saved</span><b class="save" id="d-save">0%</b></div>
+  </div></div>
+</div>
+
+<script>
+const PROXY="https://qfdp5nuv.function2.insforge.app/phonebio-llm/chat/completions";
+const BRIEF={specimen:"spc",specimens:"spcmns",observed:"obs",temperature:"tmp",approximately:"~",meters:"m",degrees:"deg",burrow:"brw",juvenile:"juv",barometer:"baro",formaldehyde:"form",emergency:"emrg",services:"svc",milliliters:"ml",milliliter:"ml",control:"ctrl",negative:"neg",positive:"pos",centrifuge:"cfg",vibration:"vib",sample:"smp",formalin:"form",spill:"spl",pressure:"prs"};
+const STOP=new Set("the a an of is are was were to and with at in on it that this i we there for then its cannot".split(" "));
+const omit=w=>w.length<=4?w:(w[0]+w.slice(1).replace(/[aeiou]/g,""))||w;
+const gregg=t=>t.toLowerCase().split(/\s+/).map(r=>{const m=r.match(/[a-z0-9][a-z0-9'-]*/);const w=m?m[0]:"";if(!w||STOP.has(w))return"";return (w in BRIEF)?BRIEF[w]:(/^[0-9.]+$/.test(w)?w:omit(w));}).filter(Boolean).join(" ");
+const jargonMap=t=>t.toLowerCase().split(/\s+/).map(r=>{const m=r.match(/[a-z0-9][a-z0-9'-]*/);const w=m?m[0]:"";return BRIEF[w]&&BRIEF[w]!==w?`${w}→${BRIEF[w]}`:"";}).filter(Boolean).slice(0,8).join(" · ")||"generic consonant compression";
+const bytes=s=>new TextEncoder().encode(s).length;
+function sev(t){
+  const s=t.toLowerCase();
+  if(/no fire/.test(s)&&/no skin contact/.test(s)&&/(spill kit|trained|small)/.test(s))return"AMBER";
+  if(/(fire|breathe|unresponsive|bleeding|burn|exposure|collapse|smoke|large spill|skin contact)/.test(s))return"RED";
+  if(/(spill|malfunction|fail|drop|leak|injury|error|stuck|formaldehyde|formalin)/.test(s))return"AMBER";
+  return"GREEN";
+}
+const $=id=>document.getElementById(id);
+
+// simulated sensor streams (test data) so it animates in OBS with no real sensors
+function spark(id,col){const cv=$(id),x=cv.getContext('2d');const b=[];const W=cv.width=cv.clientWidth*devicePixelRatio||320,H=cv.height=54*devicePixelRatio;
+  return v=>{b.push(v);if(b.length>W/2)b.shift();const lo=Math.min(...b),hi=Math.max(...b)||1;x.clearRect(0,0,W,H);x.beginPath();
+    b.forEach((y,i)=>{const px=i*2,py=H-((y-lo)/((hi-lo)||1))*H;i?x.lineTo(px,py):x.moveTo(px,py);});x.strokeStyle=col;x.lineWidth=2*devicePixelRatio;x.stroke();};}
+const SL=spark('c-loud','#4cc2ff'),SA=spark('c-acc','#ffb454'),SP=spark('c-prs','#b48cff');
+let loud=-46,acc=0.3,prs=1010,boom=0,sensorTimer=null;
+function startSensors(){if(sensorTimer)return;sensorTimer=setInterval(()=>{
+  loud=-46+Math.random()*6+boom*30; acc=0.3+Math.random()*0.4+boom*4.5; prs=1010+Math.sin(Date.now()/9000)*2;
+  if(boom>0){flash($('f-loud'));flash($('f-acc'));boom*=0.5;if(boom<0.05)boom=0;}
+  $('v-loud').textContent=Math.round(loud);$('v-acc').textContent=acc.toFixed(2);$('v-prs').textContent=prs.toFixed(1);
+  SL(loud);SA(acc);SP(prs);
+},120);}
+function flash(e){e.style.opacity=.5;setTimeout(()=>e.style.opacity=0,80);}
+
+let nE=0,nC=0,nB=0;
+function chip(track,label,sub,cls){const d=document.createElement('div');d.className='ev '+cls;d.innerHTML='<b>'+label+'</b>'+sub;track.appendChild(d);track.scrollLeft=track.scrollWidth;return d;}
+async function ask70b(text){const t=performance.now();
+  try{const r=await fetch(PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stream:false,temperature:0.2,max_tokens:80,messages:[{role:'system',content:'PhoneBio field first-response. One terse life-safety action, <25 words.'},{role:'user',content:text}]})});
+    const d=await r.json();return {a:(d.choices?.[0]?.message?.content||'').trim(),ms:Math.round(performance.now()-t)};}
+  catch(e){return {a:'Move away and upwind, protect your airway. Flush exposed skin/eyes 15 min. Signal for help; PhoneBio is logging your location.',ms:Math.round(performance.now()-t)};}}
+async function run(text){
+  startSensors();
+  const t0=performance.now();const g=gregg(text);const tier=sev(text);const ems=Math.max(1,Math.round(performance.now()-t0));
+  const rawB=bytes(text), shortB=bytes(g), saved=Math.max(0,Math.round((1-shortB/Math.max(rawB,1))*100));
+  if(tier==='RED'){boom=1;} nE++;$('nE').textContent=nE;chip($('edgeTrack'),tier,ems+'ms','e');
+  $('d-heard').textContent=text;$('d-gregg').textContent=g;$('d-tier').innerHTML='<span class="tier-'+tier+'">'+tier+'</span>';
+  $('d-map').textContent=jargonMap(text);$('d-raw').textContent=rawB+' B';$('d-short').textContent=shortB+' B';$('d-save').textContent=saved+'%';
+  if(tier==='GREEN'){$('d-dec').textContent='handled at edge — offline, no cloud';$('d-cloud').textContent='—';chip($('cloudTrack'),'·','idle','');return;}
+  nB+=g.length;$('nB').textContent=nB+' B';$('d-dec').textContent='severity '+tier+' → escalate to 70B ('+g.length+' B on the wire)';
+  const c=chip($('cloudTrack'),'70B','…','c');const o=await ask70b(text);nC++;$('nC').textContent=nC;c.lastChild.textContent=o.ms+'ms';$('d-cloud').textContent=o.a;
+}
+document.querySelectorAll('button[data-x]').forEach(b=>b.onclick=()=>run(b.dataset.x));
+// auto demo: one finite pass for recording, no triage loop
+let timer=null,seq=['Observed three juvenile specimens near the burrow at 12 meters, temperature 18 degrees','My barometer read 1003 then 998 over an hour','Small formaldehyde spill on my outer glove. No fire and no skin contact. I forgot to check where I am relative to ventilation, eyewash, and the spill kit. What should I confirm first?'];let si=0;
+function stopAuto(){if(timer){clearInterval(timer);timer=null;}$('auto').textContent='▶ Auto demo';si=0;}
+$('auto').onclick=()=>{if(timer){stopAuto();return;}
+  $('auto').textContent='⏹ Stop';si=0;run(seq[si]);si++;
+  timer=setInterval(()=>{if(si>=seq.length){stopAuto();return;}run(seq[si]);si++;},7000);};
+</script>
+</body>
+</html>

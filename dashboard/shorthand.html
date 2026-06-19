@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PhoneBio — Voice ⇄ Gregg Shorthand</title>
+<style>
+  :root{--bg:#0a0e14;--panel:#121826;--line:#1f2a3d;--ink:#e6edf3;--mut:#7d8aa0;--ok:#33d17a;--warn:#ffb454;--acc:#4cc2ff;--vio:#b48cff}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 ui-monospace,Menlo,Consolas,monospace}
+  header{padding:14px 16px;border-bottom:1px solid var(--line)} h1{font-size:15px;margin:0;letter-spacing:.5px} .tag{color:var(--mut);font-size:12px}
+  .wrap{max-width:860px;margin:auto;padding:14px;display:grid;gap:12px}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  button{background:#16314a;color:var(--ink);border:1px solid var(--acc);border-radius:8px;padding:9px 13px;font:inherit;cursor:pointer}
+  button.ex{border-color:var(--line);color:var(--mut);font-size:12px;padding:6px 10px}
+  select,input{background:#0c1320;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit}
+  .stage{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;position:relative}
+  .stage h2{font-size:12px;margin:0 0 6px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;display:flex;justify-content:space-between}
+  .txt{font-size:18px;word-break:break-word;min-height:24px} .gregg{color:var(--warn);font-size:20px;letter-spacing:.5px}
+  .meta{font-size:11px;color:var(--mut);margin-top:6px} .flow{text-align:center;color:var(--mut);font-size:16px;margin:-4px 0}
+  .bar{height:20px;border-radius:6px;background:#0c1320;border:1px solid var(--line);overflow:hidden;margin-top:4px}
+  .bar > span{display:block;height:100%} .raw>span{background:linear-gradient(90deg,#ff5d62,#ffb454)} .sh>span{background:linear-gradient(90deg,#33d17a,#4cc2ff)}
+  .lab{font-size:11px;color:var(--mut);display:flex;justify-content:space-between;margin-top:6px}
+  /* efficiency grid */
+  .eff{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;text-align:center}
+  .eff div{background:#0c1320;border:1px solid var(--line);border-radius:8px;padding:8px} .eff b{display:block;font-size:20px;color:var(--ok)} .eff span{font-size:10px;color:var(--mut)}
+  .where{font-size:11px;color:var(--mut);margin-top:8px;line-height:1.6}
+  .where .y{color:var(--ok)} .where .n{color:var(--mut)}
+  /* lab jargon chips */
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .chip{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:3px 9px;color:var(--mut)}
+  .chip.used{border-color:var(--warn);color:var(--warn);background:rgba(255,180,84,.08)}
+  .chip i{color:#5b6b85;font-style:normal}
+</style>
+</head>
+<body>
+<header><h1>PHONEBIO · VOICE ⇄ GREGG SHORTHAND</h1>
+  <span class="tag">low-bandwidth field codec · runs in-browser (EDGE) · efficiency shown live</span></header>
+
+<div class="wrap">
+  <div class="controls">
+    <button id="mic">🎤 Speak</button><span class="tag">or:</span>
+    <button class="ex" data-x="Observed three juvenile specimens near the burrow at approximately 12 meters, temperature 18 degrees">field note</button>
+    <button class="ex" data-x="Centrifuge the supernatant aliquot at 12000 rpm for 10 minutes then pipette 50 microliters of buffer into the replicate, watch for contamination">lab jargon</button>
+    <button class="ex" data-x="Run the polymerase chain reaction with a negative control and check the safety data sheet for the reagent">PCR + SDS</button>
+  </div>
+  <input id="free" placeholder="…or type a field note and press Enter" />
+
+  <div class="stage"><h2><span>1 · 🎤 Voice in (heard)</span><span id="b-voice"></span></h2><div class="txt" id="t-voice">—</div></div>
+  <div class="flow">▼ compress (brief forms · phrasing · vowel omission)</div>
+  <div class="stage"><h2><span>2 · ✍️ Gregg shorthand</span><span id="b-gregg"></span></h2><div class="txt gregg" id="t-gregg">—</div><div class="meta" id="m-gregg"></div></div>
+  <div class="flow">▼ transmit (all that crosses a weak link) ▼ expand ▼ speak</div>
+  <div class="stage"><h2><span>3 · 📖 Reconstructed → 🔊 voice out</span></h2><div class="txt" id="t-text">—</div>
+    <button id="say" style="margin-top:8px">▶ Read it back</button></div>
+
+  <div class="stage"><h2>Efficiency impact — where it helps</h2>
+    <div class="eff">
+      <div><b id="e-char">—</b><span>fewer characters</span></div>
+      <div><b id="e-tok">—</b><span>fewer LLM tokens</span></div>
+      <div><b id="e-sms">—</b><span>SMS (160 cap)</span></div>
+      <div><b id="e-tx">—</b><span>faster on 9.6 kbps</span></div>
+    </div>
+    <div class="lab" style="margin-top:10px"><span>raw voice text</span><span id="rawb"></span></div><div class="bar raw"><span id="rawbar"></span></div>
+    <div class="lab"><span>Gregg shorthand on the wire</span><span id="shb"></span></div><div class="bar sh"><span id="shbar"></span></div>
+    <div class="where">
+      <b style="color:var(--ink)">Helps:</b> <span class="y">transmission</span> on weak/SMS links · <span class="y">storage &amp; sync</span> of field records · <span class="y">downstream LLM tokens</span> (cheaper/faster).<br>
+      <b style="color:var(--ink)">Doesn't change:</b> <span class="n">the live spoken conversation</span> — the agent still talks normally; shorthand is the compact record + readback.
+    </div>
+  </div>
+
+  <div class="stage"><h2>Lab shorthand · jargon map <span id="labcount" class="tag"></span></h2>
+    <div class="chips" id="labchips"></div></div>
+</div>
+
+<script>
+const BRIEF={specimen:"spc",specimens:"spcmns",observed:"obs",observation:"obs",temperature:"tmp",approximately:"~",meters:"m",degrees:"deg",burrow:"brw",juvenile:"juv",
+  centrifuge:"cfg",supernatant:"sup",aliquot:"alq",pipette:"pip",buffer:"buf",replicate:"rep",contamination:"contam",reagent:"rgt",dilution:"dil",control:"ctrl",
+  pellet:"plt",vortex:"vtx",incubate:"inc",formaldehyde:"form",ethanol:"etoh",bleach:"blch",calibration:"cal"};
+const PHRASES={"polymerase chain reaction":"pcr","safety data sheet":"sds","personal protective equipment":"ppe","negative control":"neg-ctrl","do not":"dnt"};
+const STOP=new Set("the a an of is are was were to and with at in on it that this i we there for then into of".split(" "));
+const RE=/(-?\d+(?:\.\d+)?)\s*(mm|cm|km|kg|mg|deg|degrees|hpa|mbar|ml|min|sec|rpm|m|g|l|s|%|n)?/gi;
+const omit=w=>{if(w.length<=4)return w;const o=w[0]+w.slice(1).replace(/[aeiou]/g,"");return o.length>=2?o:w;};
+// the lab jargon legend (what we show as the "lab shorthand")
+const LAB=Object.assign({},BRIEF,PHRASES);
+function compress(text){let work=(text||"").toLowerCase();const used=new Set();
+  for(const p of Object.keys(PHRASES).sort((a,b)=>b.length-a.length))if(work.includes(p)){work=work.split(p).join(PHRASES[p]);used.add(p);}
+  const out=[],map=[];
+  for(const raw of work.split(/\s+/)){const m=raw.match(/[a-z][a-z'-]*/);const tok=m?m[0]:raw;if(!tok||STOP.has(tok))continue;
+    let code; if(tok in BRIEF){code=BRIEF[tok];used.add(tok);} else if(Object.values(PHRASES).includes(tok)){code=tok;} else code=omit(tok);
+    out.push(code);if(code!==tok)map.push({from:tok,to:code});}
+  const meas=[];let mm;while((mm=RE.exec(text||""))!==null){if(mm[2])meas.push(mm[1]+" "+mm[2].toLowerCase());}
+  return {field:out.join(" "),meas,map,used,ratio:Math.round(out.join(" ").length/Math.max((text||"").length,1)*100)};}
+function expand(field,map){const rev={};for(const k in BRIEF)rev[BRIEF[k]]=k;for(const k in PHRASES)rev[PHRASES[k]]=k;if(map)for(const d of map)rev[d.to]=d.from;
+  return field.split(" ").map(t=>(t in rev)?rev[t]:t).join(" ");}
+const $=id=>document.getElementById(id);
+
+// render the lab jargon legend once
+function renderLab(used){const c=$("labchips");c.innerHTML="";let n=0;
+  for(const term in LAB){const u=used&&used.has(term);if(u)n++;
+    const d=document.createElement("span");d.className="chip"+(u?" used":"");d.innerHTML=term+" <i>→</i> "+LAB[term];c.appendChild(d);}
+  $("labcount").textContent=used?("· "+n+" used in this note"):"";}
+renderLab(null);
+
+function run(text){
+  if(!text)return;
+  $("t-voice").textContent=text;$("b-voice").textContent=text.length+" ch";
+  const c=compress(text);
+  $("t-gregg").textContent=c.field;$("b-gregg").textContent=c.field.length+" ch";
+  $("m-gregg").textContent="ratio "+c.ratio+"%  ·  "+c.map.length+" terms mapped"+(c.meas.length?("  ·  measurements: "+c.meas.join(", ")):"");
+  const back=expand(c.field,c.map);$("t-text").textContent=back;window._last=back;
+  // efficiency
+  const raw=text.length, sh=c.field.length, mx=Math.max(raw,1);
+  const pctC=Math.max(0,100-Math.round(sh/mx*100));
+  const tRaw=Math.ceil(raw/4), tSh=Math.ceil(sh/4), pctT=Math.max(0,100-Math.round(tSh/tRaw*100));
+  $("e-char").textContent="−"+pctC+"%";$("e-tok").textContent="−"+pctT+"%";
+  $("e-sms").textContent=sh<=160?"✓ 1 SMS":Math.ceil(sh/160)+" SMS";
+  // 9.6 kbps fallback ≈ 1200 B/s
+  $("e-tx").textContent="−"+Math.max(0,Math.round((raw-sh)/1200*1000))+" ms";
+  $("rawb").textContent=raw+" B";$("shb").textContent=sh+" B";$("rawbar").style.width="100%";$("shbar").style.width=Math.round(sh/mx*100)+"%";
+  renderLab(c.used);
+}
+$("say").onclick=()=>{const t=window._last;if(!t)return;const u=new SpeechSynthesisUtterance(t);speechSynthesis.cancel();speechSynthesis.speak(u);};
+document.querySelectorAll(".ex").forEach(b=>b.onclick=()=>{run(b.dataset.x);setTimeout(()=>$("say").click(),700);});
+$("free").addEventListener("keydown",e=>{if(e.key==="Enter")run(e.target.value);});
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+$("mic").onclick=()=>{if(!SR){alert("Speech-to-text not supported here — type or tap an example");return;}
+  const r=new SR();r.lang="en-US";$("mic").textContent="… listening";
+  r.onresult=ev=>{run(ev.results[0][0].transcript);setTimeout(()=>$("say").click(),700);};
+  r.onend=()=>$("mic").textContent="🎤 Speak";r.onerror=()=>$("mic").textContent="🎤 Speak";r.start();};
+</script>
+</body>
+</html>

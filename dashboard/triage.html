@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PhoneBio — Edge ⇄ 70B Triage</title>
+<style>
+  :root{--bg:#0a0e14;--panel:#121826;--line:#1f2a3d;--ink:#e6edf3;--mut:#7d8aa0;--edge:#ffb454;--cloud:#4cc2ff;--red:#ff5d62;--ok:#33d17a}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 ui-monospace,Menlo,Consolas,monospace}
+  header{padding:14px 16px;border-bottom:1px solid var(--line)} h1{font-size:15px;margin:0;letter-spacing:.5px} .tag{color:var(--mut);font-size:12px}
+  .wrap{max-width:860px;margin:auto;padding:14px;display:grid;gap:14px}
+  .controls{display:flex;gap:8px;flex-wrap:wrap}
+  button{background:#16314a;color:var(--ink);border:1px solid var(--cloud);border-radius:8px;padding:9px 13px;font:inherit;cursor:pointer}
+  button.ex{border-color:var(--line);color:var(--mut);font-size:12px;padding:7px 10px}
+  /* two-lane interplay graph */
+  .lanes{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px}
+  .lane{display:flex;align-items:center;gap:8px;height:62px}
+  .laneName{width:118px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--mut)}
+  .edgeN{color:var(--edge)} .cloudN{color:var(--cloud)}
+  .track{flex:1;display:flex;gap:10px;overflow-x:auto;height:100%;align-items:center;padding:0 4px}
+  .ev{min-width:64px;height:42px;border-radius:8px;border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;color:var(--mut);position:relative;flex:0 0 auto}
+  .ev.on-edge{border-color:var(--edge);color:var(--edge)} .ev.on-cloud{border-color:var(--cloud);color:var(--cloud)}
+  .ev b{font-size:13px}
+  .mid{height:14px;text-align:center;color:var(--mut);font-size:10px}
+  .tally{display:flex;gap:16px;font-size:12px}
+  .tally b{font-size:18px} .te{color:var(--edge)} .tc{color:var(--cloud)}
+  .detail{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .detail h2{font-size:12px;margin:0 0 6px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
+  .kv{display:grid;grid-template-columns:90px 1fr;gap:4px 10px;font-size:13px}
+  .kv span:first-child{color:var(--mut)}
+  .gregg{color:var(--edge)} .tier-RED{color:var(--red)} .tier-AMBER{color:var(--edge)} .tier-GREEN{color:var(--ok)}
+</style>
+</head>
+<body>
+<header><h1>PHONEBIO · EDGE ⇄ 70B TRIAGE</h1>
+  <span class="tag">on-device quantized first · escalate to Llama-70B (Nebius) only when needed</span></header>
+
+<div class="wrap">
+  <div class="controls">
+    <button class="ex" data-x="Observed three juvenile specimens near the burrow at 12 meters, temperature 18 degrees">routine note</button>
+    <button class="ex" data-x="My barometer read 1003 then 998 over an hour">sensor reading</button>
+    <button class="ex" data-x="The data logger keeps dropping its bluetooth connection">hardware</button>
+    <button class="ex" data-x="I spilled formaldehyde and there is a small fire, I cannot reach emergency services">EMERGENCY</button>
+  </div>
+
+  <div class="lanes">
+    <div class="lane"><div class="laneName edgeN">▮ Edge · quantized<br><span style="color:var(--mut)">on-device · offline</span></div><div class="track" id="edgeTrack"></div></div>
+    <div class="mid">▲ escalates only when severity/complexity is high ▲</div>
+    <div class="lane"><div class="laneName cloudN">▮ Cloud · Llama-70B<br><span style="color:var(--mut)">Nebius GPU</span></div><div class="track" id="cloudTrack"></div></div>
+  </div>
+
+  <div class="tally">
+    <div>handled at edge (offline): <b class="te" id="nEdge">0</b></div>
+    <div>escalated to 70B: <b class="tc" id="nCloud">0</b></div>
+    <div>bytes to cloud: <b id="nBytes">0</b></div>
+  </div>
+
+  <div class="detail">
+    <h2>Last event</h2>
+    <div class="kv">
+      <span>heard</span><span id="d-heard">—</span>
+      <span>edge → gregg</span><span class="gregg" id="d-gregg">—</span>
+      <span>edge tier</span><span id="d-tier">—</span>
+      <span>decision</span><span id="d-dec">—</span>
+      <span>70B says</span><span id="d-cloud">—</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const PROXY="https://qfdp5nuv.function2.insforge.app/phonebio-llm/chat/completions";
+const BRIEF={specimen:"spc",specimens:"spcmns",observed:"obs",temperature:"tmp",approximately:"~",meters:"m",degrees:"deg",burrow:"brw",juvenile:"juv",barometer:"baro",bluetooth:"bt",connection:"conn",formaldehyde:"form","emergency":"emrg"};
+const STOP=new Set("the a an of is are was were to and with at in on it that this i we there for then its".split(" "));
+const omit=w=>w.length<=4?w:(w[0]+w.slice(1).replace(/[aeiou]/g,""))||w;
+function gregg(t){return t.toLowerCase().split(/\s+/).map(r=>{const m=r.match(/[a-z0-9][a-z0-9'-]*/);const w=m?m[0]:"";if(!w||STOP.has(w))return"";return (w in BRIEF)?BRIEF[w]:(/^[0-9.]+$/.test(w)?w:omit(w));}).filter(Boolean).join(" ");}
+function severity(t){t=t.toLowerCase();
+  if(/(fire|spill|can.?t breathe|unresponsive|bleeding|burn|exposure|collapse|smoke)/.test(t))return"RED";
+  if(/(malfunction|fail|drop|leak|injury|error|stuck)/.test(t))return"AMBER";
+  return"GREEN";}
+const $=id=>document.getElementById(id);
+let nE=0,nC=0,nB=0;
+function chip(track,label,sub,cls){const d=document.createElement("div");d.className="ev "+cls;d.innerHTML="<b>"+label+"</b>"+sub;track.appendChild(d);track.scrollLeft=track.scrollWidth;return d;}
+
+async function ask70b(text){
+  const t0=performance.now();
+  const r=await fetch(PROXY,{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({stream:false,temperature:0.2,max_tokens:80,messages:[
+      {role:"system",content:"You are PhoneBio field first-response. One terse life-safety/action line, <25 words."},
+      {role:"user",content:text}]})});
+  const d=await r.json();const ms=Math.round(performance.now()-t0);
+  return {ans:(d.choices?.[0]?.message?.content||"").trim(),ms,model:d.model||"Llama-70B"};
+}
+
+async function run(text){
+  // EDGE pass (instant, on-device): shorthand + severity gate
+  const t0=performance.now();
+  const g=gregg(text); const tier=severity(text); const ems=Math.max(1,Math.round(performance.now()-t0));
+  nE++; $("nEdge").textContent=nE;
+  chip($("edgeTrack"), tier, ems+"ms", "on-edge");
+  $("d-heard").textContent=text; $("d-gregg").textContent=g;
+  $("d-tier").innerHTML='<span class="tier-'+tier+'">'+tier+'</span>';
+  const escalate = tier!=="GREEN";
+  if(!escalate){
+    $("d-dec").textContent="handled at edge — offline, no cloud needed";
+    $("d-cloud").textContent="—";
+    chip($("cloudTrack"),"·","idle","");
+    return;
+  }
+  // ESCALATE -> only the compact text crosses the link
+  nB += g.length; $("nBytes").textContent=nB+" B";
+  $("d-dec").textContent="severity "+tier+" → escalate to 70B ("+g.length+" B on the wire)";
+  const c=chip($("cloudTrack"),"70B","…","on-cloud");
+  try{const out=await ask70b(text); nC++; $("nCloud").textContent=nC;
+    c.querySelector("b").textContent="70B"; c.lastChild.textContent=out.ms+"ms";
+    $("d-cloud").textContent=out.ans;
+  }catch(e){c.lastChild.textContent="err"; $("d-cloud").textContent="(cloud unreachable — edge tier still stands: "+tier+")";}
+}
+document.querySelectorAll(".ex").forEach(b=>b.onclick=()=>run(b.dataset.x));
+</script>
+</body>
+</html>

@@ -81,11 +81,12 @@ def main() -> None:
 
     # safety_sheets
     cols = ["id", "name", "synonyms", "hazards", "ppe", "first_aid",
-            "disclaimer", "source_path", "source_hash"]
+            "disclaimer", "spill", "storage", "source_path", "source_hash"]
     rows = [[
         lit(s["id"]), lit(s["name"]), jlit(s.get("synonyms", [])),
         jlit(s.get("hazards", [])), jlit(s.get("ppe", [])),
         jlit(s.get("first_aid", {})), lit(s.get("_disclaimer") or s.get("disclaimer") or ""),
+        lit(s.get("spill")), lit(s.get("storage")),
         lit(s.get("source_path", "")), lit(sha(s)),
     ] for s in load_sds()]
     upsert("safety_sheets", cols, rows)

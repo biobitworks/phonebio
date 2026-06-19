@@ -178,7 +178,7 @@ async function getSafetySheet(a: Record<string, unknown>) {
     return { status: "not_found", answer: "No local safety summary matched. Isolate the material if safe, avoid mixing chemicals, and escalate.", sourceIds: [] };
   }
   const r: any = m.record;
-  return { status: "ok", id: r.id, name: r.name, disclaimer: r.disclaimer, hazards: r.hazards, ppe: r.ppe, firstAid: r.first_aid, sourceIds: [r.source_path] };
+  return { status: "ok", id: r.id, name: r.name, disclaimer: r.disclaimer, hazards: r.hazards, ppe: r.ppe, firstAid: r.first_aid, spill: r.spill, storage: r.storage, sourceIds: [r.source_path] };
 }
 async function troubleshootHardware(a: Record<string, unknown>) {
   const { data } = await db().database.from("hardware_guides").select("*");

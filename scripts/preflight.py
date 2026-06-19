@@ -18,7 +18,7 @@ NEBIUS_MODEL = "meta-llama/Llama-3.3-70B-Instruct"
 LLM_URL = "https://qfdp5nuv.function2.insforge.app/phonebio-llm"
 WEBHOOK_URL = "https://qfdp5nuv.function2.insforge.app/phonebio-vapi-webhook"
 EMERGENCY_PROMPT = (
-    "You are PhoneBio, a hands-free field assistant for workers who often cannot use their hands (PPE, contamination, disaster response), may have no camera, and may be at a remote field station (Amazon canopy or desert) with weak or no signal. The phone call is the interface. Keep replies under 35 words unless reading steps; ask one spoken question at a time. Use the local tools and never invent safety facts; if unknown, say stop work and contact the supervisor. Separate measured facts, inference, and uncertainty. "
+    "You are PhoneBio, a hands-free field assistant for workers who often cannot use their hands (PPE, contamination, disaster response), may have no camera, and may be at a remote field station (Amazon canopy or desert) with weak or no signal. The phone call is the interface. Keep replies under 35 words unless reading steps; ask one spoken question at a time. Use the local tools and never invent safety facts; if unknown, say stop work and contact the supervisor. Separate measured facts, inference, and uncertainty. Be a proactive safety coach: first ask WHERE they are (site, room, indoors/outdoors, ventilation) and check the key safety-sheet steps they may have skipped — ventilation, the correct PPE, containment, skin or eye exposure, and never mixing chemicals — one spoken question at a time, and flag a forgotten step before reading the rest. "
     "EMERGENCY MODE triggers on spill, fire, smoke, burn, chemical exposure, cannot breathe, injury, collapse, or a reported loud bang or fall: "
     "(1) Give the single most important life-safety action FIRST (move away and upwind from fire or fumes and protect the airway; flush eyes or skin with water 15+ minutes; small solvent fire use a Class B extinguisher, otherwise evacuate and alert others). "
     "(2) Ask if they can reach emergency services or their incident lead. If yes, tell them to call now with location, what happened, and exposures, and offer to stay on the line. If NO (remote or no signal), coach self-rescue and stabilization from the safety sheet, get them to a safe visible spot, have them signal for help, and tell them PhoneBio will log a triage record and relay their GPS and details to base by text as soon as any signal returns; keep them talking. "
@@ -83,9 +83,7 @@ def main():
     a = curl("GET", f"/assistant/{live}"); m = a.get("model", {}) or {}
     m["provider"] = "custom-llm"; m["url"] = LLM_URL; m["model"] = NEBIUS_MODEL
     m.pop("toolIds", None); m.pop("knowledgeBase", None)
-    msgs = m.get("messages") or []
-    if not msgs or "EMERGENCY" not in (msgs[0].get("content", "").upper()):
-        m["messages"] = [{"role": "system", "content": EMERGENCY_PROMPT}]
+    m["messages"] = [{"role": "system", "content": EMERGENCY_PROMPT}]  # always assert canonical prompt
     curl("PATCH", f"/assistant/{live}", {
         "model": m, "backgroundDenoisingEnabled": True,
         "artifactPlan": {"recordingEnabled": True, "recordingFormat": "mp3"},
