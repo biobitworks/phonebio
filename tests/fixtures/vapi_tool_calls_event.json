@@ -1,0 +1,14 @@
+{
+  "message": {
+    "type": "tool-calls",
+    "toolCalls": [
+      {
+        "id": "fixture_tool_calls_protocol",
+        "function": {
+          "name": "get_protocol",
+          "arguments": "{\"task\":\"surface water grab sample\"}"
+        }
+      }
+    ]
+  }
+}

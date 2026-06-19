@@ -6,11 +6,11 @@ This audit checks the original objective against current repo and runtime eviden
 
 | Requirement | Evidence | Status |
 |-------------|----------|--------|
-| Create a new Vapi voice agent for hackathon | `vapi/assistant.field-biology-worker.json`; `fieldbio/vapi_client.py`; `vapi/wire.py`; `make wire-dry-run` passes. | Partial - assistant template and API wiring exist; live Vapi assistant not created from this shell because no Vapi key is present. |
-| Field biology worker can call in for protocols, safety material, SDS, hardware troubleshooting | FastAPI tools in `fieldbio/tools.py`; content under `content/protocols`, `content/sds`, `content/troubleshooting`; tests pass. | Implemented locally; live call not verified. |
+| Create a new Vapi voice agent for hackathon | `vapi/assistant.field-biology-worker.json`; `fieldbio/vapi_client.py`; `vapi/wire.py`; `make wire-dry-run` passes; `.github/workflows/ci.yml` validates dry-run payloads. | Partial - assistant template and API wiring exist; live Vapi assistant not created from this shell because no Vapi key is present. |
+| Field biology worker can call in for protocols, safety material, SDS, hardware troubleshooting | FastAPI tools in `fieldbio/tools.py`; content under `content/protocols`, `content/sds`, `content/troubleshooting`; Vapi webhook fixtures in `tests/fixtures`; tests pass. | Implemented locally; live call not verified. |
 | Processing is offline and can work through description | Tool server reads local files only; `make smoke` works without network. | Implemented for local webhook. |
 | Improve voice/scientific understanding through Gregg shorthand | `fieldbio/shorthand.py`; `content/shorthand/lexicon.json`; `compress_observation` tool; tests cover compression. | Implemented as deterministic field-note compression. |
-| Consider InsForge and Nebius | `.env.example`; `.planning/PROJECT.md`; `docs/RESEARCH.md`; `docs/INSFORGE_SCHEMA.md`; `docs/NEBIUS_INTEGRATION.md`; `docs/deferred_writeback_candidates.jsonl`. | Deferred correctly with implementation-ready contracts; API credits/backend decision pending. |
+| Consider InsForge and Nebius | `.env.example`; `.planning/PROJECT.md`; `docs/RESEARCH.md`; `docs/INSFORGE_SCHEMA.md`; `docs/NEBIUS_INTEGRATION.md`; `docs/deferred_writeback_candidates.jsonl`. | InsForge remains the funded/free-credit backend path; Nebius is documented as deferred and not part of v1. |
 | Set up local git and push public GitHub | `origin=https://github.com/biobitworks/phonebio.git`; `origin/main` pushed. | Complete. |
 | Use GSD new project | `.planning/PROJECT.md`, `REQUIREMENTS.md`, `ROADMAP.md`, `STATE.md`, config and sidecars exist. | Complete. |
 | Phone sensors: accelerometer, UWB, LiDAR, gyroscope, barometer variations/accuracy | `content/sensors/sensors.json`; `docs/SENSOR_CAPABILITY_MATRIX.md`; sensor tool returns accuracy/error/confidence. | Implemented as reference guidance; device-specific manufacturer validation remains future work. |
@@ -24,6 +24,7 @@ This audit checks the original objective against current repo and runtime eviden
 - `VAPI_API_KEY` or `VAPI_PRIVATE_KEY`
 - `VAPI_PHONE_NUMBER_ID`
 - Public `VAPI_WEBHOOK_URL` or hosted endpoint
+- Public `VAPI_CUSTOM_LLM_URL` or hosted `/custom-llm` endpoint
 - Optional `VAPI_TEST_NUMBER` for outbound test
 - Optional `VAPI_WEBHOOK_SECRET` for bearer-token webhook authentication
 
@@ -31,4 +32,4 @@ This audit checks the original objective against current repo and runtime eviden
 
 PhoneBio v1 is locally implemented and publicly published, but the full objective is not complete until the live Vapi assistant is created or updated, assigned to the phone number, and verified through an inbound call.
 
-The repo now includes both local-tunnel and container deployment paths, so the next external dependency is the Vapi credential/phone-number bundle plus the selected public webhook URL.
+The repo now includes both local-tunnel and container deployment paths, so the next external dependency is the Vapi credential/phone-number bundle plus the selected public webhook/custom-LLM URLs. InsForge credentials are needed later only when persistence is implemented.

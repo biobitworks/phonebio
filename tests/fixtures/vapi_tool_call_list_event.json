@@ -1,0 +1,15 @@
+{
+  "message": {
+    "type": "tool-calls",
+    "toolCallList": [
+      {
+        "toolCallId": "fixture_tool_call_list_sensor",
+        "name": "interpret_sensor_report",
+        "arguments": {
+          "sensor": "barometer",
+          "reading": "pressure dropped 4 hPa in two hours"
+        }
+      }
+    ]
+  }
+}

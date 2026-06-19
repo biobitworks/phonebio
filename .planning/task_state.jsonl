@@ -2,3 +2,4 @@
 {"id":"TASK-001","status":"complete","phase":"Phase 1","summary":"Initialized GSD artifacts, offline FastAPI webhook, Node fallback, tests, content, and public GitHub repo.","updated_at":"2026-06-19"}
 {"id":"TASK-002","status":"blocked","phase":"Phase 2","summary":"Live Vapi assistant creation and phone-number assignment pending Vapi credentials, phone-number ID, and public webhook URL.","updated_at":"2026-06-19"}
 {"id":"TASK-003","status":"complete","phase":"Phase 2","summary":"Added deployment runbook, Docker/Procfile packaging, optional webhook authentication, and dry-run-safe Vapi wiring prerequisites.","updated_at":"2026-06-19"}
+{"id":"TASK-004","status":"complete","phase":"Phase 2","summary":"Added CI, Vapi webhook fixtures, custom-LLM payload derivation, and enforced the API budget boundary: Vapi now, InsForge later, local Ollama only for LLM.","updated_at":"2026-06-19"}

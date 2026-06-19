@@ -1,6 +1,11 @@
+import json
+from pathlib import Path
+
 from fieldbio.app import handle_vapi_payload
 from fieldbio.config import settings
 from fieldbio.shorthand import compress
+
+FIXTURES = Path(__file__).parent / "fixtures"
 
 
 def test_protocol_lookup():
@@ -61,6 +66,38 @@ def test_vapi_tool_calls_event_shape():
     assert "pitfall" in result["title"].lower()
 
 
+def test_vapi_tool_calls_fixture_through_http():
+    from fastapi.testclient import TestClient
+    from fieldbio.app import app
+
+    payload = load_fixture("vapi_tool_calls_event.json")
+    client = TestClient(app)
+
+    response = client.post("/webhook", json=payload)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["results"][0]["toolCallId"] == "fixture_tool_calls_protocol"
+    assert body["results"][0]["result"]["status"] == "ok"
+    assert "water" in body["results"][0]["result"]["title"].lower()
+
+
+def test_vapi_tool_call_list_fixture_through_http():
+    from fastapi.testclient import TestClient
+    from fieldbio.app import app
+
+    payload = load_fixture("vapi_tool_call_list_event.json")
+    client = TestClient(app)
+
+    response = client.post("/webhook", json=payload)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["results"][0]["toolCallId"] == "fixture_tool_call_list_sensor"
+    assert body["results"][0]["result"]["status"] == "ok"
+    assert body["results"][0]["result"]["id"] == "barometer"
+
+
 def test_unknown_hardware_does_not_hallucinate():
     result = get_result(
         {
@@ -104,3 +141,7 @@ def get_result(payload):
 
     response = asyncio.run(handle_vapi_payload(payload))
     return response["results"][0]["result"]
+
+
+def load_fixture(name):
+    return json.loads((FIXTURES / name).read_text(encoding="utf-8"))

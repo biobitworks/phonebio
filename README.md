@@ -53,7 +53,7 @@ Live Vapi wiring needs `VAPI_API_KEY` or `VAPI_PRIVATE_KEY`, `VAPI_PHONE_NUMBER_
 
 ## Runtime Boundary
 
-The webhook does not call the internet. Nebius, InsForge, and Ollarma are deferred integration surfaces until API credits, deployment, and routing decisions are ready.
+The webhook does not call the internet. Vapi is the only API needed for the live phone agent; InsForge is deferred until persistent storage/backend features are needed. No OpenAI API key is used.
 
 Ollarma status on 2026-06-19: reachable but degraded with `SELECTION_STALE`; Watchtower bridge aggregator unreachable. See `docs/OLLARMA_CLAUDE_HANDOFF.md`.
 
@@ -62,4 +62,4 @@ Optional custom LLM endpoint:
 - `GET /llm/health`
 - `POST /custom-llm/chat/completions`
 
-This route tries local Ollama first, then Nebius/OpenAI only when keys are configured.
+This route uses local Ollama only.

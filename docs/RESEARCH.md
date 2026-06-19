@@ -8,6 +8,7 @@
 - Vapi phone quickstart: `https://docs.vapi.ai/quickstart/phone`
 - Vapi custom tools: `https://docs.vapi.ai/tools/custom-tools`
 - Vapi server URLs: `https://docs.vapi.ai/server-url`
+- Vapi custom LLM provider shape: `https://docs.vapi.ai/customization/custom-llm/fine-tuned-openai-models`
 - Gregg shorthand index: `https://greggshorthand.github.io/anindex.html`
 - Nebius Token Factory cookbook: `https://github.com/nebius/token-factory-cookbook`
 - Nebius Token Factory API intro: `https://docs.tokenfactory.nebius.com/api-reference/introduction`
@@ -21,7 +22,6 @@
 - Vapi can be tested quickly through dashboard-created assistants and phone numbers. Custom tools require a reachable server URL and return `results` keyed by tool-call ID.
 - Server URLs are the right bridge for call transcripts, function calls, assistant requests, and end-of-call reports.
 - Gregg shorthand suggests a voice UX pattern: capture compact phonetic/semantic observations, then ask clarifying questions only when omitted detail changes safety or protocol selection.
-- Nebius can be added later through an OpenAI-compatible API base URL. Keep model calls optional until credits are available.
-- InsForge is a candidate backend if persistent auth, database, storage, functions, hosting, or model-gateway features are needed.
+- Nebius was reviewed but is not part of the current funded/API path.
+- InsForge is the candidate backend if persistent auth, database, storage, functions, hosting, or model-gateway features are needed.
 - Phone sensor access is platform-specific. Core Motion covers accelerometer, gyroscope, magnetometer, pedometer, and barometer when available. Nearby Interaction covers UWB distance/direction on supported devices. ARKit scene depth is LiDAR-device-gated and should be treated as unavailable unless the device reports support.
-

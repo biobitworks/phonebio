@@ -10,11 +10,9 @@ client = TestClient(app)
 
 
 def test_provider_order_respects_keys(monkeypatch):
-    monkeypatch.setattr(llm.settings, "provider_order", ["local", "nebius", "openai"])
-    monkeypatch.setattr(llm.settings, "nebius_api_key", "")  # not configured
-    monkeypatch.setattr(llm.settings, "openai_api_key", "test-key")
+    monkeypatch.setattr(llm.settings, "provider_order", ["local", "paid-cloud"])
     names = [p.name for p in llm.providers()]
-    assert names == ["local", "openai"]  # local always eligible; nebius dropped (no key)
+    assert names == ["local"]  # cloud names are ignored; no paid fallback path
 
 
 def test_custom_llm_non_stream(monkeypatch):

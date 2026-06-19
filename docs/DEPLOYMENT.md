@@ -28,11 +28,11 @@ Required environment:
 ```bash
 PORT=8080
 VAPI_WEBHOOK_SECRET=<random secret if using Vapi Custom Credential>
-LLM_PROVIDER_ORDER=local,nebius,openai
+LLM_PROVIDER_ORDER=local
 OLLAMA_BASE_URL=http://host.docker.internal:11434/v1
 ```
 
-`NEBIUS_API_KEY` is optional after credits are available.
+No OpenAI key is used. InsForge credentials are optional and only needed once persistent storage/backend features are enabled.
 
 Health check:
 

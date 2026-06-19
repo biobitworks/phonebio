@@ -7,7 +7,15 @@
 - Vapi private/API key in the shell as `VAPI_API_KEY` or `VAPI_PRIVATE_KEY`.
 - Existing Vapi phone number ID in `VAPI_PHONE_NUMBER_ID`.
 - Public webhook URL in `VAPI_WEBHOOK_URL` or `PUBLIC_BASE_URL`.
+- Public custom-LLM base URL in `VAPI_CUSTOM_LLM_URL`, or derive it from `PUBLIC_BASE_URL` as `/custom-llm`.
 - Optional outbound test destination in `VAPI_TEST_NUMBER`.
+- Optional webhook bearer secret in `VAPI_WEBHOOK_SECRET`.
+
+## Credential Timing
+
+The Vapi API bundle is needed only after a public webhook URL exists. At that point, provide the Vapi API key, phone number ID, webhook URL, custom-LLM URL, and optional webhook secret.
+
+InsForge is not needed until persistent hosted storage is selected. OpenAI is not used. Nebius is not part of the current funded/API path.
 
 ## Local Webhook
 
@@ -42,6 +50,7 @@ This prints:
 export VAPI_API_KEY
 export VAPI_PHONE_NUMBER_ID
 export VAPI_WEBHOOK_URL="https://your-forwarded-url/webhook"
+export VAPI_CUSTOM_LLM_URL="https://your-forwarded-url/custom-llm"
 
 make wire
 ```

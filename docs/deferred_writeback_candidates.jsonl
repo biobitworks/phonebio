@@ -1,7 +1,7 @@
 {"id":"WB-001","target":"Vapi dashboard","status":"candidate","summary":"Create or update PhoneBio Field Biology Worker assistant using vapi/assistant.field-biology-worker.json after confirming Vapi API key and target phone number."}
 {"id":"WB-002","target":"public GitHub repository","status":"candidate","summary":"Publish clean PhoneBio repo after local verification and secret scan."}
 {"id":"WB-003","target":"InsForge backend","status":"needs_review","summary":"Create protocol/safety/hardware schema only if hackathon backend persistence is required."}
-{"id":"WB-004","target":"Nebius Token Factory","status":"blocked","summary":"Add optional inference adapter after NEBIUS_API_KEY credits are available."}
-{"id":"WB-005","target":"Vapi live assistant","status":"blocked","summary":"Run make wire after VAPI_API_KEY/VAPI_PHONE_NUMBER_ID/VAPI_WEBHOOK_URL are available, then verify inbound call."}
+{"id":"WB-004","target":"Nebius Token Factory","status":"blocked","summary":"Not part of the current funded/API path; do not add an inference adapter unless a separate approved credit source exists."}
+{"id":"WB-005","target":"Vapi live assistant","status":"blocked","summary":"Run make wire after VAPI_API_KEY/VAPI_PHONE_NUMBER_ID/VAPI_WEBHOOK_URL/VAPI_CUSTOM_LLM_URL are available, then verify inbound call."}
 {"id":"WB-006","target":"Ollarma bridge","status":"needs_review","summary":"Refresh Ollarma selection and restore Watchtower bridge aggregator before using Ollarma as a strict PhoneBio work lane."}
 {"id":"WB-007","target":"Hosted webhook","status":"candidate","summary":"Deploy FastAPI app through Docker/Procfile or Vapi CLI tunnel, then set VAPI_WEBHOOK_URL for live assistant creation."}

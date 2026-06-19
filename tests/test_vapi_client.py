@@ -4,6 +4,8 @@ from fieldbio.vapi_client import assistant_payload, outbound_call_payload, phone
 def test_assistant_payload_uses_current_server_shape():
     payload = assistant_payload("https://example.test/webhook")
     assert payload["server"]["url"] == "https://example.test/webhook"
+    assert payload["model"]["provider"] == "custom-llm"
+    assert payload["model"]["url"] == "https://example.test/custom-llm"
     assert "serverUrl" not in payload
 
 

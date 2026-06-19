@@ -1,13 +1,9 @@
-"""Offline-first LLM router.
+"""Offline-only LLM router.
 
-Tries providers in a configured order so the agent can reason on-device first
-and only reach the network when allowed/available:
-
-    local (Ollama, OpenAI-compatible)  ->  Nebius Token Factory  ->  OpenAI
-
-This is the "processing is offline" lane: a field worker calls in, and the
-brain runs against a local model with zero internet. Nebius is the drop-in
-cloud upgrade once API credits land (same OpenAI-compatible interface).
+The optional custom-LLM endpoint talks to local Ollama through a
+chat-completions HTTP shape, but it does not use an OpenAI API key or any paid
+cloud fallback. External API work for PhoneBio is limited to Vapi now and
+InsForge later when persistence is needed.
 
 The deterministic tool layer (fieldbio/tools.py) stays separate and pure; this
 router only powers free-form reasoning / summarization and the optional
@@ -15,23 +11,20 @@ Vapi custom-LLM endpoint.
 """
 from __future__ import annotations
 
+import json
 import time
 from dataclasses import dataclass
 from typing import Any, Iterator
 
-from .config import settings
+import httpx
 
-try:  # openai SDK is optional at import time
-    from openai import OpenAI
-except Exception:  # pragma: no cover - exercised only without the dep
-    OpenAI = None  # type: ignore[assignment]
+from .config import settings
 
 
 @dataclass(frozen=True)
 class Provider:
     name: str
     base_url: str
-    api_key: str
     model: str
     offline: bool
 
@@ -46,30 +39,30 @@ class ChatResult:
 
 def _catalog() -> dict[str, Provider]:
     return {
-        # local needs no real key; the OpenAI client just requires a non-empty string
-        "local": Provider("local", settings.ollama_base_url, "ollama", settings.ollama_model, True),
-        "nebius": Provider("nebius", settings.nebius_base_url, settings.nebius_api_key, settings.nebius_model, False),
-        "openai": Provider("openai", settings.openai_base_url, settings.openai_api_key, settings.openai_model, False),
+        "local": Provider("local", settings.ollama_base_url, settings.ollama_model, True),
     }
 
 
 def providers() -> list[Provider]:
-    """Configured providers in priority order (local always eligible)."""
+    """Configured providers in priority order. Unknown/cloud names are ignored."""
     catalog = _catalog()
     out: list[Provider] = []
     for name in settings.provider_order:
         p = catalog.get(name)
-        if not p:
-            continue
-        if p.name == "local" or p.api_key:
+        if p:
             out.append(p)
     return out
 
 
-def _client(p: Provider, timeout: float):
-    if OpenAI is None:
-        raise RuntimeError("openai package not installed; run: pip install -r requirements.txt")
-    return OpenAI(base_url=p.base_url, api_key=p.api_key, timeout=timeout)
+def _url(p: Provider, path: str) -> str:
+    return f"{p.base_url.rstrip('/')}/{path.lstrip('/')}"
+
+
+def _headers(p: Provider) -> dict[str, str]:
+    headers = {"content-type": "application/json"}
+    if p.name == "local":
+        headers["authorization"] = "Bearer ollama"
+    return headers
 
 
 def chat(
@@ -84,13 +77,14 @@ def chat(
     for p in providers():
         started = time.time()
         try:
-            resp = _client(p, timeout).chat.completions.create(
-                model=p.model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-            )
-            text = (resp.choices[0].message.content or "").strip()
+            payload = {"model": p.model, "messages": messages, "temperature": temperature}
+            if max_tokens is not None:
+                payload["max_tokens"] = max_tokens
+            with httpx.Client(timeout=timeout) as client:
+                resp = client.post(_url(p, "/chat/completions"), headers=_headers(p), json=payload)
+                resp.raise_for_status()
+            body = resp.json()
+            text = (body["choices"][0]["message"].get("content") or "").strip()
             return ChatResult(p.name, p.model, text, int((time.time() - started) * 1000))
         except Exception as exc:  # try the next provider
             errors.append(f"{p.name}: {type(exc).__name__}: {exc}")
@@ -109,17 +103,23 @@ def stream_chat(
     errors: list[str] = []
     for p in providers():
         try:
-            stream = _client(p, timeout).chat.completions.create(
-                model=p.model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                stream=True,
-            )
-            for chunk in stream:
-                delta = chunk.choices[0].delta.content if chunk.choices else None
-                if delta:
-                    yield p.name, delta
+            payload = {"model": p.model, "messages": messages, "temperature": temperature, "stream": True}
+            if max_tokens is not None:
+                payload["max_tokens"] = max_tokens
+            with httpx.Client(timeout=timeout) as client:
+                with client.stream("POST", _url(p, "/chat/completions"), headers=_headers(p), json=payload) as resp:
+                    resp.raise_for_status()
+                    for line in resp.iter_lines():
+                        if not line.startswith("data: "):
+                            continue
+                        data = line.removeprefix("data: ").strip()
+                        if data == "[DONE]":
+                            return
+                        chunk = json.loads(data)
+                        choices = chunk.get("choices") or []
+                        delta = choices[0].get("delta", {}).get("content") if choices else None
+                        if delta:
+                            yield p.name, delta
             return
         except Exception as exc:
             errors.append(f"{p.name}: {type(exc).__name__}: {exc}")
@@ -128,18 +128,17 @@ def stream_chat(
 
 
 def health() -> list[dict[str, Any]]:
-    """Lightweight provider report. Pings local; reports cloud by config only."""
+    """Lightweight local provider report."""
     report: list[dict[str, Any]] = []
     for p in providers():
         entry: dict[str, Any] = {"name": p.name, "model": p.model, "offline": p.offline}
-        if p.name == "local":
-            try:
-                _client(p, timeout=3.0).models.list()
-                entry["status"] = "reachable"
-            except Exception as exc:
-                entry["status"] = f"unreachable: {type(exc).__name__}"
-        else:
-            entry["status"] = "configured"
+        try:
+            with httpx.Client(timeout=3.0) as client:
+                resp = client.get(_url(p, "/models"), headers=_headers(p))
+                resp.raise_for_status()
+            entry["status"] = "reachable"
+        except Exception as exc:
+            entry["status"] = f"unreachable: {type(exc).__name__}"
         report.append(entry)
     if not report:
         report.append({"name": "none", "status": "no providers configured", "model": None})

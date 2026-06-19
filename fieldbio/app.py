@@ -11,8 +11,8 @@ from .llm_api import router as llm_router
 from .tools import TOOLS
 
 app = FastAPI(title="PhoneBio", version="0.1.0")
-# Offline-first LLM lane (local Ollama -> Nebius -> OpenAI): /llm/health and the
-# optional Vapi custom-LLM endpoint. Deterministic tools stay on /webhook.
+# Offline LLM lane (local Ollama only): /llm/health and the optional Vapi
+# custom-LLM endpoint. Deterministic tools stay on /webhook.
 app.include_router(llm_router)
 
 

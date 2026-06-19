@@ -1,9 +1,9 @@
-"""Optional OpenAI-compatible custom-LLM endpoint for Vapi.
+"""Optional custom-LLM endpoint for Vapi.
 
 Point a Vapi assistant's model at POST {PUBLIC_BASE_URL}/custom-llm/chat/completions
 with provider "custom-llm" to run the conversation brain through the offline-first
-router (local Ollama first, Nebius/OpenAI as upgrades). Deterministic tools stay
-on the /webhook lane; this only handles free-form reasoning.
+router. It uses local Ollama only; deterministic tools stay on the /webhook
+lane, and this only handles free-form reasoning.
 """
 from __future__ import annotations
 

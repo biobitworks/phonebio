@@ -18,6 +18,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 ASSISTANT_TEMPLATE = REPO_ROOT / "vapi" / "assistant.field-biology-worker.json"
 DEFAULT_VAPI_BASE_URL = "https://api.vapi.ai"
 PLACEHOLDER_URL = "https://YOUR-FORWARDED-OR-HOSTED-URL/webhook"
+PLACEHOLDER_CUSTOM_LLM_URL = "https://YOUR-FORWARDED-OR-HOSTED-URL/custom-llm"
 
 
 def api_key_from_env() -> str:
@@ -36,6 +37,16 @@ def webhook_url_from_env() -> str:
     return f"{public_base}/webhook" if public_base else ""
 
 
+def custom_llm_url_from_env_or_webhook(webhook_url: str) -> str:
+    explicit = os.getenv("VAPI_CUSTOM_LLM_URL")
+    if explicit:
+        return explicit.rstrip("/")
+    if webhook_url.endswith("/webhook"):
+        return f"{webhook_url[:-len('/webhook')]}/custom-llm"
+    public_base = os.getenv("PUBLIC_BASE_URL", "").rstrip("/")
+    return f"{public_base}/custom-llm" if public_base else PLACEHOLDER_CUSTOM_LLM_URL
+
+
 def load_assistant_template(path: Path = ASSISTANT_TEMPLATE) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -44,6 +55,8 @@ def assistant_payload(webhook_url: str | None = None) -> dict[str, Any]:
     payload = load_assistant_template()
     url = webhook_url or webhook_url_from_env() or payload.get("server", {}).get("url") or PLACEHOLDER_URL
     payload["server"] = {"url": url}
+    if payload.get("model", {}).get("provider") == "custom-llm":
+        payload["model"]["url"] = custom_llm_url_from_env_or_webhook(url)
     payload.pop("serverUrl", None)
     return payload
 
@@ -54,6 +67,9 @@ def _ensure_live_ready(api_key: str, payload: dict[str, Any]) -> None:
     url = payload.get("server", {}).get("url", "")
     if not url or "YOUR-FORWARDED-OR-HOSTED-URL" in url:
         raise RuntimeError("Set VAPI_WEBHOOK_URL or PUBLIC_BASE_URL before making a live Vapi API call.")
+    model_url = payload.get("model", {}).get("url", "")
+    if payload.get("model", {}).get("provider") == "custom-llm" and "YOUR-FORWARDED-OR-HOSTED-URL" in model_url:
+        raise RuntimeError("Set VAPI_CUSTOM_LLM_URL or PUBLIC_BASE_URL before making a live custom-LLM Vapi API call.")
 
 
 def auth_headers(api_key: str) -> dict[str, str]:
@@ -130,4 +146,3 @@ def create_outbound_call(
     )
     response.raise_for_status()
     return response.json()
-
