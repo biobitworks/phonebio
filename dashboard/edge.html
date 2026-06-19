@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PhoneBio — Edge Orchestrator (in-browser)</title>
+<style>
+  :root{--bg:#0a0e14;--panel:#121826;--line:#1f2a3d;--ink:#e6edf3;--mut:#7d8aa0;--ok:#33d17a;--amber:#ffb454;--red:#ff5d62;--acc:#4cc2ff}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 ui-monospace,Menlo,Consolas,monospace}
+  header{padding:14px 16px;border-bottom:1px solid var(--line)} h1{font-size:15px;margin:0;letter-spacing:.5px}
+  .tag{color:var(--mut);font-size:12px}
+  .wrap{padding:14px;display:grid;gap:12px;max-width:760px;margin:auto}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .card h2{font-size:12px;margin:0 0 8px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
+  button{background:#16314a;color:var(--ink);border:1px solid var(--acc);border-radius:8px;padding:10px 14px;font:inherit;cursor:pointer}
+  button:disabled{opacity:.5} input,textarea{width:100%;background:#0c1320;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit}
+  .sig{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .sig div{background:#0c1320;border:1px solid var(--line);border-radius:8px;padding:8px;text-align:center}
+  .sig b{display:block;font-size:20px} .sig span{font-size:11px;color:var(--mut)}
+  #tier{font-size:34px;font-weight:700} .GREEN{color:var(--ok)} .AMBER{color:var(--amber)} .RED{color:var(--red)}
+  #out{white-space:pre-wrap} #status{font-size:12px;color:var(--mut)}
+  .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--ok);color:var(--ok)}
+</style>
+</head>
+<body>
+<header><h1>PHONEBIO · EDGE ORCHESTRATOR</h1>
+  <span class="tag">quantized LLM in your browser · sensors · offline after load</span></header>
+<div class="wrap">
+  <div class="card">
+    <h2>Engine</h2>
+    <div><span id="mode" class="badge">detecting…</span> <span id="status">—</span></div>
+    <div style="margin-top:8px"><button id="load">⬇ Load local model</button> <button id="arm">▶ Arm sensors</button></div>
+  </div>
+
+  <div class="card">
+    <h2>Live signals</h2>
+    <div class="sig">
+      <div><b id="loud">—</b><span>loudness dBFS</span></div>
+      <div><b id="vib">—</b><span>motion m/s²</span></div>
+      <div><b id="spk">1?</b><span>speakers (manual)</span></div>
+    </div>
+    <div style="margin-top:8px"><input id="speakers" type="number" min="1" value="1" placeholder="speakers heard"></div>
+  </div>
+
+  <div class="card">
+    <h2>Situation (spoken note)</h2>
+    <textarea id="note" rows="2">Worker alone in biohazard zone, loud bang heard, no response from buddy.</textarea>
+    <div style="margin-top:8px"><button id="assess" disabled>⚙ Assess (local)</button></div>
+  </div>
+
+  <div class="card">
+    <h2>Triage decision</h2>
+    <div id="tier">—</div>
+    <div id="out" style="margin-top:6px;color:var(--mut)">Load the model and press Assess.</div>
+  </div>
+</div>
+
+<script type="module">
+import { CreateMLCEngine } from "https://esm.run/@mlc-ai/web-llm";
+const $=id=>document.getElementById(id);
+const MODEL="Qwen2.5-1.5B-Instruct-q4f16_1-MLC";   // small quantized model, runs in-browser
+const PROXY="https://qfdp5nuv.function2.insforge.app/phonebio-llm/chat/completions"; // cloud fallback
+let engine=null, useLocal=false;
+
+const hasGPU = !!navigator.gpu;
+$('mode').textContent = hasGPU ? "WebGPU ready (local)" : "no WebGPU → cloud fallback";
+if(!hasGPU){$('mode').style.borderColor=$('mode').style.color="#ffb454";}
+
+$('load').onclick=async()=>{
+  if(!hasGPU){$('status').textContent="This browser lacks WebGPU; use Chrome (desktop/Android). Assess will use the Nebius fallback."; $('assess').disabled=false; return;}
+  $('load').disabled=true;
+  try{
+    engine=await CreateMLCEngine(MODEL,{initProgressCallback:p=>{$('status').textContent=p.text;}});
+    useLocal=true; $('status').textContent="local model loaded · offline ready"; $('assess').disabled=false;
+  }catch(e){$('status').textContent="local load failed ("+e.message+") — using cloud fallback"; $('assess').disabled=false;}
+};
+
+$('arm').onclick=async()=>{
+  try{ if(typeof DeviceMotionEvent?.requestPermission==='function') await DeviceMotionEvent.requestPermission(); }catch(e){}
+  try{
+    const st=await navigator.mediaDevices.getUserMedia({audio:true});
+    const ac=new (window.AudioContext||window.webkitAudioContext)(); const an=ac.createAnalyser(); an.fftSize=512;
+    ac.createMediaStreamSource(st).connect(an); const d=new Uint8Array(an.fftSize);
+    (function loop(){an.getByteTimeDomainData(d);let s=0;for(const v of d){const n=(v-128)/128;s+=n*n;}
+      $('loud').textContent=Math.round(20*Math.log10(Math.sqrt(s/d.length)+1e-7)); requestAnimationFrame(loop);})();
+  }catch(e){$('loud').textContent="n/a";}
+  let base=9.8;
+  addEventListener('devicemotion',e=>{const a=e.accelerationIncludingGravity||{};const m=Math.hypot(a.x||0,a.y||0,a.z||0);base=base*.98+m*.02;$('vib').textContent=Math.abs(m-base).toFixed(2);});
+};
+
+function prompt_(){
+  const loud=$('loud').textContent, vib=$('vib').textContent, spk=$('speakers').value, note=$('note').value;
+  $('spk').textContent=spk;
+  return [
+    {role:"system",content:"You are an OFFLINE field-triage orchestrator on a phone. From sensor signals + a short situation, output exactly: first line a risk tier GREEN, AMBER, or RED; second line one terse action (<20 words). Bias to RED for lone-worker + biohazard + loud impact."},
+    {role:"user",content:`Signals: loudness=${loud} dBFS, motion=${vib} m/s2, speakers=${spk}. Situation: ${note}`}
+  ];
+}
+async function localChat(msgs){const r=await engine.chat.completions.create({messages:msgs,temperature:0.2,max_tokens:80});return r.choices[0].message.content;}
+async function cloudChat(msgs){const r=await fetch(PROXY,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({stream:false,temperature:0.2,max_tokens:80,messages:msgs})});const d=await r.json();return d.choices[0].message.content;}
+
+$('assess').onclick=async()=>{
+  $('out').textContent="thinking…"; $('tier').textContent="…";
+  try{
+    const txt = (useLocal&&engine) ? await localChat(prompt_()) : await cloudChat(prompt_());
+    const tier=(txt.match(/GREEN|AMBER|RED/i)||["?"])[0].toUpperCase();
+    $('tier').textContent=tier; $('tier').className=tier;
+    $('out').textContent=(useLocal?"[local quantized · offline] ":"[cloud fallback] ")+txt.trim();
+  }catch(e){$('out').textContent="error: "+e.message;}
+};
+</script>
+</body>
+</html>

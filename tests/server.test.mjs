@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { handleWebhook } from "../src/server.mjs";
+import { clearSignals, handleWebhook, latestSignals, recordSignal } from "../src/server.mjs";
 
 test("handles Vapi-style function arguments", async () => {
   const result = await handleWebhook({
@@ -58,3 +58,52 @@ test("interprets inertial sensor report with uncertainty", async () => {
   assert.match(result.results[0].result.inferenceBoundary, /not a calibrated instrument/);
 });
 
+test("records stage speakerphone noise as noisy confirmation lane", () => {
+  clearSignals();
+  const event = recordSignal({
+    type: "audio",
+    label: "stage speakerphone echo and room noise",
+    source: "speakerphone",
+    intensity: 82,
+    riskLevel: "medium"
+  });
+  const latest = latestSignals();
+
+  assert.equal(event.processingLane, "noisy_confirmation");
+  assert.equal(latest.summary.processingLane, "noisy_confirmation");
+  assert.match(latest.summary.latestAsk, /alone|worker|radio|powered equipment/i);
+});
+
+test("records biohazard cue as emergency priority lane", () => {
+  clearSignals();
+  const event = recordSignal({
+    type: "environment",
+    label: "biohazard spill cue",
+    source: "caller",
+    intensity: 96,
+    riskLevel: "high"
+  });
+
+  assert.equal(event.processingLane, "emergency_priority");
+  assert.equal(latestSignals().summary.latestRisk, "high");
+});
+
+test("assesses environment risk through Vapi tool call", async () => {
+  const result = await handleWebhook({
+    toolCalls: [
+      {
+        id: "call_4",
+        name: "assess_environment_risk",
+        arguments: {
+          audio: "stage speakerphone echo with radio chatter",
+          connectivity: "mobile data down, voice only",
+          description: "possible other worker nearby"
+        }
+      }
+    ]
+  });
+
+  assert.equal(result.results[0].result.status, "ok");
+  assert.equal(result.results[0].result.processingLane, "noisy_confirmation");
+  assert.match(result.results[0].result.inferenceBoundary, /cannot identify people/i);
+});

@@ -148,6 +148,10 @@ call IDs, status/timestamps, assistant ID, phone-number ID, and booleans for
 whether transcript/recording/analysis artifacts exist. It does not print raw
 phone numbers, transcripts, recordings, or summaries.
 
+For video production, treat `recordingPresent: true` as proof that Vapi has call
+audio. Download/export the raw audio from Vapi only after the take and keep it
+out of git; the local helper intentionally does not print recording URLs.
+
 Only set `PHONEBIO_CALL_VERIFIED=1` after `make vapi-verify-call` exits
 successfully for the intended assistant/phone pair.
 
@@ -188,10 +192,21 @@ Local rehearsal:
 ```bash
 make demo-call
 make hosted-demo
+make tts-stress
 ```
 
-1. Call the Vapi phone number.
-2. Say: "I am collecting a surface water grab sample and the bottle has an air bubble. What do I do?"
+Public dashboard for the video:
+
+```text
+https://qfdp5nuv.insforge.site/dashboard.html
+```
+
+Use handset or earbud microphone for the primary proof. Speakerphone on stage is
+useful only as a noisy-condition demonstration because it can feed room audio and
+assistant speech back into the call. See `docs/STAGE_TEST_CALL_GUIDE.md`.
+
+1. Call the Vapi phone number hands-free.
+2. Say: "I am in PPE and cannot touch the phone. I am collecting a surface water grab sample and the bottle has an air bubble. What do I do?"
 3. Confirm the assistant calls `get_protocol`.
 4. Say: "I spilled formaldehyde on a glove."
 5. Confirm the assistant calls `get_safety_sheet` and escalates safety uncertainty.
@@ -199,6 +214,34 @@ make hosted-demo
 7. Confirm the assistant calls `troubleshoot_hardware`.
 8. Say: "My barometer dropped 4 hPa in two hours."
 9. Confirm the assistant calls `interpret_sensor_report` and explains confidence.
+10. Say: "Disaster triage note. Loud machinery, possible fuel smell, two workers nearby, GPS accuracy 8 meters."
+11. Confirm the assistant asks one spoken follow-up and does not request app taps, photos, or screen interaction.
+12. Say: "Mobile data is down. I can only keep this call open."
+13. Confirm the assistant continues by voice, captures location/hazard/action fields, and does not ask for app sync or upload.
+
+## Nearby People / Devices Test Script
+
+Use this when ready to test the “ask me, do not infer” behavior:
+
+1. Call the assigned Vapi phone number.
+2. Say: "Stage demo mode. I am in PPE, data is down, the phone is in my pocket. I hear radio chatter and loud machinery, and there may be another worker nearby."
+3. Expected assistant behavior: it asks one direct confirmation question before assuming the context, such as: "Are you alone, with another worker, near a radio, or near powered equipment?"
+4. Reply: "One other worker is nearby, and the centrifuge is running."
+5. Expected assistant behavior: it can now use that confirmed context and keep the boundary clear: possible overlap or equipment nearby, not identity or exact headcount from sensors alone.
+
+## Stage Speakerphone / Processing Lane Test
+
+Use this when the demo room audio is bleeding into the call:
+
+1. Open `https://qfdp5nuv.insforge.site/dashboard.html`.
+2. Place the Vapi call from your real phone.
+3. Say: "Stage demo mode. I am not close to the microphone, and the room is noisy."
+4. Click `Stage speaker` on the dashboard.
+5. Expected dashboard behavior: `risk: medium`, `lane: noisy_confirmation`.
+6. Expected assistant behavior: it asks for confirmation instead of assuming who
+   is speaking or what device is nearby.
+7. Click `Biohazard`.
+8. Expected dashboard behavior: `risk: high`, `lane: emergency_priority`.
 
 ## Safety Boundary
 

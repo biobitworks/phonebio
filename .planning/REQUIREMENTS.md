@@ -29,6 +29,13 @@
 - [x] **SENS-02**: Tool server can interpret caller-provided barometer readings for relative elevation or weather-change context.
 - [x] **SENS-03**: Tool server can explain UWB and LiDAR availability limits and confidence bands without requiring camera use.
 - [x] **SENS-04**: Sensor guidance distinguishes measured data, inferred state, and uncertainty.
+- [x] **SENS-05**: Sensor guidance treats phone placement, pocket mode, gestures, and degraded/no-data operation as confidence factors rather than required app interactions.
+
+### Connectivity and IoT Degradation
+
+- [x] **CONN-01**: v1 can operate when cellular voice works but field-device mobile data, maps, uploads, and app APIs fail.
+- [x] **IOT-01**: Architecture separates low-level phone/wearable sensor collection, optional local quantized models, Vapi voice, InsForge deterministic processing, and Nebius GPU acceleration.
+- [x] **FIELD-01**: Repo includes a pre-field setup checklist and local preflight command so the operator can prepare call-only/offline use before the worker leaves coverage.
 
 ### Deployment and Governance
 
@@ -44,12 +51,13 @@
 - **APP-01**: Native mobile app streams permissioned sensor readings to the assistant workflow.
 - **APP-02**: App stores signed offline observation packets for later sync.
 - **APP-03**: App supports calibrated field-device profiles per phone model.
+- **APP-04**: App can run optional local quantized models for VAD/noise, gesture/activity, multilingual keyword hints, and compact sensor summaries.
 
 ### Model and Backend Integrations
 
 - **INT-01**: InsForge stores versioned protocol records, safety sheets, and call summaries after backend persistence is approved.
 - **INT-02**: Ollarma routes local model tasks when local routing is healthy.
-- **INT-03**: Nebius remains deferred outside the current funded/API path unless a separate approved credit source exists.
+- **INT-03**: Nebius remains optional for non-safety GPU acceleration using the approved Token Factory credit.
 
 ## Out of Scope
 
@@ -77,14 +85,18 @@
 | SENS-02 | Phase 1 | Pass - `make readiness` |
 | SENS-03 | Phase 1 | Pass - `make readiness` |
 | SENS-04 | Phase 1 | Pass - `make readiness` |
+| SENS-05 | Phase 2 | Pass - documented in sensor context and tests |
+| CONN-01 | Phase 2 | Pass - documented in degraded-connectivity mode |
+| IOT-01 | Phase 2 | Pass - documented in IoT sensor processing strategy |
+| FIELD-01 | Phase 2 | Pass - `make prefield-check` |
 | GOV-01 | Phase 1 | Pass - `make readiness` |
 | GOV-02 | Phase 1 | Pass - `make readiness` |
 | GOV-03 | Phase 1 | Pass - `make readiness` |
 | GOV-04 | Phase 2 | Pass - `make readiness` |
 
 **Coverage:**
-- v1 requirements: 17 total
-- Mapped to phases: 17
+- v1 requirements: 21 total
+- Mapped to phases: 21
 - Unmapped: 0
 
 ---

@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PhoneBio Signal Dashboard</title>
+    <link rel="icon" href="data:,">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="PhoneBio">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="dashboard.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">PhoneBio</p>
+          <h1>Live Signal Dashboard</h1>
+        </div>
+        <div class="status-strip">
+          <span id="connectionState">Local</span>
+          <span id="eventCount">0 signals</span>
+          <span id="riskState">risk: none</span>
+          <span id="laneState">lane: idle</span>
+          <span id="orchestratorState">orchestrator: idle</span>
+        </div>
+      </header>
+
+      <section class="grid">
+        <div class="panel chart-panel">
+          <div class="panel-head">
+            <h2>Signal Spikes</h2>
+            <div class="legend">
+              <span><b class="audio"></b>audio</span>
+              <span><b class="motion"></b>motion</span>
+              <span><b class="wireless"></b>wireless</span>
+              <span><b class="environment"></b>environment</span>
+            </div>
+          </div>
+          <canvas id="signalChart" width="920" height="320" aria-label="Signal intensity chart"></canvas>
+        </div>
+
+        <div class="panel">
+          <h2>Agent Question</h2>
+          <p id="askLine" class="ask">Waiting for signal context.</p>
+          <div class="risk-box">
+            <span>Current risk</span>
+            <strong id="currentRisk">none</strong>
+          </div>
+          <div class="risk-box lane-box">
+            <span>Processing lane</span>
+            <strong id="processingLane">idle</strong>
+          </div>
+        </div>
+
+        <div class="panel orchestrator-panel">
+          <h2>Local Quantized Orchestrator</h2>
+          <div class="model-row">
+            <span>simulated runtime</span>
+            <strong>ExecuTorch .pte INT8</strong>
+          </div>
+          <div class="route-stack">
+            <div>
+              <span>decision</span>
+              <strong id="orchestratorDecision">standby</strong>
+            </div>
+            <div>
+              <span>resource route</span>
+              <strong id="resourceRoute">local only</strong>
+            </div>
+            <div>
+              <span>sensor basis</span>
+              <strong id="sensorBasis">none</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Demo Inputs</h2>
+          <div class="button-grid">
+            <button data-demo="voice">Voice overlap</button>
+            <button data-demo="stage">Stage speaker</button>
+            <button data-demo="radio">Radio nearby</button>
+            <button data-demo="vibration">Centrifuge spike</button>
+            <button data-demo="barometer">Pressure drop</button>
+            <button data-demo="gps">GPS degraded</button>
+            <button data-demo="executorch">ExecuTorch gate</button>
+            <button data-demo="biohazard">Biohazard</button>
+          </div>
+          <button id="simulate" class="wide">Run live simulation</button>
+          <button id="clear" class="wide ghost">Clear</button>
+        </div>
+
+        <div class="panel log-panel">
+          <h2>Event Log</h2>
+          <ol id="eventLog" class="event-log"></ol>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="dashboard.js"></script>
+  </body>
+</html>

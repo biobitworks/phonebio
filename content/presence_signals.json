@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "purpose": "Camera-free ways to detect that another PERSON or DEVICE (phone, radio, equipment) is nearby. Channels to integrate + visualize on the signals dashboard. Some run on the plain call (acoustic); most need the companion app or a browser with sensor permissions.",
+    "privacy_note": "Passive sensing of other people's devices/voices has privacy + legal implications. Justified for lone-worker and disaster safety, but log it, gate it, and prefer presence (not identity). MAC randomization means 'a device is here', not 'whose'.",
+    "schema_version": "1.0"
+  },
+  "presence_signals": [
+    {"id": "ble_scan", "detects": "nearby phones, watches, headsets, BLE-tagged gear", "channel": "app/browser (Web Bluetooth)", "range": "~1-30 m (RSSI->coarse range)", "reliability": "high for advertising devices", "caveat": "MAC randomization; iOS limits background; Web Bluetooth Android/Chrome only"},
+    {"id": "wifi_scan", "detects": "nearby APs and devices; FTM ranging", "channel": "app (Android)", "range": "tens of m", "reliability": "medium", "caveat": "iOS blocks general Wi-Fi scan"},
+    {"id": "uwb_range", "detects": "precise distance/angle to TAGGED units (responders/assets)", "channel": "app + UWB hardware both ends", "range": "~30-50 m LOS", "reliability": "high (LOS)", "caveat": "needs UWB on both sides"},
+    {"id": "acoustic_events", "detects": "other voices (diarization), equipment running, radio chatter/squelch, alarms, footsteps, doors", "channel": "works on the CALL (no app)", "range": "room-scale", "reliability": "high", "caveat": "AGC/noise; presence not identity"},
+    {"id": "loudness", "detects": "sound-level spikes (impacts, shouts, machinery)", "channel": "call or browser mic", "range": "room-scale", "reliability": "high", "caveat": "AGC normalizes levels"},
+    {"id": "magnetometer_em", "detects": "powered equipment, motors, mains hum, EM interference from a transmitting radio", "channel": "app/browser", "range": "near-field", "reliability": "medium", "caveat": "many false sources"},
+    {"id": "vibration", "detects": "footsteps coupled through the floor, running machinery, vehicles", "channel": "app/browser (DeviceMotion)", "range": "structure-coupled", "reliability": "medium", "caveat": "depends on surface coupling"},
+    {"id": "active_sonar", "detects": "motion/breathing via emitted chirp + Doppler/echo", "channel": "app", "range": "short", "reliability": "research-grade", "caveat": "advanced"},
+    {"id": "radio_rf", "detects": "a transmitting radio (band sweep)", "channel": "RTL-SDR via USB-OTG (optional hardware)", "range": "varies", "reliability": "high with SDR", "caveat": "without SDR, detect a radio only indirectly via its audio + EM signature"}
+  ]
+}

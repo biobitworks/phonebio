@@ -1,14 +1,18 @@
 # PhoneBio
 
-PhoneBio is a hackathon voice-agent prototype for a field biology worker with limited internet access. The worker can call a Vapi phone number and ask for protocols, safety material, hardware troubleshooting, or sensor-based reasoning without requiring camera access.
+PhoneBio is a hackathon voice-agent prototype for a field biology worker with limited or degraded connectivity. The worker can call a Vapi phone number and ask for protocols, safety material, hardware troubleshooting, disaster triage capture, or sensor-based reasoning even when mobile data/app sync is unavailable. Screen/app interaction can help when available, but it is not required.
 
 ## v1 Shape
 
 - Vapi answers inbound calls and uses custom tools.
+- InsForge is the website/app hosting and deterministic backend surface.
+- Nebius is the optional GPU/model acceleration layer.
 - A local FastAPI webhook serves tool results from repository data only.
 - A dependency-free Node webhook remains available as a fallback.
-- Phone sensor support is treated as narrated or app-provided readings: accelerometer, gyroscope, barometer, UWB, and LiDAR where available.
+- Phone sensor support is treated as narrated or app-provided readings: accelerometer, gyroscope, gesture/pocket context, magnetometer, barometer, microphone/acoustic context, UWB, LiDAR, and GPS where available.
 - Camera-dependent workflows are out of scope for v1.
+- Voice-first operation is required: the caller may be wearing PPE, handling contaminated equipment, or collecting disaster-relief observations. Screen/app interaction is optional when safe and available.
+- Call-only degraded service is a first-class mode: cellular voice may work while mobile data, maps, uploads, and app APIs fail on the field device.
 
 ## Local Run
 
@@ -57,6 +61,7 @@ Local v1 readiness status:
 
 ```bash
 make readiness
+make prefield-check
 ```
 
 This reports all locally provable requirements and leaves live Vapi phone assignment blocked until credentials and public URLs are supplied.
@@ -84,6 +89,27 @@ Vapi + InsForge demo.
 
 Provider/credit routing is documented in `docs/PROVIDER_STRATEGY.md`.
 Vapi dashboard resource usage is documented in `docs/VAPI_RESOURCE_STRATEGY.md`.
+Pre-field setup is documented in `docs/PREFIELD_SETUP.md`.
+The 3 minute video script is in `docs/DEMO_VIDEO_SCRIPT.md`.
+Gregg/SeedGraph corpus ingestion is scoped in `docs/GREGG_SEEDGRAPH_INGEST_PLAN.md`.
+Camera-free sensor context is scoped in `docs/SENSOR_CONTEXT_STRATEGY.md`.
+Hands-free/PPE/disaster mode is scoped in `docs/HANDS_FREE_DISASTER_MODE.md`.
+Call-only degraded connectivity is scoped in `docs/DEGRADED_CONNECTIVITY_MODE.md`.
+IoT/sensor processing lanes are scoped in `docs/IOT_SENSOR_PROCESSING_STRATEGY.md`.
+Legacy equipment database planning is in `docs/LEGACY_EQUIPMENT_DATABASE_PLAN.md`.
+Additional built-in and external sensor options are in `docs/ADDITIONAL_SENSOR_OPTIONS.md`.
+Sensor triage limits and fusion rules are in `docs/SENSOR_TRIAGE_MATRIX.md`.
+Rainforest, desert, and field-station operating modes are in `docs/FIELD_ENVIRONMENT_MODES.md`.
+iPhone 11-specific sensor availability is in `docs/IPHONE_11_FIELD_PROFILE.md`.
+Basic first-aid kit support boundaries are in `docs/BASIC_FIRST_AID_KIT_MODE.md`.
+Stage test-call setup and the public signal dashboard are in `docs/STAGE_TEST_CALL_GUIDE.md`.
+The simulated local quantized orchestrator and ExecuTorch target path are in `docs/EXECUTORCH_LOCAL_ORCHESTRATOR.md`.
+
+Public demo dashboard:
+
+```text
+https://qfdp5nuv.insforge.site/dashboard.html
+```
 
 Local hackathon call-script replay:
 
@@ -112,13 +138,16 @@ Live Vapi wiring needs `VAPI_API_KEY` or `VAPI_PRIVATE_KEY`, `VAPI_PHONE_NUMBER_
 - `troubleshoot_hardware`
 - `interpret_sensor_report`
 - `compress_observation`
+- `assess_environment_risk`
 
 ## Runtime Boundary
 
 The local webhook does not call the internet. The live hackathon path uses Vapi
-for the phone agent and the hosted InsForge function for tool dispatch. No
-OpenAI API key is used. InsForge credentials are needed only to redeploy or
-change the hosted function or to add persistence.
+for the phone agent and the hosted InsForge function for tool dispatch. The
+field device only needs enough cellular service to place a voice call; server
+side services handle tool dispatch and downstream records. No OpenAI API key is
+used. InsForge credentials are needed only to redeploy or change the hosted
+function or to add persistence.
 
 Ollarma status on 2026-06-19: reachable but degraded with `SELECTION_STALE`; Watchtower bridge aggregator unreachable. See `docs/OLLARMA_CLAUDE_HANDOFF.md`.
 

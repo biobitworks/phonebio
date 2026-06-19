@@ -53,3 +53,7 @@ content/_local_cache/
 
 # InsForge admin keys — never publish
 .insforge/
+
+recordings/
+
+demo_audio/

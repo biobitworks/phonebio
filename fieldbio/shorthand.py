@@ -24,7 +24,8 @@ _LEXICON_PATH = CONTENT_DIR / "shorthand" / "lexicon.json"
 # number (optionally signed/decimal) + optional unit token
 _MEASURE_RE = re.compile(
     r"(-?\d+(?:\.\d+)?)\s*"
-    r"(mm|cm|m|km|kg|g|mg|deg|degrees|c|f|hpa|mbar|ml|l|min|sec|s|%|n)?",
+    r"(mbar|hpa|degrees|deg|rpm|xg|ul|um|mm|cm|km|kg|mg|ml|min|sec|"
+    r"ma|mv|ph|od|c|f|m|g|l|s|v|a|%|n)?",
     re.IGNORECASE,
 )
 _WORD_RE = re.compile(r"[a-zA-Z][a-zA-Z'-]*")
@@ -54,6 +55,38 @@ def _apply_affixes(word: str, lex: dict) -> str:
         if word.endswith(suf) and len(word) > len(suf) + 2:
             return _omit_vowels(word[: -len(suf)]) + code
     return _omit_vowels(word)
+
+
+def _inverse_brief_forms(lex: dict) -> dict[str, str]:
+    inverse: dict[str, str] = {}
+    for term, code in lex.get("brief_forms", {}).items():
+        inverse.setdefault(str(code).lower(), str(term))
+    for phrase, code in lex.get("phrases", {}).items():
+        inverse.setdefault(str(code).lower(), str(phrase))
+    return inverse
+
+
+def expand_field_line(field_line: str, token_map: list[dict] | None = None) -> str:
+    """Best-effort voice readback from a compact field line.
+
+    If token_map is present, use it as the authoritative audit map for terms
+    shortened during this compression pass. Otherwise fall back to the lexicon's
+    inverse brief/phrase table and leave unknown shorthand tokens unchanged.
+    """
+    lex = _lexicon()
+    inverse = _inverse_brief_forms(lex)
+    if token_map:
+        for item in token_map:
+            original = str(item.get("from", "")).lower()
+            code = str(item.get("to", "")).lower()
+            if original and code:
+                inverse[code] = original
+
+    expanded = []
+    for raw in field_line.split():
+        token = raw.strip()
+        expanded.append(inverse.get(token.lower(), token))
+    return " ".join(expanded)
 
 
 def extract_measurements(text: str) -> list[dict]:
@@ -107,9 +140,11 @@ def compress(text: str) -> dict:
     measurements = extract_measurements(text)
     field_line = " ".join(tokens_out)
     ratio = round(len(field_line) / max(len(text), 1), 3)
+    voice_readback = expand_field_line(field_line, mapping)
 
     return {
         "field_line": field_line,
+        "voice_readback": voice_readback,
         "measurements": measurements,
         "token_map": mapping,
         "original": text,

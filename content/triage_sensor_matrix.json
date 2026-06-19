@@ -1,0 +1,69 @@
+{
+  "_meta": {
+    "purpose": "Which phone/edge sensor contributes what to EMERGENCY TRIAGE (fire, chemical exposure, blast, fall/man-down, presence, comms-loss), with honest confidence and environment caveats. No camera. Camera-free.",
+    "barometer_fire_note": "A barometer cannot hear voices, but for FIRE/BLAST the physics differs: open-air fire pressure dissipates (low confidence), an ENCLOSED station/tent fire raises temperature+pressure (medium), and an EXPLOSION/blast overpressure is a large in-band transient the barometer CAN catch (high). Most barometer ICs also expose a temperature reading -> ambient heat rise near a fire is detectable as temp.",
+    "schema_version": "1.0"
+  },
+  "environments": {
+    "amazon_rainforest": ["dense canopy -> GPS poor (lean on barometer/dead-reckoning)", "high humidity/condensation -> sensor + port issues", "foliage + bodies -> UWB/BLE/cell attenuated -> often voice-only or no-signal", "loud bio-acoustic background -> acoustic detection harder", "heat + moisture -> phone thermal stress"],
+    "desert_field_station": ["open sky -> GPS excellent", "extreme heat -> sensor thermal DRIFT + phone overheating/shutdown risk", "dust -> mic/port/LiDAR occlusion", "big day/night temp swings -> barometer/temp drift", "sparse comms -> plan for no-signal relay"]
+  },
+  "matrix": [
+    {"sensor": "microphone / acoustic", "emergency": [
+       {"type": "fire", "use": "crackle/roar + smoke-alarm/siren detection", "confidence": "high"},
+       {"type": "blast", "use": "impulse/boom", "confidence": "high"},
+       {"type": "presence", "use": "other voices (count), cries for help, equipment running", "confidence": "high"},
+       {"type": "distress", "use": "shouting / voice stress", "confidence": "medium"}],
+     "rainforest": "bio-noise raises false positives", "desert": "wind/dust noise", "channel": "works on the CALL (no app)"},
+
+    {"sensor": "barometer (+IC temperature)", "emergency": [
+       {"type": "blast", "use": "overpressure transient", "confidence": "high"},
+       {"type": "fire", "use": "enclosed-space temp/pressure rise; open-air = weak", "confidence": "low-medium"},
+       {"type": "fall/altitude", "use": "which floor / elevation of incident", "confidence": "high"}],
+     "rainforest": "humidity OK; use for altitude when GPS is canopy-blocked", "desert": "thermal drift in extreme heat", "channel": "app/edge"},
+
+    {"sensor": "accelerometer / gyro", "emergency": [
+       {"type": "fall/man-down", "use": "impact + no-motion after = possible collapse", "confidence": "high"},
+       {"type": "blast", "use": "shock/vibration", "confidence": "medium"},
+       {"type": "structural", "use": "shaking / equipment failure vibration", "confidence": "medium"}],
+     "rainforest": "fine", "desert": "thermal bias drift; re-zero", "channel": "app/edge"},
+
+    {"sensor": "GPS / GNSS", "emergency": [
+       {"type": "locate", "use": "geotag the incident for rescue relay", "confidence": "high (open) / low (canopy)"}],
+     "rainforest": "canopy degrades -> pair with barometer + last-known", "desert": "excellent", "channel": "app/edge"},
+
+    {"sensor": "magnetometer", "emergency": [
+       {"type": "powered-equipment/EM", "use": "live wiring, motors, transmitting radio nearby", "confidence": "medium"},
+       {"type": "bearing", "use": "direction to landmark for rescue", "confidence": "medium"}],
+     "rainforest": "ok", "desert": "ok", "channel": "app/edge"},
+
+    {"sensor": "UWB", "emergency": [
+       {"type": "find-people", "use": "range/bearing to TAGGED responders or victims", "confidence": "high LOS"}],
+     "rainforest": "foliage/bodies attenuate", "desert": "good LOS", "channel": "app + UWB hardware"},
+
+    {"sensor": "BLE / Wi-Fi scan", "emergency": [
+       {"type": "presence", "use": "other phones/wearables/equipment nearby", "confidence": "medium"}],
+     "rainforest": "short range in foliage", "desert": "ok", "channel": "app/browser"},
+
+    {"sensor": "LiDAR / ToF", "emergency": [
+       {"type": "standoff", "use": "distance to hazard/victim without approaching", "confidence": "medium <5 m"},
+       {"type": "person-down", "use": "detect a body/obstacle shape at range (no RGB)", "confidence": "medium"}],
+     "rainforest": "shade ok; rain/wet hurts", "desert": "bright sun degrades IR", "channel": "app"},
+
+    {"sensor": "radar (mmWave / Soli / UWB-as-radar)", "emergency": [
+       {"type": "vital-signs", "use": "chest micro-motion -> BREATHING RATE (even heartbeat) of an unresponsive worker, NO contact and NO camera", "confidence": "high (mmWave) / coarse (UWB)"},
+       {"type": "presence-through-obstruction", "use": "detect motion/people through SMOKE, darkness, dust, thin walls (RF penetrates where optics fail)", "confidence": "high"},
+       {"type": "fall/man-down", "use": "Doppler motion then sudden stillness = collapse", "confidence": "medium-high"},
+       {"type": "gesture", "use": "hands-free control without touching the screen", "confidence": "medium (Soli)"}],
+     "rainforest": "RF works in low light/rain; dense foliage attenuates", "desert": "beats optical in dust/heat/glare", "channel": "external mmWave module or radar-capable device; UWB approximates",
+     "note": "Few phones have true radar; UWB gives a coarse radar-like signal. The killer triage use is contactless breathing detection on a downed worker."},
+
+    {"sensor": "ambient light / proximity", "emergency": [
+       {"type": "motion/occlusion", "use": "crude movement or phone covered (in pocket/under debris)", "confidence": "low"}],
+     "rainforest": "low light under canopy", "desert": "saturates in sun", "channel": "app/browser"},
+
+    {"sensor": "gas / air-quality (if present or external)", "emergency": [
+       {"type": "exposure", "use": "CO/CO2/VOC/O2 -> smoke, combustion, chemical release", "confidence": "high if equipped"}],
+     "rainforest": "humidity affects some", "desert": "dust affects some", "channel": "external sensor / future"}
+  ]
+}

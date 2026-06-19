@@ -2,13 +2,13 @@
 
 ## What This Is
 
-PhoneBio is an offline-first voice agent for field biology workers who have limited internet and cannot rely on a camera. A caller reaches a Vapi phone number and asks for protocols, safety material, hardware troubleshooting, or help interpreting phone sensor readings by description.
+PhoneBio is an offline-first voice agent for field biology workers who have limited internet and cannot rely on a camera. A caller reaches a Vapi phone number and asks for protocols, safety material, hardware troubleshooting, disaster triage capture, or help interpreting phone sensor readings by description. It must still work when cellular voice gets through but mobile data/app sync does not.
 
 The v1 product is a hackathon-grade call assistant plus local tool server. It prioritizes reliable spoken retrieval and guided reasoning over broad web search or image analysis.
 
 ## Core Value
 
-A field worker can call in and get the next safe, protocol-grounded action from local knowledge when the network is unreliable and the camera is unavailable.
+A field worker can call in and get the next safe, protocol-grounded action from local knowledge when the network is unreliable, mobile data may be down, and the camera is unavailable.
 
 ## Requirements
 
@@ -21,9 +21,10 @@ A field worker can call in and get the next safe, protocol-grounded action from 
 - [ ] Create a Vapi-compatible field biology voice assistant configuration.
 - [ ] Serve Vapi custom tool calls from offline local protocols, safety sheets, and troubleshooting data.
 - [ ] Support camera-free sensor workflows for accelerometer, gyroscope, barometer, UWB, and LiDAR readings when available.
+- [ ] Support low-level IoT context from phone/wearable sensors: pocket state, gestures, loud noise, vibration, GPS/barometer, UWB/BLE proximity, and optional local model labels.
 - [ ] Document sensor variation, expected accuracy limits, and fallback behavior.
 - [ ] Prepare local git/GitHub publication path without committing secrets or phone numbers.
-- [ ] Keep Nebius, InsForge, and Ollarma integration points explicit: Vapi plus the hosted InsForge webhook are active for the live demo, while Nebius and local Ollama remain optional/non-blocking.
+- [ ] Keep Nebius, InsForge, local quantized models/Ollama, and Vapi integration points explicit: Vapi carries voice, InsForge hosts deterministic tools/records, local models summarize nearby sensor context, and Nebius accelerates non-safety GPU workloads.
 
 ### Out of Scope
 
@@ -43,7 +44,7 @@ A field worker can call in and get the next safe, protocol-grounded action from 
 
 ## Constraints
 
-- **Connectivity**: Runtime answers must come from local repository data - field calls may have limited internet.
+- **Connectivity**: Runtime answers must come from local repository data - field calls may have limited internet, degraded cell data, or voice-only service.
 - **Safety**: Safety material must be conservative, cite local source IDs, and escalate when a request is outside known material.
 - **Sensor access**: Browser access to UWB and LiDAR is limited; v1 treats readings as spoken/manual input or future native-app payloads.
 - **Secrets**: Vapi, Nebius, and phone-number identifiers stay in environment variables or local ignored files.

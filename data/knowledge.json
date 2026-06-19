@@ -84,8 +84,15 @@
       "id": "SENS-INERTIAL",
       "sensors": ["accelerometer", "gyroscope"],
       "keywords": ["accelerometer", "gyro", "gyroscope", "tilt", "vibration", "dropped"],
-      "guidance": "Use short, repeatable checks. A still phone should show stable gravity direction; rotation-rate spikes suggest handling or vibration. Treat single noisy samples as weak evidence.",
+      "guidance": "Use short, repeatable checks. A still phone should show stable gravity direction; rotation-rate spikes suggest handling or vibration. If the phone is in a pocket, treat the reading as coarse activity context, not calibrated measurement.",
       "confidence": "medium when repeated readings agree; low when phone position is unknown"
+    },
+    {
+      "id": "SENS-GESTURE-POCKET",
+      "sensors": ["accelerometer", "gyroscope", "gesture", "pocket"],
+      "keywords": ["gesture", "tap", "shake", "pocket", "hands free", "motion", "walking", "running", "drop", "fall"],
+      "guidance": "Gesture and pocket readings can mark events, repeat prompts, flag emergency context, or capture activity state. Always ask where the phone is and avoid treating pocket motion as precise measurement.",
+      "confidence": "medium for deliberate confirmed gestures; low for unconfirmed pocket movement"
     },
     {
       "id": "SENS-BAROMETER",
@@ -93,6 +100,13 @@
       "keywords": ["barometer", "pressure", "altitude", "elevation", "weather"],
       "guidance": "Use pressure as a relative trend. Absolute altitude needs calibration against weather and a known reference point.",
       "confidence": "medium for short-term relative change; low for absolute elevation without calibration"
+    },
+    {
+      "id": "SENS-ACOUSTIC",
+      "sensors": ["microphone", "audio", "voice activity"],
+      "keywords": ["microphone", "mic", "audio", "sound", "noise", "voice", "speaker", "diarization", "loud"],
+      "guidance": "Use microphone data as acoustic context: loud environment, likely overlap, interruption, or machinery noise. Do not infer exact speaker count, identity, or position from a single phone without a reviewed diarization/localization pipeline.",
+      "confidence": "medium for loud/quiet and voice-activity trends; low for speaker count or location"
     },
     {
       "id": "SENS-UWB-LIDAR",
@@ -103,4 +117,3 @@
     }
   ]
 }
-

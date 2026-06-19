@@ -1,5 +1,5 @@
 // PhoneBio Vapi tool webhook — InsForge edge function (Deno Subhosting).
-// Receives Vapi tool-calls, dispatches the 5 field-bio tools against the
+// Receives Vapi tool-calls, dispatches the 6 field-bio tools against the
 // InsForge content tables (public-read RLS via anon key), returns Vapi results.
 // No OpenAI, no external calls — answers come only from the project DB + local logic.
 import { createClient } from "npm:@insforge/sdk";
@@ -52,10 +52,23 @@ const BRIEF: Record<string, string> = {
 };
 const PHRASES: Record<string, string> = {
   "no sign of": "no-sgn", "line of sight": "los", "safety data sheet": "sds",
-  "personal protective equipment": "ppe", "do not": "dnt",
+  "personal protective equipment": "ppe", "negative control": "neg-ctrl",
+  "positive control": "pos-ctrl", "no template control": "ntc",
+  "polymerase chain reaction": "pcr", "stop work": "stop-work",
+  "do not use": "dnu", "do not": "dnt",
 };
+const PHRASE_CODES = new Set(Object.values(PHRASES));
 const STOP = new Set(["the","a","an","of","is","are","was","were","to","and","with","at","in","on","it","that","this","i","we","there","very","really","just","about"]);
-const MEASURE = /(-?\d+(?:\.\d+)?)\s*(mm|cm|km|kg|mg|deg|degrees|hpa|mbar|ml|min|sec|m|g|l|s|%|n)?/gi;
+const MEASURE = /(-?\d+(?:\.\d+)?)\s*(mbar|hpa|degrees|deg|rpm|xg|ul|um|mm|cm|km|kg|mg|ml|min|sec|ma|mv|ph|od|c|f|m|g|l|s|v|a|%|n)?/gi;
+const LAB_BRIEF: Record<string, string> = {
+  aliquot: "alq", dilution: "dil", buffer: "buf", reagent: "rgt", control: "ctrl",
+  centrifuge: "cfg", rotor: "rtr", supernatant: "sup", pellet: "plt",
+  vortex: "vtx", incubate: "inc", incubation: "inc", pipette: "pip",
+  micropipette: "mpip", calibration: "cal", contamination: "contam",
+  formaldehyde: "form", formalin: "form", ethanol: "etoh", bleach: "blch",
+  hypochlorite: "hypo", centrifugation: "cfg", polymerase: "pol", reaction: "rxn",
+  ph: "pH", rpm: "rpm",
+};
 
 function omitVowels(w: string): string {
   if (w.length <= 4) return w;
@@ -73,7 +86,7 @@ function compress(text: string) {
     const m = raw.match(/[a-z][a-z'-]*/);
     const tok = m ? m[0] : raw;
     if (!tok || STOP.has(tok)) continue;
-    const code = BRIEF[tok] ?? omitVowels(tok);
+    const code = PHRASE_CODES.has(tok) ? tok : (BRIEF[tok] ?? LAB_BRIEF[tok] ?? omitVowels(tok));
     tokens.push(code);
     if (code !== tok) map.push({ from: tok, to: code });
   }
@@ -83,8 +96,12 @@ function compress(text: string) {
     if (mm[2]) measurements.push({ value: parseFloat(mm[1]), unit: mm[2].toLowerCase() });
   }
   const fieldLine = tokens.join(" ");
+  const inverse: Record<string, string> = {};
+  for (const [k, v] of Object.entries({ ...BRIEF, ...LAB_BRIEF, ...PHRASES })) inverse[String(v).toLowerCase()] = k;
+  for (const item of map) inverse[item.to.toLowerCase()] = item.from.toLowerCase();
   return {
     field_line: fieldLine,
+    voice_readback: fieldLine.split(/\s+/).map((tok) => inverse[tok.toLowerCase()] ?? tok).join(" "),
     measurements,
     token_map: map,
     original: text,
@@ -139,12 +156,56 @@ function compressObservation(a: Record<string, unknown>) {
   return { status: "ok", ...compress(text) };
 }
 
+function assessEnvironmentRisk(a: Record<string, unknown>) {
+  const text = join(a, ["hazard", "material", "audio", "vibration", "motion", "location", "connectivity", "phonePlacement", "sensorSummary", "description"]).toLowerCase();
+  const high: Record<string, string> = {
+    biohazard: "biohazard cue", blood: "potential biological exposure", needle: "sharps exposure",
+    formaldehyde: "toxic chemical exposure", formalin: "toxic chemical exposure",
+    chlorine: "toxic gas risk", ammonia: "toxic gas risk", fuel: "flammable material",
+    fire: "fire", smoke: "smoke inhalation risk", spill: "spill", exposure: "exposure",
+    rotor: "rotating equipment hazard", centrifuge: "rotating equipment hazard",
+    structural: "structural hazard", flood: "flood hazard",
+  };
+  const med: Record<string, string> = {
+    loud: "loud environment", machinery: "machinery nearby", vibration: "vibration",
+    running: "rapid movement", pocket: "pocket sensor placement",
+    "data down": "degraded connectivity", "voice only": "voice-only connectivity",
+    multiple: "possible multiple speakers", "two voices": "possible multiple speakers",
+    overlap: "possible overlapping speakers", wind: "weather/noise interference",
+    heat: "temperature stress", cold: "temperature stress",
+  };
+  const highRiskCues = Object.entries(high).filter(([term]) => text.includes(term)).map(([, label]) => label);
+  const contextCues = Object.entries(med).filter(([term]) => text.includes(term)).map(([, label]) => label);
+  const peopleSignal = ["two voices", "multiple", "overlap", "several voices"].some((term) => text.includes(term))
+    ? "possible_multiple_speakers_or_bystanders"
+    : (text.includes("single") || text.includes("alone")) ? "reported_single_person" : "unknown";
+  const riskLevel = highRiskCues.length ? "high" : contextCues.length >= 2 ? "medium" : contextCues.length ? "low_to_medium" : "unknown";
+  const actions = ["Continue by voice; do not require app taps or camera input."];
+  if (riskLevel === "high") actions.unshift("Stop work if safe, isolate the area, and contact the site supervisor or incident lead.");
+  else if (riskLevel === "medium") actions.unshift("Slow down, repeat the critical reading, and confirm hazard, location, and people/injury status.");
+  else actions.unshift("Ask one clarifying question: hazard, location, or sensor units.");
+  if (["formaldehyde", "formalin", "chlorine", "ammonia", "fuel", "smoke"].some((term) => text.includes(term))) {
+    actions.push("Move upwind or increase distance if safe; avoid inhalation and ignition sources.");
+  }
+  if (["biohazard", "blood", "needle", "sharps"].some((term) => text.includes(term))) {
+    actions.push("Avoid contact, preserve PPE, and treat exposure status as safety-critical.");
+  }
+  const compact = compress((a.description as string) || text);
+  return {
+    status: "ok", riskLevel, peopleSignal, highRiskCues, contextCues, actions,
+    compactFieldLine: compact.field_line, voiceReadback: compact.voice_readback,
+    confidence: highRiskCues.length || contextCues.length ? "medium" : "low",
+    inferenceBoundary: "Single-phone sensors can flag risk context and possible voice overlap; they do not prove exact speaker count, identity, or calibrated exposure level.",
+  };
+}
+
 const TOOLS: Record<string, (a: Record<string, unknown>) => unknown | Promise<unknown>> = {
   get_protocol: getProtocol,
   get_safety_sheet: getSafetySheet,
   troubleshoot_hardware: troubleshootHardware,
   interpret_sensor_report: interpretSensorReport,
   compress_observation: compressObservation,
+  assess_environment_risk: assessEnvironmentRisk,
 };
 
 export default async function (req: Request): Promise<Response> {

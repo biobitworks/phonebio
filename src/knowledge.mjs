@@ -144,3 +144,66 @@ export function compressObservation(args = {}) {
   };
 }
 
+function includesAny(text, terms) {
+  return terms.some((term) => text.includes(term));
+}
+
+export function assessEnvironmentRisk(args = {}) {
+  const text = [
+    args.hazard,
+    args.material,
+    args.audio,
+    args.vibration,
+    args.motion,
+    args.location,
+    args.connectivity,
+    args.phonePlacement,
+    args.sensorSummary,
+    args.description
+  ]
+    .filter(Boolean)
+    .map(normalize)
+    .join(" ");
+
+  const highRiskCues = [];
+  if (includesAny(text, ["biohazard", "blood", "needle", "sharps", "exposure", "formaldehyde", "formalin", "chlorine", "ammonia", "fuel", "smoke", "fire", "gas"])) {
+    highRiskCues.push("hazard_or_exposure_cue");
+  }
+  if (includesAny(text, ["centrifuge", "rotor", "unbalanced", "vibration spike"])) {
+    highRiskCues.push("rotating_equipment_cue");
+  }
+
+  const contextCues = [];
+  if (includesAny(text, ["stage", "speaker", "speakerphone", "echo", "room noise", "loud", "machinery", "radio", "overlap"])) {
+    contextCues.push("noisy_audio_or_equipment_context");
+  }
+  if (includesAny(text, ["data down", "voice only", "no mobile data", "offline", "degraded"])) {
+    contextCues.push("degraded_connectivity");
+  }
+  if (includesAny(text, ["pocket", "pack", "vehicle", "on equipment"])) {
+    contextCues.push("coarse_phone_placement");
+  }
+  if (includesAny(text, ["two voices", "multiple voices", "another worker", "bystander", "nearby worker", "radio"])) {
+    contextCues.push("possible_nearby_person_or_device");
+  }
+
+  const riskLevel = highRiskCues.length > 0 ? "high" : contextCues.length >= 2 ? "medium" : contextCues.length === 1 ? "low_to_medium" : "low";
+  const peopleSignal = includesAny(text, ["two voices", "multiple voices", "another worker", "bystander", "nearby worker", "radio"])
+    ? "possible_multiple_speakers_or_devices"
+    : includesAny(text, ["alone", "single caller"])
+      ? "reported_single_person"
+      : "unknown";
+
+  return {
+    status: "ok",
+    riskLevel,
+    peopleSignal,
+    highRiskCues,
+    contextCues,
+    processingLane: riskLevel === "high" ? "emergency_priority" : contextCues.includes("noisy_audio_or_equipment_context") ? "noisy_confirmation" : "normal_call",
+    actions: riskLevel === "high"
+      ? ["Stop work if safe.", "Create distance from the hazard.", "Call the site supervisor or incident lead."]
+      : ["Ask one confirmation question.", "Keep measured facts separate from inferred context."],
+    inferenceBoundary: "Audio, BLE, UWB, vibration, GPS, barometer, and motion context can suggest conditions, but cannot identify people or prove exact headcount without caller confirmation."
+  };
+}

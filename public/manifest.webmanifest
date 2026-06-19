@@ -1,0 +1,10 @@
+{
+  "name": "PhoneBio Signal Dashboard",
+  "short_name": "PhoneBio",
+  "description": "Speaker-only field triage signal dashboard for PhoneBio demos.",
+  "start_url": "dashboard.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#101310",
+  "theme_color": "#101310"
+}

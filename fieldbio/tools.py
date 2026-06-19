@@ -111,9 +111,144 @@ def interpret_sensor_report(args: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _sensor_context(args: dict[str, Any]) -> dict[str, Any]:
+    fields = {
+        "timestamp": args.get("timestamp"),
+        "latitude": args.get("latitude"),
+        "longitude": args.get("longitude"),
+        "locationAccuracyMeters": args.get("locationAccuracyMeters"),
+        "altitudeMeters": args.get("altitudeMeters"),
+        "barometricPressureHpa": args.get("barometricPressureHpa"),
+        "magneticHeadingDegrees": args.get("magneticHeadingDegrees"),
+        "magneticFieldMicrotesla": args.get("magneticFieldMicrotesla"),
+        "phonePlacement": args.get("phonePlacement"),
+        "connectivity": args.get("connectivity"),
+        "sensorSummary": args.get("sensorSummary"),
+    }
+    return {key: value for key, value in fields.items() if value not in (None, "")}
+
+
 def compress_observation(args: dict[str, Any]) -> dict[str, Any]:
-    text = args.get("text") or "; ".join(f"{key}: {value}" for key, value in args.items())
-    return {"status": "ok", **compress(text)}
+    text_keys = [
+        "text",
+        "workerRole",
+        "locationType",
+        "task",
+        "material",
+        "hazard",
+        "sensor",
+        "actionNeeded",
+        "sensorSummary",
+        "connectivity",
+        "phonePlacement",
+    ]
+    text = args.get("text") or "; ".join(f"{key}: {args[key]}" for key in text_keys if args.get(key))
+    compact = compress(text)
+    return {
+        "status": "ok",
+        **compact,
+        "sensorContext": _sensor_context(args),
+        "documentationBoundary": "PhoneBio v1 records caller/app-provided sensor context. It does not automatically read phone sensors without a native app or explicit payload.",
+        "magnetometerBoundary": "Phone magnetometers measure local magnetic field/heading, not an object's magnetic moment unless a calibrated external method is supplied.",
+    }
+
+
+def assess_environment_risk(args: dict[str, Any]) -> dict[str, Any]:
+    """Deterministic biohazard/extreme-environment triage from spoken/sensor cues."""
+    text = _join_args(
+        args,
+        [
+            "hazard",
+            "material",
+            "audio",
+            "vibration",
+            "motion",
+            "location",
+            "connectivity",
+            "phonePlacement",
+            "sensorSummary",
+            "description",
+        ],
+    ).lower()
+    high_terms = {
+        "biohazard": "biohazard cue",
+        "blood": "potential biological exposure",
+        "needle": "sharps exposure",
+        "formaldehyde": "toxic chemical exposure",
+        "formalin": "toxic chemical exposure",
+        "chlorine": "toxic gas risk",
+        "ammonia": "toxic gas risk",
+        "fuel": "flammable material",
+        "fire": "fire",
+        "smoke": "smoke inhalation risk",
+        "spill": "spill",
+        "exposure": "exposure",
+        "rotor": "rotating equipment hazard",
+        "centrifuge": "rotating equipment hazard",
+        "structural": "structural hazard",
+        "flood": "flood hazard",
+        "heat stroke": "extreme heat illness cue",
+        "hypothermia": "extreme cold illness cue",
+    }
+    medium_terms = {
+        "loud": "loud environment",
+        "machinery": "machinery nearby",
+        "vibration": "vibration",
+        "running": "rapid movement",
+        "pocket": "pocket sensor placement",
+        "data down": "degraded connectivity",
+        "voice only": "voice-only connectivity",
+        "multiple": "possible multiple speakers",
+        "two voices": "possible multiple speakers",
+        "overlap": "possible overlapping speakers",
+        "wind": "weather/noise interference",
+        "heat": "temperature stress",
+        "cold": "temperature stress",
+    }
+    cues = [label for term, label in high_terms.items() if term in text]
+    medium_cues = [label for term, label in medium_terms.items() if term in text]
+
+    if any(term in text for term in ["two voices", "multiple", "overlap", "several voices"]):
+        people_signal = "possible_multiple_speakers_or_bystanders"
+    elif "single" in text or "alone" in text:
+        people_signal = "reported_single_person"
+    else:
+        people_signal = "unknown"
+
+    if cues:
+        risk_level = "high"
+    elif len(medium_cues) >= 2:
+        risk_level = "medium"
+    elif medium_cues:
+        risk_level = "low_to_medium"
+    else:
+        risk_level = "unknown"
+
+    actions = ["Continue by voice; do not require app taps or camera input."]
+    if risk_level == "high":
+        actions.insert(0, "Stop work if safe, isolate the area, and contact the site supervisor or incident lead.")
+    elif risk_level == "medium":
+        actions.insert(0, "Slow down, repeat the critical reading, and confirm hazard, location, and people/injury status.")
+    else:
+        actions.insert(0, "Ask one clarifying question: hazard, location, or sensor units.")
+    if any(term in text for term in ["formaldehyde", "formalin", "chlorine", "ammonia", "fuel", "smoke"]):
+        actions.append("Move upwind or increase distance if safe; avoid inhalation and ignition sources.")
+    if any(term in text for term in ["biohazard", "blood", "needle", "sharps"]):
+        actions.append("Avoid contact, preserve PPE, and treat exposure status as safety-critical.")
+
+    compact = compress(args.get("description") or text)
+    return {
+        "status": "ok",
+        "riskLevel": risk_level,
+        "peopleSignal": people_signal,
+        "highRiskCues": cues,
+        "contextCues": medium_cues,
+        "actions": actions,
+        "compactFieldLine": compact["field_line"],
+        "voiceReadback": compact["voice_readback"],
+        "confidence": "medium" if cues or medium_cues else "low",
+        "inferenceBoundary": "Single-phone sensors can flag risk context and possible voice overlap; they do not prove exact speaker count, identity, or calibrated exposure level.",
+    }
 
 
 TOOLS = {
@@ -122,4 +257,5 @@ TOOLS = {
     "troubleshoot_hardware": troubleshoot_hardware,
     "interpret_sensor_report": interpret_sensor_report,
     "compress_observation": compress_observation,
+    "assess_environment_risk": assess_environment_risk,
 }

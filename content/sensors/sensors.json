@@ -25,10 +25,36 @@
       "field_bio_use_cases": [
         {"use": "Level a microscope, balance, antenna mast, or camera trap mount", "how": "Read pitch/roll aloud; adjust until both near 0 deg", "expected_accuracy": "+/-1 deg", "caveat": "Hold still; wind/vibration adds noise"},
         {"use": "Slope/aspect of a sampling plot or stream bank", "how": "Lay phone on a rigid board across the slope, read incline", "expected_accuracy": "+/-1-2 deg", "caveat": "Soft ground flexes the board"},
-        {"use": "Detect equipment vibration / pump or centrifuge imbalance", "how": "Rest phone on the housing, watch peak acceleration", "expected_accuracy": "relative, not absolute", "caveat": "Useful for trend, not calibrated amplitude"}
+        {"use": "Detect equipment vibration / pump or centrifuge imbalance", "how": "Rest phone on the housing, watch peak acceleration", "expected_accuracy": "relative, not absolute", "caveat": "Useful for trend, not calibrated amplitude"},
+        {"use": "Pocket-carried motion context during disaster triage", "how": "Detect walking, running, fall/drop, stop/start, or repeated tap gestures", "expected_accuracy": "qualitative activity state", "caveat": "Pocket orientation is unknown; use as context, not measurement"}
       ],
-      "voice_guidance": "Ask the worker to lay the phone flat on the object and read the pitch and roll numbers. Confirm units. If numbers jump, ask them to hold still and re-read.",
+      "voice_guidance": "Ask whether the phone is hand-held, on the equipment, or in a pocket. For measurements, have the worker place it flat and read pitch/roll. For pocket mode, use only activity or gesture context such as walking, stopped, drop, or repeated taps.",
       "confidence": "high"
+    },
+    {
+      "id": "gesture_context",
+      "name": "Gesture / pocket context",
+      "aka": ["gesture", "tap", "shake", "pocket", "motion context", "wearable-like", "hands free"],
+      "measures": "Coarse gestures and activity state derived from accelerometer, gyroscope, proximity, screen state, and optional wearable/app events.",
+      "output_units": "gesture labels, activity labels, event timestamps, confidence scores",
+      "range": "Device/app dependent; best for coarse events such as double tap, shake, still, walking, running, fall/drop, phone picked up, or pocketed.",
+      "typical_sampling_rate_hz": "10-100 for derived activity/gesture events; raw inertial sensors often higher",
+      "accuracy": {
+        "best_case": "Reliable deliberate gestures when trained/calibrated for the phone placement",
+        "typical": "Useful for coarse hands-free commands and activity context; false positives occur during field movement",
+        "worst_case": "Pocket, pack, vehicle vibration, gloves, or loose mounting can make gesture labels ambiguous",
+        "confidence": "medium"
+      },
+      "device_variation": "Gesture availability depends on OS APIs, phone placement, wearable pairing, and whether an app is allowed to run in the background.",
+      "error_sources": ["Pocket orientation unknown", "Loose phone movement", "Vehicle/boat vibration", "Running or scrambling", "Glove taps dampened", "Background sensor throttling"],
+      "calibration": "At session start, ask for placement: hand, pocket, pack, strapped to equipment, or table. If gestures are enabled, confirm one deliberate gesture and one no-gesture baseline.",
+      "field_bio_use_cases": [
+        {"use": "Hands-free command input", "how": "Map deliberate double tap/shake to repeat, mark, hold, or emergency flag", "expected_accuracy": "medium after confirmation", "caveat": "Always confirm safety-critical commands by voice when possible"},
+        {"use": "Disaster triage activity context", "how": "Record moving, stopped, running, fall/drop, vehicle vibration, or pocketed state", "expected_accuracy": "qualitative", "caveat": "Do not treat as proof of injury or exact movement"},
+        {"use": "No-screen field logging", "how": "Use pocket/tap events to mark timestamps while Vapi asks spoken follow-up questions", "expected_accuracy": "event-level context", "caveat": "Raw gesture stream should be summarized before storage"}
+      ],
+      "voice_guidance": "Ask where the phone is: pocket, hand, pack, or on equipment. If in a pocket, treat readings as coarse context. Gestures can mark or repeat, but do not require them; voice remains the fallback.",
+      "confidence": "medium"
     },
     {
       "id": "gyroscope",
@@ -77,6 +103,31 @@
       ],
       "voice_guidance": "Have the worker do a figure-8 calibration and step away from metal before reading a bearing. Remind them to say whether they want magnetic or true north.",
       "confidence": "high"
+    },
+    {
+      "id": "acoustic_context",
+      "name": "Microphone / acoustic context",
+      "aka": ["microphone", "mic", "audio", "sound", "noise", "voice activity", "vad", "diarization"],
+      "measures": "Sound pressure/level estimates, voice activity, overlap, and optionally speaker turns from a reviewed audio pipeline.",
+      "output_units": "dB/SPL estimate, RMS/amplitude, VAD segments, optional speaker-turn labels",
+      "range": "Phone microphone dynamic range varies widely; OS noise suppression and automatic gain control may alter levels.",
+      "typical_sampling_rate_hz": "8000-48000 for audio capture; derived VAD/diarization windows usually 0.25-2 s",
+      "accuracy": {
+        "best_case": "Reliable loud/quiet trend and clean single-speaker voice activity in moderate noise",
+        "typical": "Useful for noise context, interruptions, and likely overlap; speaker count is uncertain without diarization",
+        "worst_case": "Automatic gain control, wind, machinery, echo, pocket placement, or Bluetooth routing can make readings misleading",
+        "confidence": "medium"
+      },
+      "device_variation": "Microphone count, beamforming, AGC, OS permissions, Bluetooth routing, and noise suppression vary by phone and headset.",
+      "error_sources": ["Automatic gain control", "Wind", "Machinery noise", "Echo/reverberation", "Pocket or case occlusion", "Bluetooth/headset mic routing", "Overlapping speakers"],
+      "calibration": "If using level estimates, compare against a known quiet baseline and repeat the reading in the same phone position. Ask whether the mic is pocketed, covered, on a headset, or exposed. For diarization, require a reviewed audio model and store only derived labels unless raw audio retention is explicitly approved.",
+      "field_bio_use_cases": [
+        {"use": "Detect loud machinery or unsafe acoustic environment during troubleshooting", "how": "Ask for dB estimate or whether the app flags high noise; pair with accelerometer vibration", "expected_accuracy": "qualitative trend", "caveat": "Phone dB readings are not a calibrated sound meter"},
+        {"use": "Detect likely multiple speakers or interruptions during a call", "how": "Use VAD/diarization labels from a reviewed audio pipeline", "expected_accuracy": "contextual, model-dependent", "caveat": "Do not infer identity; speaker count can be wrong under overlap/noise"},
+        {"use": "Separate human voice from pump/centrifuge vibration reports", "how": "Compare voice activity/noise flags with accelerometer vibration spikes", "expected_accuracy": "medium when repeated readings agree", "caveat": "Machinery can mask voice and trigger false positives"}
+      ],
+      "voice_guidance": "If the call is noisy, ask the worker to step away from machinery or switch to push-to-talk. Treat microphone data as context: loud environment, likely overlap, or possible interruption. Do not claim exact speaker count, identity, or position unless a reviewed multi-device/audio-localization pipeline supplied that result.",
+      "confidence": "medium"
     },
     {
       "id": "barometer",
