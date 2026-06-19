@@ -4,19 +4,29 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Header, HTTPException
 
+from .config import settings
 from .llm_api import router as llm_router
 from .tools import TOOLS
 
 app = FastAPI(title="PhoneBio", version="0.1.0")
+# Offline-first LLM lane (local Ollama -> Nebius -> OpenAI): /llm/health and the
+# optional Vapi custom-LLM endpoint. Deterministic tools stay on /webhook.
 app.include_router(llm_router)
 
-# Offline-first LLM lane (local Ollama -> Nebius -> OpenAI). Deterministic tools
-# stay on /webhook; this adds /llm/health and the optional Vapi custom-LLM endpoint.
-from .llm_api import router as llm_router  # noqa: E402
 
-app.include_router(llm_router)
+def _webhook_secret_enabled() -> bool:
+    return bool(settings.webhook_secret and settings.webhook_secret != "change-me-long-random-string")
+
+
+def _authorize_webhook(authorization: str | None, x_vapi_secret: str | None) -> None:
+    if not _webhook_secret_enabled():
+        return
+    expected = settings.webhook_secret
+    if authorization == f"Bearer {expected}" or x_vapi_secret == expected:
+        return
+    raise HTTPException(status_code=401, detail="Invalid webhook credential.")
 
 
 def _tool_calls(payload: dict[str, Any]) -> list[dict[str, Any]]:
@@ -80,5 +90,10 @@ async def health() -> dict[str, str]:
 
 
 @app.post("/webhook")
-async def webhook(payload: dict[str, Any]) -> dict[str, Any]:
+async def webhook(
+    payload: dict[str, Any],
+    authorization: str | None = Header(default=None),
+    x_vapi_secret: str | None = Header(default=None),
+) -> dict[str, Any]:
+    _authorize_webhook(authorization, x_vapi_secret)
     return await handle_vapi_payload(payload)

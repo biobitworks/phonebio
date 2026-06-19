@@ -4,3 +4,4 @@
 {"id":"WB-004","target":"Nebius Token Factory","status":"blocked","summary":"Add optional inference adapter after NEBIUS_API_KEY credits are available."}
 {"id":"WB-005","target":"Vapi live assistant","status":"blocked","summary":"Run make wire after VAPI_API_KEY/VAPI_PHONE_NUMBER_ID/VAPI_WEBHOOK_URL are available, then verify inbound call."}
 {"id":"WB-006","target":"Ollarma bridge","status":"needs_review","summary":"Refresh Ollarma selection and restore Watchtower bridge aggregator before using Ollarma as a strict PhoneBio work lane."}
+{"id":"WB-007","target":"Hosted webhook","status":"candidate","summary":"Deploy FastAPI app through Docker/Procfile or Vapi CLI tunnel, then set VAPI_WEBHOOK_URL for live assistant creation."}

@@ -1,3 +1,4 @@
 {"id":"DEC-001","decision":"Implement Vapi custom-tool webhook before native phone app.","rationale":"The hackathon call-in workflow can be demonstrated with the existing Vapi number and local tool server.","status":"pending_validation","decided_at":"2026-06-19"}
 {"id":"DEC-002","decision":"Exclude camera-dependent workflows from v1.","rationale":"The objective assumes camera access is unavailable while other sensors may be available.","status":"accepted","decided_at":"2026-06-19"}
+{"id":"DEC-003","decision":"Add an offline-first LLM router (local Ollama -> Nebius -> OpenAI) with an optional Vapi custom-LLM endpoint, kept separate from the deterministic tool layer.","rationale":"Satisfies 'processing is offline' (verified live against qwen2.5:1.5b) and makes Nebius a drop-in upgrade once credits land, without adding hallucination risk to the grounded tools.","status":"accepted","decided_at":"2026-06-19"}
 

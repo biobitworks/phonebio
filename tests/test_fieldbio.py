@@ -1,4 +1,5 @@
 from fieldbio.app import handle_vapi_payload
+from fieldbio.config import settings
 from fieldbio.shorthand import compress
 
 
@@ -74,6 +75,22 @@ def test_unknown_hardware_does_not_hallucinate():
     )
     assert result["status"] == "not_found"
     assert "Power down" in result["answer"]
+
+
+def test_webhook_auth_when_secret_configured(monkeypatch):
+    from fastapi.testclient import TestClient
+    from fieldbio.app import app
+
+    monkeypatch.setattr(settings, "webhook_secret", "test-webhook-secret")
+    client = TestClient(app)
+    payload = {"toolCalls": [{"id": "call_auth", "name": "get_protocol", "arguments": {"task": "water sample"}}]}
+
+    rejected = client.post("/webhook", json=payload)
+    assert rejected.status_code == 401
+
+    accepted = client.post("/webhook", json=payload, headers={"authorization": "Bearer test-webhook-secret"})
+    assert accepted.status_code == 200
+    assert accepted.json()["results"][0]["result"]["status"] == "ok"
 
 
 def test_shorthand_compresses_field_note():

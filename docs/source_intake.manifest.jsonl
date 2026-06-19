@@ -10,3 +10,4 @@
 {"id":"SRC-VAPI-SERVER-URLS","type":"documentation","url":"https://docs.vapi.ai/server-url/setting-server-urls","title":"Vapi setting server URLs","captured_at":"2026-06-19","status":"implementation_reference"}
 {"id":"SRC-VAPI-PHONE-UPDATE","type":"documentation","url":"https://docs.vapi.ai/api-reference/phone-numbers/update","title":"Vapi update phone number","captured_at":"2026-06-19","status":"implementation_reference"}
 {"id":"SRC-VAPI-CALL-CREATE","type":"documentation","url":"https://docs.vapi.ai/api-reference/calls/create","title":"Vapi create call","captured_at":"2026-06-19","status":"implementation_reference"}
+{"id":"SRC-OLLARMA-LOCAL-HEALTH","type":"local_runtime_probe","url":"http://127.0.0.1:8484/health","title":"Ollarma degraded fallback status","captured_at":"2026-06-19","status":"runtime_reference"}
