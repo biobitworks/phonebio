@@ -6,9 +6,17 @@ from typing import Any
 
 from fastapi import FastAPI
 
+from .llm_api import router as llm_router
 from .tools import TOOLS
 
 app = FastAPI(title="PhoneBio", version="0.1.0")
+app.include_router(llm_router)
+
+# Offline-first LLM lane (local Ollama -> Nebius -> OpenAI). Deterministic tools
+# stay on /webhook; this adds /llm/health and the optional Vapi custom-LLM endpoint.
+from .llm_api import router as llm_router  # noqa: E402
+
+app.include_router(llm_router)
 
 
 def _tool_calls(payload: dict[str, Any]) -> list[dict[str, Any]]:
@@ -74,4 +82,3 @@ async def health() -> dict[str, str]:
 @app.post("/webhook")
 async def webhook(payload: dict[str, Any]) -> dict[str, Any]:
     return await handle_vapi_payload(payload)
-

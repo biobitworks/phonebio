@@ -7,4 +7,6 @@
 {"id":"SRC-APPLE-COREMOTION","type":"documentation","url":"https://developer.apple.com/documentation/coremotion/","title":"Apple Core Motion","captured_at":"2026-06-19","status":"sensor_reference"}
 {"id":"SRC-APPLE-NEARBY","type":"documentation","url":"https://developer.apple.com/documentation/nearbyinteraction","title":"Apple Nearby Interaction","captured_at":"2026-06-19","status":"sensor_reference"}
 {"id":"SRC-APPLE-SCENEDEPTH","type":"documentation","url":"https://developer.apple.com/documentation/arkit/arconfiguration/framesemantics-swift.struct/scenedepth","title":"Apple ARKit scene depth","captured_at":"2026-06-19","status":"sensor_reference"}
-
+{"id":"SRC-VAPI-SERVER-URLS","type":"documentation","url":"https://docs.vapi.ai/server-url/setting-server-urls","title":"Vapi setting server URLs","captured_at":"2026-06-19","status":"implementation_reference"}
+{"id":"SRC-VAPI-PHONE-UPDATE","type":"documentation","url":"https://docs.vapi.ai/api-reference/phone-numbers/update","title":"Vapi update phone number","captured_at":"2026-06-19","status":"implementation_reference"}
+{"id":"SRC-VAPI-CALL-CREATE","type":"documentation","url":"https://docs.vapi.ai/api-reference/calls/create","title":"Vapi create call","captured_at":"2026-06-19","status":"implementation_reference"}

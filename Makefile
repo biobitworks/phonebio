@@ -1,4 +1,4 @@
-.PHONY: install dev test test-python test-node expose push smoke
+.PHONY: install dev test test-python test-node expose push wire wire-dry-run smoke
 
 install:
 	python3 -m pip install -r requirements.txt
@@ -21,6 +21,12 @@ expose:
 
 push:
 	python3 vapi/push.py
+
+wire:
+	python3 vapi/wire.py create-assistant --assign-phone
+
+wire-dry-run:
+	@python3 vapi/wire.py create-assistant --assign-phone --dry-run
 
 smoke:
 	python3 scripts/smoke.py

@@ -5,6 +5,9 @@ node_modules/
 coverage/
 dist/
 .vapi.local.json
+__pycache__/
+.pytest_cache/
+*.pyc
 
 # --- secrets / env (public repo safety) ---
 .env.*

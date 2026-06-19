@@ -39,6 +39,27 @@ def test_safety_lookup_keeps_disclaimer():
     assert "NOT the authoritative Safety Data Sheet" in result["disclaimer"]
 
 
+def test_vapi_tool_calls_event_shape():
+    result = get_result(
+        {
+            "message": {
+                "type": "tool-calls",
+                "toolCalls": [
+                    {
+                        "id": "call_event",
+                        "function": {
+                            "name": "get_protocol",
+                            "arguments": '{"task":"pitfall trap setup"}',
+                        },
+                    }
+                ],
+            }
+        }
+    )
+    assert result["status"] == "ok"
+    assert "pitfall" in result["title"].lower()
+
+
 def test_unknown_hardware_does_not_hallucinate():
     result = get_result(
         {
@@ -66,4 +87,3 @@ def get_result(payload):
 
     response = asyncio.run(handle_vapi_payload(payload))
     return response["results"][0]["result"]
-

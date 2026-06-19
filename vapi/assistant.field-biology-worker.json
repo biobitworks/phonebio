@@ -1,6 +1,9 @@
 {
   "name": "PhoneBio Field Biology Worker",
   "firstMessage": "PhoneBio here. Tell me the field task, material or device, and what changed.",
+  "server": {
+    "url": "https://YOUR-FORWARDED-OR-HOSTED-URL/webhook"
+  },
   "model": {
     "provider": "openai",
     "model": "gpt-4.1-mini",
@@ -93,7 +96,5 @@
         }
       }
     ]
-  },
-  "serverUrl": "https://YOUR-FORWARDED-OR-HOSTED-URL/webhook"
+  }
 }
-

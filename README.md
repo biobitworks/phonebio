@@ -35,6 +35,14 @@ make expose
 
 Configure the Vapi assistant using `vapi/assistant.field-biology-worker.json` as the dashboard/API reference. Set the assistant server URL to the forwarded webhook URL.
 
+Dry-run Vapi wiring:
+
+```bash
+make wire-dry-run
+```
+
+Live Vapi wiring needs `VAPI_API_KEY` or `VAPI_PRIVATE_KEY`, `VAPI_PHONE_NUMBER_ID`, and `VAPI_WEBHOOK_URL` or `PUBLIC_BASE_URL`. See `docs/VAPI_RUNBOOK.md`.
+
 ## Tool Names
 
 - `get_protocol`
@@ -46,3 +54,12 @@ Configure the Vapi assistant using `vapi/assistant.field-biology-worker.json` as
 ## Runtime Boundary
 
 The webhook does not call the internet. Nebius, InsForge, and Ollarma are deferred integration surfaces until API credits, deployment, and routing decisions are ready.
+
+Ollarma status on 2026-06-19: reachable but degraded with `SELECTION_STALE`; Watchtower bridge aggregator unreachable. See `docs/OLLARMA_CLAUDE_HANDOFF.md`.
+
+Optional custom LLM endpoint:
+
+- `GET /llm/health`
+- `POST /custom-llm/chat/completions`
+
+This route tries local Ollama first, then Nebius/OpenAI only when keys are configured.
