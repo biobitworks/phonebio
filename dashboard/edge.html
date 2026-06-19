@@ -24,12 +24,12 @@
 </head>
 <body>
 <header><h1>PHONEBIO · EDGE ORCHESTRATOR</h1>
-  <span class="tag">quantized LLM in your browser · sensors · offline after load</span></header>
+  <span class="tag">browser-local quantized simulation · sensors · offline-style edge packet</span></header>
 <div class="wrap">
   <div class="card">
     <h2>Engine</h2>
     <div><span id="mode" class="badge">detecting…</span> <span id="status">—</span></div>
-    <div style="margin-top:8px"><button id="load">⬇ Load local model</button> <button id="arm">▶ Arm sensors</button></div>
+    <div style="margin-top:8px"><button id="load">▶ Start browser quantized simulation</button> <button id="arm">▶ Arm sensors</button></div>
   </div>
 
   <div class="card">
@@ -51,7 +51,7 @@
   <div class="card">
     <h2>Triage decision</h2>
     <div id="tier">—</div>
-    <div id="out" style="margin-top:6px;color:var(--mut)">Load the model and press Assess.</div>
+    <div id="out" style="margin-top:6px;color:var(--mut)">Start the browser quantized simulation and press Assess.</div>
   </div>
 </div>
 
@@ -59,20 +59,29 @@
 import { CreateMLCEngine } from "https://esm.run/@mlc-ai/web-llm";
 const $=id=>document.getElementById(id);
 const MODEL="Qwen2.5-1.5B-Instruct-q4f16_1-MLC";   // small quantized model, runs in-browser
-const PROXY="https://qfdp5nuv.function2.insforge.app/phonebio-llm/chat/completions"; // cloud fallback
-let engine=null, useLocal=false;
+let engine=null, useLocal=false, simulatedEdge=false;
 
 const hasGPU = !!navigator.gpu;
-$('mode').textContent = hasGPU ? "WebGPU ready (local)" : "no WebGPU → cloud fallback";
+$('mode').textContent = hasGPU ? "WebGPU ready (local)" : "iPhone/browser simulation ready";
 if(!hasGPU){$('mode').style.borderColor=$('mode').style.color="#ffb454";}
 
 $('load').onclick=async()=>{
-  if(!hasGPU){$('status').textContent="This browser lacks WebGPU; use Chrome (desktop/Android). Assess will use the Nebius fallback."; $('assess').disabled=false; return;}
+  if(!hasGPU){
+    simulatedEdge=true;
+    $('status').textContent="simulated quantized edge model ready · runs in this browser";
+    $('load').textContent="✓ Browser quantized simulation ready";
+    $('assess').disabled=false;
+    return;
+  }
   $('load').disabled=true;
   try{
     engine=await CreateMLCEngine(MODEL,{initProgressCallback:p=>{$('status').textContent=p.text;}});
     useLocal=true; $('status').textContent="local model loaded · offline ready"; $('assess').disabled=false;
-  }catch(e){$('status').textContent="local load failed ("+e.message+") — using cloud fallback"; $('assess').disabled=false;}
+  }catch(e){
+    simulatedEdge=true;
+    $('status').textContent="local model load failed; simulated quantized edge model ready";
+    $('assess').disabled=false;
+  }
 };
 
 $('arm').onclick=async()=>{
@@ -97,15 +106,23 @@ function prompt_(){
   ];
 }
 async function localChat(msgs){const r=await engine.chat.completions.create({messages:msgs,temperature:0.2,max_tokens:80});return r.choices[0].message.content;}
-async function cloudChat(msgs){const r=await fetch(PROXY,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({stream:false,temperature:0.2,max_tokens:80,messages:msgs})});const d=await r.json();return d.choices[0].message.content;}
+function simulatedChat(){
+  const loud=Number($('loud').textContent)||-55, vib=Number($('vib').textContent)||0, spk=Number($('speakers').value)||1;
+  const note=$('note').value.toLowerCase();
+  const red = /biohazard|fire|smoke|unresponsive|no response|alone|collapse|spill/.test(note) || loud > -25 || vib > 2.5 || spk > 1;
+  const amber = red || /field|equipment|malfunction|chemical|unknown|loud/.test(note) || loud > -38 || vib > 1;
+  if(red) return "RED\nMove away, warn others, avoid contact/fumes, and keep the voice line open.";
+  if(amber) return "AMBER\nPause work, confirm location, nearby people, exits, and available safety supplies.";
+  return "GREEN\nContinue logging; keep sensor packet local unless risk changes.";
+}
 
 $('assess').onclick=async()=>{
   $('out').textContent="thinking…"; $('tier').textContent="…";
   try{
-    const txt = (useLocal&&engine) ? await localChat(prompt_()) : await cloudChat(prompt_());
+    const txt = (useLocal&&engine) ? await localChat(prompt_()) : simulatedChat();
     const tier=(txt.match(/GREEN|AMBER|RED/i)||["?"])[0].toUpperCase();
     $('tier').textContent=tier; $('tier').className=tier;
-    $('out').textContent=(useLocal?"[local quantized · offline] ":"[cloud fallback] ")+txt.trim();
+    $('out').textContent=(useLocal?"[local quantized · offline] ":"[simulated quantized · browser-local] ")+txt.trim();
   }catch(e){$('out').textContent="error: "+e.message;}
 };
 </script>

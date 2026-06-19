@@ -17,7 +17,7 @@
   .controlGroup h2{font-size:12px;margin:0 0 8px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
   .controlGroup p{margin:8px 0 0;color:var(--mut);font-size:12px}
   .controls{display:flex;gap:10px;flex-wrap:wrap}
-  button{background:#16314a;color:var(--ink);border:1px solid var(--cloud);border-radius:8px;padding:10px 16px;font:inherit;cursor:pointer}
+  button,.buttonLink{background:#16314a;color:var(--ink);border:1px solid var(--cloud);border-radius:8px;padding:10px 16px;font:inherit;cursor:pointer;text-decoration:none;display:inline-block}
   .sensors{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;position:relative;overflow:hidden}
   .card h2{font-size:12px;margin:0 0 4px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
@@ -64,8 +64,8 @@
   <div class="controlGrid">
     <div class="controlGroup">
       <h2>Live inputs</h2>
-      <div class="controls"><button id="mic">🎙 Start live mic</button></div>
-      <p>Uses this laptop microphone for local dBFS features only. Raw audio stays local.</p>
+      <div class="controls"><button id="mic">🎙 Start live mic</button><a class="buttonLink" href="/edge.html">↗ Open approved edge sensors</a></div>
+      <p>Live mic uses this laptop for local dBFS features. Edge sensors opens the approved phone sensor/orchestrator page on the same site origin.</p>
     </div>
     <div class="controlGroup">
       <h2>Scripted demo controls</h2>

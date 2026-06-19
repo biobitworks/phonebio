@@ -73,6 +73,7 @@ def public_dashboard_check() -> dict[str, Any]:
         return {"name": "public_dashboard", "status": "fail", "error": error.__class__.__name__}
     checks.append({"item": "html_has_live_title", "ok": "PHONEBIO · LIVE FIELD TRIAGE" in html})
     checks.append({"item": "html_has_laptop_mic", "ok": "Start live mic" in html})
+    checks.append({"item": "html_has_edge_sensor_link", "ok": "Open approved edge sensors" in html and "/edge.html" in html})
     checks.append({"item": "html_has_formaldehyde_location_check", "ok": "formaldehyde location check" in html})
     checks.append({"item": "html_has_edge_route", "ok": "Edge · quantized" in html})
     checks.append({"item": "html_has_nebius_70b_route", "ok": "Llama-70B" in html and "Nebius GPU" in html})
@@ -80,7 +81,7 @@ def public_dashboard_check() -> dict[str, Any]:
     checks.append({"item": "html_has_script_boxes", "ok": "What PhoneBio needs" in html and "What I say" in html})
     checks.append({"item": "edge_route_http_200", "ok": edge_response.status_code == 200})
     checks.append({"item": "edge_has_orchestrator", "ok": "EDGE ORCHESTRATOR" in edge})
-    checks.append({"item": "edge_has_webgpu_or_fallback", "ok": "WebGPU" in edge and "cloud fallback" in edge})
+    checks.append({"item": "edge_has_webgpu_or_simulated_quantized", "ok": "WebGPU" in edge and "simulated quantized" in edge})
     return {"name": "public_dashboard", "status": "pass" if all(item["ok"] for item in checks) else "fail", "checks": checks}
 
 

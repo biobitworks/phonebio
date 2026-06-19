@@ -10,6 +10,7 @@
 
 ## Scene (OBS, 1920×1080)
 - **Browser Source → `https://qfdp5nuv.insforge.site/live.html`** (right ⅔). Right-click → **Interact**. Use **Live inputs** for laptop mic features or **Scripted demo controls** for labeled simulated prompts.
+- **iPhone sensor page:** if you already approved the edge link, open **Open approved edge sensors** from the live page or use `https://qfdp5nuv.insforge.site/edge.html`.
 - **iPhone screen recording** of the real call (left ⅓). **Webcam** PIP corner.
 - Pre-flight before rolling: `make demo-stress` → **16 pass / 0 fail** and `demoReady: true`. Clean audio after: `make recording`.
 
@@ -36,6 +37,7 @@
 
 ## B. The dashboard beats (live.html)
 - **Live vs scripted controls:** **Live inputs** starts real laptop mic feature extraction; **Scripted demo controls** runs labeled simulated prompts and has an explicit **Stop scripted demo** state.
+- **Approved edge sensors:** the live page links to `/edge.html`, the phone-approved edge orchestrator for mic/motion/manual speaker context.
 - **Edge ⇄ 70B interplay:** routine/sensor → handled at **EDGE** (offline, ~ms); higher-risk prompts → escalate to **Llama-70B** (cloud lane fires) — tally shows *edge-only vs escalated vs bytes-to-cloud*.
 - **Shorthand efficiency + lab jargon:** % smaller, "fits 1 SMS", and the lab-term map (centrifuge→cfg, pcr, formaldehyde→form…) highlighting used terms.
 - **Bandwidth tags:** each sensor labeled EDGE (high raw bw) vs cloud-ok (tiny).
