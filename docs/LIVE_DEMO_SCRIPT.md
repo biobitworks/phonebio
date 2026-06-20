@@ -8,7 +8,7 @@
 - Open **https://qfdp5nuv.insforge.site/live.html** on the laptop/projector.
 - Optional phone sensor page: from the live page press **Open approved edge sensors**, then on the edge page press **Start browser quantized simulation** and **Arm sensors**.
 - Phone: contact **PhoneBio** saved; speaker available; quiet-ish spot if possible.
-- Say once, honestly: *"The phone call, InsForge tools, and Nebius 70B bursts are live. The dashboard sensor streams and edge model are labeled simulations for the stage."*
+- Say once, honestly: *"The phone call, InsForge tools, and Nebius fast voice model are live. 70B bursts are the heavy backend path. The dashboard sensor streams and edge model are labeled simulations for the stage."*
 
 ## 1. Hook (15s)
 > "Field and disaster workers can't tap an app, can't use a camera, and barely have signal - but a **phone call** still gets through. PhoneBio is a hands-free call-in safety agent."
@@ -19,13 +19,19 @@
 - First line to the agent:
   > "PhoneBio, this is a live stage demo. I am hands-free, on speaker, and I need help with a field safety situation."
 
+## Simple Triage Ladder
+- **Level 1 - Capture:** every lab-related spoken turn is logged as text in the background.
+- **Level 2 - Lookup:** one keyword path runs only when needed: SDS, protocol, hardware, or sensor.
+- **Level 3 - Fast voice:** the assistant gives a short answer and asks one question.
+- **Level 4 - Heavy/emergency:** fire, exposure, injury, uncertainty, or complex reasoning triggers heavier backend processing and RED guidance.
+
 ## 3. Live call - field note first (30s)
 Say:
 
 > "Field note. Observed three juvenile specimens near the burrow at 12 meters, 18 degrees. Save that as a compact field record."
 
 Expected behavior:
-- The agent uses `compress_observation`.
+- The agent replies immediately and mirrors the spoken field note into `compress_observation` in the background.
 - It keeps the reply short and confirms the compact audit record.
 - This proves hands-free field logging before the safety scenario.
 
@@ -36,7 +42,8 @@ Say:
 
 Expected behavior:
 - The agent asks for location/context before cleanup: ventilation, eyewash, spill kit, exits, and nearby people.
-- It uses the safety sheet path and keeps this as **AMBER**: contain, ventilate, PPE, do not escalate to emergency by default.
+- It keeps this as **AMBER**: contain, ventilate, PPE, do not escalate to emergency by default.
+- In the background, every lab-related utterance is captured, and the formaldehyde keyword triggers the InsForge SDS path.
 
 Answer when asked:
 
@@ -59,11 +66,13 @@ Narrate:
 
 > "Routine field notes stay compact and cheap. Higher-risk spill prompts burst to the real Llama-70B on Nebius through the InsForge proxy. The dashboard shows edge-only count, escalated-to-70B count, and bytes sent to cloud."
 
+> "Every spoken lab turn is mirrored into background text processing, so the database gets the words without making the phone caller wait."
+
 ## 6. Quick no-hallucination beat (15s)
 - **No hallucination:** *"How do I neutralize a tank of [unknown chemical]?"* -> "Stop work, don't mix, call your supervisor."
 
 ## 7. Close (20s)
-> "Three sponsors, one agent: **Vapi** is the always-available voice line, **InsForge** is the DB + tools + dashboard, **Nebius Llama-70B** is the brain. Hands-free, camera-free, voice-only-capable - and the same signals feed downstream disaster triage."
+> "Three sponsors, one agent: **Vapi** is the always-available voice line, **InsForge** is the DB + tools + dashboard, and **Nebius** provides fast voice reasoning plus heavy 70B bursts. Hands-free, camera-free, voice-only-capable - and the same signals feed downstream disaster triage."
 
 ---
 
@@ -76,8 +85,9 @@ Narrate:
 - **iPhone edge page**: `edge.html` runs the browser-local quantized simulation on iPhone; no WebGPU is required for the staged edge story.
 
 ## Honest live-vs-simulated labels
-- **LIVE:** the phone call, the Nebius 70B bursts, the InsForge tool lookups.
+- **LIVE:** the phone call, the fast Nebius voice path, the InsForge tool lookups, and background transcript processing.
+- **HEAVY BACKEND PATH:** Nebius 70B bursts shown on the dashboard and used when routed for complex/high-risk processing.
 - **SIMULATED (labeled on screen):** the dashboard sensor streams and browser-local quantized edge model.
 
 ## One-line close
-> "Vapi is the resilient voice line, InsForge is the tools and demo surface, Nebius is the 70B brain, and the phone/browser edge layer decides what can stay local when the field link is weak."
+> "Vapi is the resilient voice line, InsForge is the tools and demo surface, Nebius is the fast-to-heavy model lane, and the phone/browser edge layer decides what can stay local when the field link is weak."

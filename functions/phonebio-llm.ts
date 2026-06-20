@@ -4,7 +4,8 @@
 // streams the reply back verbatim (content AND tool_calls). The Nebius key is
 // an InsForge secret, injected server-side — never exposed to Vapi or the repo.
 const NEBIUS_BASE = (Deno.env.get("NEBIUS_BASE_URL") || "https://api.tokenfactory.nebius.com/v1").replace(/\/+$/, "");
-const NEBIUS_MODEL = Deno.env.get("NEBIUS_MODEL") || "meta-llama/Llama-3.3-70B-Instruct";
+const NEBIUS_MODEL = Deno.env.get("NEBIUS_MODEL") || "Qwen/Qwen3-30B-A3B-Instruct-2507";
+const NEBIUS_HEAVY_MODEL = Deno.env.get("NEBIUS_HEAVY_MODEL") || "meta-llama/Llama-3.3-70B-Instruct";
 const FALLBACK_MODEL = "phonebio-deterministic-fallback";
 const UPSTREAM_TIMEOUT_MS = 15000;
 const WEBHOOK_URL = Deno.env.get("VAPI_WEBHOOK_URL") || "https://qfdp5nuv.function2.insforge.app/phonebio-vapi-webhook";
@@ -74,47 +75,49 @@ type BackendTrigger = {
   escalateNebius: boolean;
 };
 
-function classifyBackendTrigger(lastText: string, contextText: string): BackendTrigger | null {
+function classifyBackendTriggers(lastText: string, contextText: string): BackendTrigger[] {
   const t = lastText.toLowerCase();
   const context = contextText.toLowerCase();
+  const triggers: BackendTrigger[] = [];
 
-  if (t.includes("field note") || t.includes("observed") || t.includes("juvenile specimens")) {
-    return { tool: "compress_observation", args: { text: lastText }, escalateNebius: false };
+  if (lastText.trim()) {
+    triggers.push({
+      tool: "compress_observation",
+      args: { text: lastText, task: "live transcript turn" },
+      escalateNebius: false,
+    });
   }
 
-  if (context.includes("formaldehyde") || context.includes("formalin")) {
-    return {
+  const mentionsFormaldehyde = t.includes("formaldehyde") || t.includes("formalin");
+  const continuesSpillContext = (context.includes("formaldehyde") || context.includes("formalin")) &&
+    (t.includes("spill") || t.includes("cleanup") || t.includes("sds") || t.includes("fire") || t.includes("smoke"));
+  if (mentionsFormaldehyde || continuesSpillContext) {
+    triggers.push({
       tool: "get_safety_sheet",
       args: { substance: "formaldehyde", description: contextText.slice(-600) },
       escalateNebius: t.includes("fire") || t.includes("smoke") || t.includes("cannot reach") || t.includes("can't reach"),
-    };
+    });
+  } else if (t.includes("barometer") || t.includes("pressure") || t.includes("accelerometer") || t.includes("sensor")) {
+    triggers.push({ tool: "interpret_sensor_report", args: { sensor: "phone", reading: lastText }, escalateNebius: false });
+  } else if (t.includes("gps") || t.includes("data logger") || t.includes("centrifuge") || t.includes("hardware")) {
+    triggers.push({ tool: "troubleshoot_hardware", args: { device: "field hardware", symptom: lastText }, escalateNebius: false });
+  } else if (t.includes("protocol") || t.includes("sample") || t.includes("pitfall") || t.includes("experiment")) {
+    triggers.push({ tool: "get_protocol", args: { task: lastText }, escalateNebius: false });
   }
 
-  if (t.includes("barometer") || t.includes("pressure") || t.includes("accelerometer") || t.includes("sensor")) {
-    return { tool: "interpret_sensor_report", args: { sensor: "phone", reading: lastText }, escalateNebius: false };
-  }
-
-  if (t.includes("gps") || t.includes("data logger") || t.includes("centrifuge") || t.includes("hardware")) {
-    return { tool: "troubleshoot_hardware", args: { device: "field hardware", symptom: lastText }, escalateNebius: false };
-  }
-
-  if (t.includes("protocol") || t.includes("sample") || t.includes("pitfall") || t.includes("experiment")) {
-    return { tool: "get_protocol", args: { task: lastText }, escalateNebius: false };
-  }
-
-  return null;
+  return triggers;
 }
 
-function triggerBackend(trigger: BackendTrigger | null): void {
-  if (!trigger) return;
+function triggerBackend(triggers: BackendTrigger[]): void {
+  if (!triggers.length) return;
   const payload = {
     message: {
       type: "tool-calls",
-      toolCallList: [{
-        id: `fast_${Date.now()}`,
+      toolCallList: triggers.map((trigger, index) => ({
+        id: `fast_${Date.now()}_${index}`,
         name: trigger.tool,
         parameters: trigger.args,
-      }],
+      })),
     },
   };
   // Fire-and-forget: the phone call must keep moving while InsForge records
@@ -197,7 +200,12 @@ function completionResponse(content: string, stream: boolean, model = NEBIUS_MOD
 export default async function (req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
   if (req.method === "GET") {
-    return new Response(JSON.stringify({ status: "ok", service: "phonebio-llm", model: NEBIUS_MODEL }), {
+    return new Response(JSON.stringify({
+      status: "ok",
+      service: "phonebio-llm",
+      model: NEBIUS_MODEL,
+      heavyModel: NEBIUS_HEAVY_MODEL,
+    }), {
       status: 200, headers: { ...cors, "Content-Type": "application/json" },
     });
   }
@@ -207,8 +215,8 @@ export default async function (req: Request): Promise<Response> {
   const userText = lastUserText(body.messages);
   const contextText = allUserText(body.messages) || userText;
   const systemText = allSystemText(body.messages).toLowerCase();
-  const backendTrigger = classifyBackendTrigger(userText, contextText);
-  triggerBackend(backendTrigger);
+  const backendTriggers = classifyBackendTriggers(userText, contextText);
+  triggerBackend(backendTriggers);
   const demoAnswer = liveDemoAnswer(userText, contextText);
   if (demoAnswer) return completionResponse(demoAnswer, body.stream !== false, FALLBACK_MODEL);
 
@@ -227,7 +235,7 @@ export default async function (req: Request): Promise<Response> {
   };
   const forceToolForwarding = systemText.includes("use a tool when relevant");
   const liveDemoPrompt = systemText.includes("for the live demo") || systemText.includes("never say");
-  const shouldEscalateToNebius = !liveDemoPrompt || backendTrigger?.escalateNebius === true || contextText.length > 700;
+  const shouldEscalateToNebius = !liveDemoPrompt || backendTriggers.some((trigger) => trigger.escalateNebius) || contextText.length > 700;
   if (body.tools && forceToolForwarding && !liveDemoPrompt) payload.tools = body.tools;
   if (body.tool_choice && forceToolForwarding && !liveDemoPrompt) payload.tool_choice = body.tool_choice;
   if (body.temperature != null) payload.temperature = body.temperature;

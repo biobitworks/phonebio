@@ -16,12 +16,15 @@ for, with cost and safety boundaries kept explicit.
 
 ```text
 caller -> Vapi phone agent -> hosted InsForge website/functions -> deterministic records
-                                -> InsForge custom-LLM proxy -> Nebius 70B reasoning
+                                -> InsForge custom-LLM proxy -> Nebius fast voice model
+                                -> optional Nebius 70B heavy backend burst
 ```
 
 This path does not use OpenAI. For the live voice reasoning demo, Nebius is the
-primary model path when `NEBIUS_API_KEY` is present. Deterministic InsForge
-tools remain the authority for SDS/protocol facts.
+primary model path when `NEBIUS_API_KEY` is present. The live phone path uses a
+fast Nebius model so the caller does not wait; Llama-70B is the heavier backend
+burst path for complex/high-risk processing and dashboard proof. Deterministic
+InsForge tools remain the authority for SDS/protocol facts.
 
 For hands-free/PPE/disaster use, Vapi remains the only required live user
 interface. Apps and native sensors may provide optional background payloads, but
@@ -49,6 +52,12 @@ https://api.tokenfactory.nebius.com/v1
 ```
 
 The current live demo model is:
+
+```text
+Qwen/Qwen3-30B-A3B-Instruct-2507
+```
+
+The current heavy backend model target is:
 
 ```text
 meta-llama/Llama-3.3-70B-Instruct

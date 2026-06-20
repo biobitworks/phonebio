@@ -1,4 +1,4 @@
-.PHONY: install dev test test-python test-node expose tunnel push wire wire-dry-run vapi-preflight vapi-verify-call vapi-wait-call public-probe hosted-probe hosted-demo smoke readiness prefield-check shorthand-stress tts-stress matrix-stress demo-stress recording-preflight fetch-recording send-demo-links llm-probe nebius-probe nebius-models demo-call insforge-export
+.PHONY: install dev test test-python test-node expose tunnel push wire wire-dry-run vapi-preflight vapi-verify-call vapi-wait-call vapi-tools public-probe hosted-probe hosted-demo smoke readiness prefield-check shorthand-stress tts-stress matrix-stress demo-stress recording-preflight fetch-recording send-demo-links llm-probe nebius-probe nebius-models demo-call test-number-call test-number-call-live insforge-export
 
 install:
 	python3 -m pip install -r requirements.txt
@@ -39,6 +39,9 @@ vapi-verify-call:
 
 vapi-wait-call:
 	@python3 vapi/wire.py wait-call
+
+vapi-tools:
+	@python3 scripts/upsert_vapi_tools.py
 
 public-probe:
 	@python3 scripts/public_probe.py
@@ -89,6 +92,12 @@ nebius-models:
 
 demo-call:
 	@python3 scripts/demo_call.py
+
+test-number-call:
+	@python3 scripts/test_number_call_phonebio.py --variation all
+
+test-number-call-live:
+	@python3 scripts/test_number_call_phonebio.py --place-call --variation siri
 
 insforge-export:
 	@python3 scripts/insforge_export.py

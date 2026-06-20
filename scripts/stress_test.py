@@ -79,7 +79,7 @@ r = post(LLM, {"stream": False, "temperature": 0.1, "messages": [
     {"role": "system", "content": "Use a tool when relevant."},
     {"role": "user", "content": "I spilled formaldehyde, what PPE and first aid?"}], "tools": TOOLS})
 model = r.get("model", ""); tc = (r.get("choices") or [{}])[0].get("message", {}).get("tool_calls")
-check("brain runs Llama-3.3-70B", "Llama-3.3-70B" in model, model)
+check("brain runs fast Nebius (Qwen3-30B)", "Qwen3" in model, model)
 check("brain emits tool_call", bool(tc), tc[0]["function"]["name"] if tc else "none")
 
 print("== 5. Tools (webhook, grounded) ==")

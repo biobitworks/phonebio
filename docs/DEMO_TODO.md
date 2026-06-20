@@ -3,10 +3,10 @@
 > Source of truth: `make demo-stress` → **16 pass / 0 fail** and `demoReady: true`.
 
 ## Status (auto-verified by the stress test)
-- [x] Vapi: both numbers → Nebius **Llama-3.3-70B** · 7 inline tools · webhook serverUrl · denoise · **EMERGENCY MODE** prompt
+- [x] Vapi: both numbers → fast Nebius custom LLM · 5 core tools · webhook serverUrl · denoise · **EMERGENCY MODE** prompt
 - [x] InsForge: `phonebio-llm` + `phonebio-vapi-webhook` active · DB seeded (4 protocols / 2 SDS / 3 hardware / 9 sensors)
 - [x] Dashboard **https://qfdp5nuv.insforge.site** (sensors) + **/edge.html** (in-browser quantized LLM orchestrator)
-- [x] Brain tool-calling · all 7 tools grounded · unknown → "stop work" escalation · emergency 3-leg loop gives a safe action
+- [x] Brain tool-calling · all 5 core tools grounded · unknown → "stop work" escalation · emergency loop gives a safe action
 
 ## Before recording (pre-field setup — do once, with signal)
 - [ ] Send setup links to phone: `make send-demo-links` or `python3 scripts/send_demo_links.py --to '+1...'`
@@ -23,6 +23,7 @@
 - [ ] **Two devices**: Phone A = the hands-free call · Device B = the dashboard (a live call grabs the mic, keep them separate)
 - [ ] Quiet room · phone on speaker ~arm's length · camera/recorder capturing the room
 - [ ] Run `make demo-stress` → confirm **16 pass / 0 fail** and `demoReady: true`
+- [ ] Optional controlled test-number dry run: `make test-number-call`; only run `make test-number-call-live` if you intentionally want Vapi to place the test call.
 
 ## Speaker-only take (no touch)
 - [ ] Start `make vapi-wait-call` before placing the call.

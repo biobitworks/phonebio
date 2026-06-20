@@ -84,11 +84,24 @@ The preflight output includes redacted key diagnostics:
 
 `make vapi-preflight` exits nonzero until all live prerequisites are true: valid Vapi auth, usable phone-number selection, non-placeholder webhook URL, and, only for `custom-llm` assistants, a non-placeholder custom-LLM URL.
 
-For v1, PhoneBio uses seven inline function declarations on the assistant, not
-separate reusable Vapi Tool records: `get_protocol`, `get_safety_sheet`,
-`troubleshoot_hardware`, `interpret_sensor_report`, `compress_observation`, and
-`assess_environment_risk`, and `get_public_alert_context`. `make demo-stress`
-checks the live assistant for that tool surface.
+For the live demo, PhoneBio keeps the Vapi call voice-first and uses five core
+inline function declarations: `get_protocol`, `get_safety_sheet`,
+`troubleshoot_hardware`, `interpret_sensor_report`, and
+`compress_observation`. Every lab-related caller turn is mirrored into
+background text processing, then one keyword path runs only when needed. The
+older broad risk/alert tools are intentionally not on the live call because
+they caused slow filler loops.
+
+If the Vapi dashboard **Tools** tab looks empty or contains only a placeholder,
+repair the reusable tools and attach them to the live assistant:
+
+```bash
+make vapi-tools
+```
+
+Expected result: five reusable Vapi `function` tools, each pointing at
+`https://qfdp5nuv.function2.insforge.app/phonebio-vapi-webhook`, plus the same
+five inline definitions retained on the assistant for demo stability.
 
 ## Live Create and Assign
 
@@ -190,6 +203,23 @@ python3 vapi/wire.py outbound-call
 ```
 
 The outbound payload uses `assistantId`, `phoneNumberId`, and `customer.number`.
+
+For the controlled hackathon test-number flow, use the checked-in dry-run
+first. It redacts raw numbers and prints the accessibility variations:
+
+```bash
+make test-number-call
+```
+
+Only when you intentionally want to spend Vapi credits and create the
+Vapi-test-number-to-PhoneBio connectivity call:
+
+```bash
+make test-number-call-live
+```
+
+Use a human phone call for the final live demo when possible; a Vapi-to-Vapi
+call can create agent-to-agent audio or echo.
 
 ## Call Script for Hackathon Demo
 
