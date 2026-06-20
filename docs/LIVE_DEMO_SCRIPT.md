@@ -36,26 +36,28 @@ Expected behavior:
 - It keeps the reply short and confirms the compact audit record.
 - This proves hands-free field logging before the safety scenario.
 
-## 4. Live call - formaldehyde location check (60s)
-Say:
+## 4. Live call - chemical spill, grounded SDS (60s)
+Say (name the substance directly - that is what fires the SDS lookup):
 
-> "Low-level formaldehyde cleanup. No fire. No skin contact. I forgot the SDS location step. Ask me where I am relative to ventilation, eyewash, spill kit, exits, and other people before cleanup."
+> "I spilled formaldehyde on the bench. No fire. What PPE and cleanup steps do I need?"
 
 Expected behavior:
-- The agent asks for location/context before cleanup: ventilation, eyewash, spill kit, exits, and nearby people.
-- It keeps this as **AMBER**: contain, ventilate, PPE, do not escalate to emergency by default.
-- In the background, every lab-related utterance is captured, and the formaldehyde keyword triggers the InsForge SDS path.
+- The agent calls `get_safety_sheet` and gives **real SDS-grounded steps**: correct PPE (gloves, goggles, face shield), contain/absorb with inert material, keep it off skin/eyes and away from drains. Tier **AMBER**.
+- It asks one location/context question (ventilation, eyewash, spill kit, exits, people).
+- In the background, every lab utterance is also mirrored to InsForge.
 
 Answer when asked:
 
-> "I am near open ventilation. Eyewash is across the room. The spill kit is behind me. The exit is clear. One person is nearby."
+> "I'm at the lab bench, five feet from the eyewash, near open ventilation. Spill is contained, no skin contact."
 
 If you want the escalation beat, say:
 
 > "Now there is a small fire and I cannot reach emergency services."
 
 Expected behavior:
-- **RED**: move away, warn others, avoid re-entry, relay location/hazard/injury facts. Same substance, harder tier.
+- **RED**: move away and upwind, warn others, avoid re-entry, relay location/hazard/injury facts. Same substance, harder tier.
+
+> **Phrasing tip (important):** name the thing directly - a substance, a task, a device, a sensor - and the matching InsForge tool fires with real data. Vague phrasing ("I forgot a step") gets a clarifying question instead of grounded data. Each grounded turn takes ~2s (tool round-trip) - that is normal, not a stall.
 
 ## 5. Dashboard - edge to 70B interplay (45s)
 On `live.html`, use the clearly labeled controls:
