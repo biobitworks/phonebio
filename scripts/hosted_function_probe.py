@@ -47,16 +47,24 @@ def _response_summary(response: httpx.Response, *, method: str) -> dict[str, Any
         return summary
     first = (body.get("results") or [{}])[0]
     result = first.get("result")
+    decoded = result
+    if isinstance(result, str):
+        try:
+            decoded = json.loads(result)
+        except json.JSONDecodeError:
+            decoded = None
     summary.update(
         {
             "toolCallId": first.get("toolCallId"),
             "resultType": type(result).__name__,
-            "resultStatus": result.get("status") if isinstance(result, dict) else None,
-            "sourceIdsPresent": bool(result.get("sourceIds")) if isinstance(result, dict) else False,
+            "decodedResultType": type(decoded).__name__,
+            "resultStatus": decoded.get("status") if isinstance(decoded, dict) else None,
+            "sourceIdsPresent": bool(decoded.get("sourceIds")) if isinstance(decoded, dict) else False,
             "ok": response.status_code == 200
             and first.get("toolCallId") == "hosted_probe_protocol"
-            and isinstance(result, dict)
-            and result.get("status") == "ok",
+            and isinstance(result, str)
+            and isinstance(decoded, dict)
+            and decoded.get("status") == "ok",
         }
     )
     return summary
