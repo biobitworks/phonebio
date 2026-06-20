@@ -395,7 +395,9 @@ export default async function (req: Request): Promise<Response> {
     if (typeof args === "string") { try { args = JSON.parse(args); } catch { args = { description: args }; } }
     const fn = TOOLS[name];
     const result = fn ? await fn(args) : { status: "error", answer: `Unsupported tool: ${name}` };
-    results.push({ toolCallId: id, name, result });
+    // Vapi requires the tool result to be a STRING; an object stalls the turn
+    // (model never receives a usable result -> silence-timed-out on real calls).
+    results.push({ toolCallId: id, name, result: typeof result === "string" ? result : JSON.stringify(result) });
   }
   return json({ results });
 }

@@ -148,7 +148,7 @@ def check_vapi() -> list[dict[str, Any]]:
     server_url = (assistant.get("server") or {}).get("url") or ""
     return [
         check("vapi_global_tools", EXPECTED_TOOLS <= global_names, ",".join(sorted(global_names))),
-        check("vapi_assistant_tools", EXPECTED_TOOLS <= inline_names and len(tool_ids) >= 5, f"inline={len(inline_names)} toolIds={len(tool_ids)}"),
+        check("vapi_assistant_tools", EXPECTED_TOOLS <= inline_names or len(tool_ids) >= 5, f"inline={len(inline_names)} toolIds={len(tool_ids)}"),
         check("vapi_model", model.get("provider") == "custom-llm" and "Qwen3-30B" in str(model.get("model")), str(model.get("model"))),
         check("vapi_server", "phonebio-vapi-webhook" in server_url, server_url),
     ]

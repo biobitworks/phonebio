@@ -80,7 +80,8 @@ VARIATIONS: list[dict[str, str]] = [
     },
     {
         "name": "spill",
-        "line": "I spilled formaldehyde on the bench, no fire, what do I do?",
+        "line": "Low-level formaldehyde cleanup. No fire. No skin contact. I forgot the SDS location step.",
+        "expected": "location_check",
     },
     {
         # Tests slang/accessibility: "emelles" = mL.
@@ -178,6 +179,10 @@ def vapi_get(path: str) -> Any:
 
 def vapi_post(path: str, payload: dict[str, Any]) -> Any:
     return _request("POST", path, payload)
+
+
+def vapi_delete(path: str) -> Any:
+    return _request("DELETE", path)
 
 
 def build_caller_assistant(line: str) -> dict[str, Any]:
@@ -279,7 +284,15 @@ def _phonebio_spoke_grounded(turns: list[dict[str, str]]) -> bool:
     return False
 
 
-def evaluate(call: dict[str, Any], turns: list[dict[str, str]]) -> tuple[bool, str]:
+def _phonebio_text(turns: list[dict[str, str]]) -> str:
+    return " ".join(
+        t["text"].strip()
+        for t in turns
+        if t["role"].lower() in PHONEBIO_ROLES
+    ).lower()
+
+
+def evaluate(call: dict[str, Any], turns: list[dict[str, str]], variation: dict[str, str]) -> tuple[bool, str]:
     ended_reason = str(call.get("endedReason") or "")
     status = str(call.get("status") or "")
 
@@ -291,6 +304,14 @@ def evaluate(call: dict[str, Any], turns: list[dict[str, str]]) -> tuple[bool, s
         return False, f"connect failure: {ended_reason}"
 
     phonebio_spoke = _phonebio_spoke_grounded(turns)
+    phonebio_text = _phonebio_text(turns)
+    if any(marker in phonebio_text for marker in ["hold on", "one moment", "just a sec", "take a second", "this will take"]):
+        return False, "PhoneBio used filler/wait language"
+    if variation.get("expected") == "location_check":
+        if "move away from the fire" in phonebio_text or "emergency services" in phonebio_text:
+            return False, "PhoneBio escalated a no-fire low-level spill as fire/emergency"
+        if phonebio_spoke and not any(term in phonebio_text for term in ["where", "ventilation", "eyewash", "spill kit", "exit"]):
+            return False, "PhoneBio did not ask the AMBER location/safety context question"
 
     # Clean endings: either side hung up, or either side spoke an end-call phrase.
     good_end = ended_reason in (
@@ -325,10 +346,16 @@ def run_variation(variation: dict[str, str]) -> dict[str, Any]:
     print(f"call id: {call_id} (status={created.get('status')}) -- polling up to {POLL_TIMEOUT_SECONDS}s")
 
     call = poll_until_ended(call_id)
+    if call.get("_timedOutPolling") and str(call.get("status") or "") != "ended":
+        try:
+            vapi_delete(f"/call/{call_id}")
+            call["endedReason"] = call.get("endedReason") or "deleted-after-timeout"
+        except Exception as error:
+            call["_cleanupError"] = f"{type(error).__name__}: {str(error)[:120]}"
     ended_reason = call.get("endedReason")
     duration = _duration_seconds(call)
     turns = _transcript_turns(call)
-    passed, verdict = evaluate(call, turns)
+    passed, verdict = evaluate(call, turns, variation)
 
     print(f"variation:    {name}")
     print(f"call id:      {call_id}")
