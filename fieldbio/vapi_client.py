@@ -198,6 +198,9 @@ def redacted_phone_number_record(record: dict[str, Any]) -> dict[str, Any]:
 def redacted_call_record(record: dict[str, Any]) -> dict[str, Any]:
     artifact = record.get("artifact") if isinstance(record.get("artifact"), dict) else {}
     analysis = record.get("analysis") if isinstance(record.get("analysis"), dict) else {}
+    messages = record.get("messages")
+    message_count = len(messages) if isinstance(messages, list) else (1 if isinstance(messages, str) and messages else 0)
+    customer = record.get("customer") if isinstance(record.get("customer"), dict) else {}
     return {
         "id": record.get("id"),
         "type": record.get("type"),
@@ -209,11 +212,11 @@ def redacted_call_record(record: dict[str, Any]) -> dict[str, Any]:
         "endedAt": record.get("endedAt"),
         "assistantId": record.get("assistantId"),
         "phoneNumberId": record.get("phoneNumberId"),
-        "customerNumberPresent": bool(record.get("customer", {}).get("number")),
-        "messageCount": len(record.get("messages", []) or []),
+        "customerNumberPresent": bool(customer.get("number")),
+        "messageCount": message_count,
         "artifactPresent": bool(artifact),
-        "transcriptPresent": bool(artifact.get("transcript")),
-        "recordingPresent": bool(artifact.get("recordingUrl") or artifact.get("recording")),
+        "transcriptPresent": bool(record.get("transcript") or artifact.get("transcript")),
+        "recordingPresent": bool(record.get("recordingUrl") or artifact.get("recordingUrl") or artifact.get("recording")),
         "analysisSummaryPresent": bool(analysis.get("summary")),
     }
 

@@ -1,17 +1,19 @@
+PYTHON ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else echo python3; fi)
+
 .PHONY: install dev test test-python test-node expose tunnel push wire wire-dry-run vapi-preflight vapi-verify-call vapi-wait-call vapi-tools public-probe hosted-probe hosted-demo smoke readiness live-demo-guard prefield-check shorthand-stress tts-stress matrix-stress demo-stress recording-preflight fetch-recording send-demo-links llm-probe nebius-probe nebius-models demo-call test-number-call test-number-call-live insforge-export
 
 install:
-	python3 -m pip install -r requirements.txt
+	$(PYTHON) -m pip install -r requirements.txt
 
 dev:
 	bash scripts/dev.sh
 
 test:
-	python3 -m pytest
+	$(PYTHON) -m pytest
 	npm test
 
 test-python:
-	python3 -m pytest
+	$(PYTHON) -m pytest
 
 test-node:
 	npm test
@@ -23,93 +25,93 @@ tunnel:
 	bash scripts/tunnel.sh
 
 push:
-	python3 vapi/push.py
+	$(PYTHON) vapi/push.py
 
 wire:
-	python3 vapi/wire.py create-assistant --assign-phone
+	$(PYTHON) vapi/wire.py create-assistant --assign-phone
 
 wire-dry-run:
-	@python3 vapi/wire.py create-assistant --assign-phone --dry-run
+	@$(PYTHON) vapi/wire.py create-assistant --assign-phone --dry-run
 
 vapi-preflight:
-	@python3 vapi/wire.py preflight
+	@$(PYTHON) vapi/wire.py preflight
 
 vapi-verify-call:
-	@python3 vapi/wire.py verify-call
+	@$(PYTHON) vapi/wire.py verify-call
 
 vapi-wait-call:
-	@python3 vapi/wire.py wait-call
+	@$(PYTHON) vapi/wire.py wait-call
 
 vapi-tools:
-	@python3 scripts/upsert_vapi_tools.py
+	@$(PYTHON) scripts/upsert_vapi_tools.py
 
 public-probe:
-	@python3 scripts/public_probe.py
+	@$(PYTHON) scripts/public_probe.py
 
 hosted-probe:
-	@python3 scripts/hosted_function_probe.py
+	@$(PYTHON) scripts/hosted_function_probe.py
 
 hosted-demo:
-	@python3 scripts/hosted_demo.py
+	@$(PYTHON) scripts/hosted_demo.py
 
 smoke:
-	python3 scripts/smoke.py
+	$(PYTHON) scripts/smoke.py
 
 readiness:
-	@python3 scripts/readiness.py
+	@$(PYTHON) scripts/readiness.py
 
 live-demo-guard:
-	@python3 scripts/live_demo_guard.py
+	@$(PYTHON) scripts/live_demo_guard.py
 
 prefield-check:
-	@python3 scripts/prefield_check.py
+	@$(PYTHON) scripts/prefield_check.py
 
 shorthand-stress:
-	@python3 scripts/shorthand_stress.py
+	@$(PYTHON) scripts/shorthand_stress.py
 
 tts-stress:
-	@python3 scripts/tts_stress.py
+	@$(PYTHON) scripts/tts_stress.py
 
 matrix-stress: tts-stress
 
 demo-stress:
-	@python3 scripts/demo_stress.py
+	@$(PYTHON) scripts/demo_stress.py
 
 recording-preflight:
-	@python3 scripts/recording_preflight.py --repair
+	@$(PYTHON) scripts/recording_preflight.py --repair
 
 fetch-recording:
-	@python3 scripts/fetch_recording.py
+	@$(PYTHON) scripts/fetch_recording.py
 
 send-demo-links:
-	@python3 scripts/send_demo_links.py
+	@$(PYTHON) scripts/send_demo_links.py
 
 llm-probe:
-	@python3 scripts/llm_probe.py
+	@$(PYTHON) scripts/llm_probe.py
 
 nebius-probe:
-	@python3 scripts/nebius_probe.py
+	@$(PYTHON) scripts/nebius_probe.py
 
 nebius-models:
-	@python3 scripts/nebius_probe.py --list-models
+	@$(PYTHON) scripts/nebius_probe.py --list-models
 
 demo-call:
-	@python3 scripts/demo_call.py
+	@$(PYTHON) scripts/demo_call.py
 
 test-number-call:
-	@python3 scripts/test_number_call_phonebio.py --variation all
+	@$(PYTHON) scripts/test_number_call_phonebio.py --variation all
 
 test-number-call-live:
-	@python3 scripts/test_number_call_phonebio.py --place-call --variation siri
+	@$(PYTHON) scripts/test_number_call_phonebio.py --place-call --variation siri
 
 insforge-export:
-	@python3 scripts/insforge_export.py
+	@$(PYTHON) scripts/insforge_export.py
 
 recording:
-	python3 scripts/fetch_recording.py
+	$(PYTHON) scripts/fetch_recording.py
 
 voice-stress:
-	python3 scripts/voice_stress.py
+	$(PYTHON) scripts/voice_stress.py
 
 demo-matrix:
-	python3 scripts/demo_matrix.py
+	$(PYTHON) scripts/demo_matrix.py
