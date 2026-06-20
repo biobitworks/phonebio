@@ -111,7 +111,24 @@ const PHRASES: Record<string, string> = {
 };
 const PHRASE_CODES = new Set(Object.values(PHRASES));
 const STOP = new Set(["the","a","an","of","is","are","was","were","to","and","with","at","in","on","it","that","this","i","we","there","very","really","just","about"]);
-const MEASURE = /(-?\d+(?:\.\d+)?)\s*(mbar|hpa|degrees|deg|rpm|xg|ul|um|mm|cm|km|kg|mg|ml|min|sec|ma|mv|ph|od|c|f|m|g|l|s|v|a|%|n)?/gi;
+// Longest unit names first so spelled-out forms win; (?![a-z]) stops a short unit
+// (e.g. "c") from grabbing the prefix of a longer word (e.g. "centimeters").
+const MEASURE = /(-?\d+(?:\.\d+)?)\s*(millimet(?:er|re)s?|centimet(?:er|re)s?|kilomet(?:er|re)s?|micromet(?:er|re)s?|nanomet(?:er|re)s?|met(?:er|re)s?|kilograms?|milligrams?|micrograms?|grams?|millilit(?:er|re)s?|microlit(?:er|re)s?|lit(?:er|re)s?|minutes?|seconds?|hours?|degrees?|percent|mbar|hpa|deg|rpm|xg|ul|um|nm|mm|cm|km|kg|mg|ml|min|sec|ma|mv|ph|od|c|f|m|g|l|s|v|a|%|n)(?![a-z])/gi;
+const UNIT_CANON: Record<string, string> = {
+  millimeter: "mm", millimeters: "mm", millimetre: "mm", millimetres: "mm",
+  centimeter: "cm", centimeters: "cm", centimetre: "cm", centimetres: "cm",
+  kilometer: "km", kilometers: "km", kilometre: "km", kilometres: "km",
+  micrometer: "um", micrometers: "um", nanometer: "nm", nanometers: "nm",
+  meter: "m", meters: "m", metre: "m", metres: "m",
+  kilogram: "kg", kilograms: "kg", milligram: "mg", milligrams: "mg",
+  microgram: "ug", micrograms: "ug", gram: "g", grams: "g",
+  milliliter: "ml", milliliters: "ml", millilitre: "ml", millilitres: "ml",
+  microliter: "ul", microliters: "ul", microlitre: "ul", microlitres: "ul",
+  liter: "l", liters: "l", litre: "l", litres: "l",
+  minute: "min", minutes: "min", second: "sec", seconds: "sec", hour: "hr", hours: "hr",
+  degree: "deg", degrees: "deg", percent: "%",
+};
+const canonUnit = (u: string): string => UNIT_CANON[u.toLowerCase()] ?? u.toLowerCase();
 const LAB_BRIEF: Record<string, string> = {
   aliquot: "alq", dilution: "dil", buffer: "buf", reagent: "rgt", control: "ctrl",
   centrifuge: "cfg", rotor: "rtr", supernatant: "sup", pellet: "plt",
@@ -145,7 +162,7 @@ function compress(text: string) {
   const measurements: { value: number; unit: string }[] = [];
   let mm;
   while ((mm = MEASURE.exec(text || "")) !== null) {
-    if (mm[2]) measurements.push({ value: parseFloat(mm[1]), unit: mm[2].toLowerCase() });
+    if (mm[2]) measurements.push({ value: parseFloat(mm[1]), unit: canonUnit(mm[2]) });
   }
   const fieldLine = tokens.join(" ");
   const inverse: Record<string, string> = {};
@@ -395,9 +412,10 @@ export default async function (req: Request): Promise<Response> {
     if (typeof args === "string") { try { args = JSON.parse(args); } catch { args = { description: args }; } }
     const fn = TOOLS[name];
     const result = fn ? await fn(args) : { status: "error", answer: `Unsupported tool: ${name}` };
-    // Keep structured tool data intact so Vapi can pass source-backed context
-    // back to the model instead of flattening nested guidance prematurely.
-    results.push({ toolCallId: id, name, result });
+    // Vapi REQUIRES the tool result to be a STRING. Returning the object caused
+    // silence-timed-out on every tool turn on a REAL call (verified 2026-06-20:
+    // object -> stall; JSON string -> grounded SDS reply). DO NOT REVERT to object.
+    results.push({ toolCallId: id, name, result: typeof result === "string" ? result : JSON.stringify(result) });
   }
   return json({ results });
 }
