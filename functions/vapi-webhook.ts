@@ -417,5 +417,11 @@ export default async function (req: Request): Promise<Response> {
     // object -> stall; JSON string -> grounded SDS reply). DO NOT REVERT to object.
     results.push({ toolCallId: id, name, result: typeof result === "string" ? result : JSON.stringify(result) });
   }
+  // REVERT-PROOF GUARD (do not remove): Vapi requires every tool result to be a
+  // STRING or the call silence-times-out. This normalizes regardless of how each
+  // result was pushed above, so a future edit to the push line can't break calls.
+  for (const r of results) {
+    if (r && typeof r.result !== "string") r.result = JSON.stringify(r.result ?? "");
+  }
   return json({ results });
 }
