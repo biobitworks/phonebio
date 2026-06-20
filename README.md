@@ -28,9 +28,9 @@ story. Sensor/microphone permissions should be granted before the no-touch demo.
 
 ## v1 Shape
 
-- Vapi answers inbound calls and uses custom tools.
-- InsForge is the website/app hosting, custom-LLM proxy, and deterministic backend surface.
-- Nebius Token Factory is the live GPU/model reasoning layer when `NEBIUS_API_KEY` is configured.
+- Vapi answers inbound calls with one assistant and five source-backed tools.
+- InsForge is the website/app hosting, Vapi webhook, custom-LLM proxy, and deterministic backend surface.
+- Nebius Token Factory is the live GPU/model reasoning layer when `NEBIUS_API_KEY` is configured; the proxy always forwards tool schemas and falls back only on real upstream failure.
 - A local FastAPI webhook serves tool results from repository data only.
 - A dependency-free Node webhook remains available as a local fallback.
 - Phone sensor support is treated as narrated or app-provided readings: accelerometer, gyroscope, gesture/pocket context, magnetometer, barometer, microphone/acoustic context, UWB, LiDAR, and GPS where available.
@@ -76,9 +76,17 @@ Dry-run Vapi wiring:
 make wire-dry-run
 make hosted-probe
 make vapi-preflight
+make vapi-tools
 make vapi-verify-call
 make vapi-wait-call
 python3 vapi/wire.py list-phone-numbers
+```
+
+During the live demo, use the fast read-only guard instead of the heavier
+repairing preflight:
+
+```bash
+make live-demo-guard
 ```
 
 Local v1 readiness status:
@@ -109,8 +117,9 @@ make nebius-probe
 
 This follows the cookbook `NEBIUS_API_KEY` setup and uses Nebius's
 OpenAI-compatible chat-completions endpoint. The live demo path tries Nebius
-first; deterministic fallback responses are allowed only when the Nebius/network
-path fails and must be labeled as fallback output.
+first and forwards tools on every model request; deterministic fallback
+responses are allowed only when the Nebius/network path fails and must be
+labeled as fallback output.
 
 Provider/credit routing is documented in `docs/PROVIDER_STRATEGY.md`.
 Vapi dashboard resource usage is documented in `docs/VAPI_RESOURCE_STRATEGY.md`.
@@ -168,8 +177,6 @@ Live Vapi wiring needs `VAPI_API_KEY` or `VAPI_PRIVATE_KEY`, `VAPI_PHONE_NUMBER_
 - `troubleshoot_hardware`
 - `interpret_sensor_report`
 - `compress_observation`
-- `assess_environment_risk`
-- `get_public_alert_context`
 
 ## Runtime Boundary
 
@@ -180,6 +187,11 @@ needs enough cellular service to place a voice call; server-side services handle
 tool dispatch and downstream records. No OpenAI API key is used. InsForge
 credentials are needed only to redeploy or change the hosted functions or to add
 persistence.
+
+The hosted `phonebio-llm` proxy is intentionally simple: it forwards the Vapi
+messages and tool schemas to Nebius, streams the upstream answer or tool call
+back to Vapi, and returns `phonebio-deterministic-fallback` only if the Nebius
+key, network, timeout, or upstream status fails.
 
 Ollarma status on 2026-06-19: reachable but degraded with `SELECTION_STALE`; Watchtower bridge aggregator unreachable. See `docs/OLLARMA_CLAUDE_HANDOFF.md`.
 

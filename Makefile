@@ -1,4 +1,4 @@
-.PHONY: install dev test test-python test-node expose tunnel push wire wire-dry-run vapi-preflight vapi-verify-call vapi-wait-call vapi-tools public-probe hosted-probe hosted-demo smoke readiness prefield-check shorthand-stress tts-stress matrix-stress demo-stress recording-preflight fetch-recording send-demo-links llm-probe nebius-probe nebius-models demo-call test-number-call test-number-call-live insforge-export
+.PHONY: install dev test test-python test-node expose tunnel push wire wire-dry-run vapi-preflight vapi-verify-call vapi-wait-call vapi-tools public-probe hosted-probe hosted-demo smoke readiness live-demo-guard prefield-check shorthand-stress tts-stress matrix-stress demo-stress recording-preflight fetch-recording send-demo-links llm-probe nebius-probe nebius-models demo-call test-number-call test-number-call-live insforge-export
 
 install:
 	python3 -m pip install -r requirements.txt
@@ -57,6 +57,9 @@ smoke:
 
 readiness:
 	@python3 scripts/readiness.py
+
+live-demo-guard:
+	@python3 scripts/live_demo_guard.py
 
 prefield-check:
 	@python3 scripts/prefield_check.py

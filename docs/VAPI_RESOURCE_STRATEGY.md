@@ -10,7 +10,7 @@ they prove a specific requirement.
 |--------------|--------------|--------|
 | Assistants | The `PhoneBio Field Biology Worker` assistant owns the system prompt, model provider, tool declarations, and hosted InsForge server URL. | Active |
 | Phone Numbers | The `phonebio` number routes inbound calls to the PhoneBio assistant. | Active |
-| Tools | Seven inline Vapi function declarations call the hosted InsForge webhook for deterministic protocol, SDS, hardware, sensor, shorthand, environment-risk, and public-alert context tools. | Active |
+| Tools | Five core Vapi function declarations call the hosted InsForge webhook for deterministic protocol, SDS, hardware, sensor, and shorthand/field-note context tools. | Active |
 | Logs | Use after each call to inspect failures, latency, and tool-call behavior without committing transcripts. | Active operational surface |
 
 ## Use For Verification
@@ -42,7 +42,8 @@ Vapi Phone Number -> Vapi Assistant -> Vapi Tool Call -> InsForge Webhook -> det
 - Use hosted InsForge probes for tool behavior before spending Vapi call credits.
 - Use `make hosted-demo` before any real call.
 - Use Nebius only for optional non-safety model experiments; do not route
-  deterministic SDS/protocol answers through Nebius.
+  deterministic SDS/protocol answers through Nebius; Nebius selects tool calls,
+  while InsForge remains the source-backed tool authority.
 
 ## Next Vapi Actions
 

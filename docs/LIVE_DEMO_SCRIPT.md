@@ -5,6 +5,7 @@
 
 ## 0. Pre-demo (60s before you start)
 - Run `make demo-stress` and confirm **16 pass / 0 fail** and `demoReady: true`.
+- Keep a terminal ready with `make live-demo-guard` for a fast read-only green check during the demo.
 - Open **https://qfdp5nuv.insforge.site/live.html** on the laptop/projector.
 - Optional phone sensor page: from the live page press **Open approved edge sensors**, then on the edge page press **Start browser quantized simulation** and **Arm sensors**.
 - Phone: contact **PhoneBio** saved; speaker available; quiet-ish spot if possible.

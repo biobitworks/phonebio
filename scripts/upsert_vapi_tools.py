@@ -95,8 +95,8 @@ def patch_assistant_tool_ids(assistant_id: str, tool_ids: list[str], inline_tool
     assistant = curl("GET", f"/assistant/{assistant_id}")
     model = assistant.get("model") or {}
     model["toolIds"] = tool_ids
-    # Keep inline definitions too until the live call is verified with reusable
-    # tools. The custom LLM proxy already suppresses live-demo tool blocking.
+    # Keep inline definitions too for demo stability. The custom LLM proxy now
+    # always forwards tools, so either inline tools or reusable tool IDs work.
     model["tools"] = inline_tools
     return curl("PATCH", f"/assistant/{assistant_id}", {"model": model})
 
