@@ -87,6 +87,9 @@ def tool(name, params):
     r = post(HOOK, {"message": {"type": "tool-calls", "toolCallList": [{"id": "x", "name": name, "parameters": params}]}})
     res = r["results"][0]["result"]
     return res if isinstance(res, dict) else json.loads(res)
+# Vapi REQUIRES tool result as a STRING; an object silence-times-out real calls.
+_raw = post(HOOK, {"message": {"type": "tool-calls", "toolCallList": [{"id": "x", "name": "get_safety_sheet", "parameters": {"substance": "formaldehyde"}}]}})["results"][0]["result"]
+check("tool result is a STRING (Vapi req)", isinstance(_raw, str), type(_raw).__name__)
 check("get_safety_sheet formaldehyde", (t := tool("get_safety_sheet", {"substance": "formaldehyde"})).get("status") == "ok" and "ormaldehyde" in (t.get("name") or ""), t.get("name", ""))
 check("get_protocol pitfall", (t := tool("get_protocol", {"task": "pitfall trap ground beetle"})).get("status") == "ok", t.get("id", ""))
 check("get_protocol emergency", (t := tool("get_protocol", {"task": "chemical spill fire emergency cannot reach ER", "hazard": "fire"})).get("id") == "field_emergency_response", t.get("id", ""))
