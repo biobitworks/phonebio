@@ -28,3 +28,7 @@ PhoneBio was to use **local sensors** to determine **how many people**, to help 
 
 - Do: sensors + quant models help estimate presence to improve voice distinguishing; leaves sealed in user vault.
 - Do not: exact proven headcount; biometric ID; WorkOS as root vault; quant model as safety authority.
+
+## Expanded by BioBridge (BB-EXP-1)
+
+BioBridge took the **vault + quant/model-selection** ideas into a **GTM custody AI employee** (tokenized vault, per-agent Merkle roots, sealed golden-path model scoring). See `BIOBRIDGE_EXPANSION_LINEAGE.md`.

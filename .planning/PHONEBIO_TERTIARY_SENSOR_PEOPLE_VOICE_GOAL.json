@@ -2,7 +2,7 @@
   "schema": "portfolio.goal_priority_lock.v1",
   "project": "phonebio",
   "decision_id": "PB-G3",
-  "ts_utc": "2026-07-24T17:18:24Z",
+  "ts_utc": "2026-07-24T17:19:27Z",
   "operator_lock": "PhoneBio was (also) to use local sensors to determine how many people, to help with voice distinguishing, as a tertiary goal \u2014 while using the vault and quant models.",
   "priority": "tertiary",
   "means": {
@@ -57,5 +57,10 @@
       ]
     },
     "together": "Tertiary loop: local sensors + quant models produce presence/people estimates \u2192 help voice distinguishing; results/leaves sealed via user vault \u2014 PHI/presence privacy preserved"
+  },
+  "expanded_by": {
+    "id": "BB-EXP-1",
+    "project": "BioBridge",
+    "receipt": "BIOBRIDGE_EXPANSION_LINEAGE.json"
   }
 }

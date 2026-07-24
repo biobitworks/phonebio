@@ -26,3 +26,7 @@ Verify a real inbound call to the assigned Vapi phone number with `make vapi-ver
 ## PB-G3a (2026-07-24T17:18:24Z)
 
 Tertiary goal companions: **user custody vault** + **local quant models** alongside sensors→people→voice. See `PHONEBIO_TERTIARY_SENSOR_PEOPLE_VOICE_GOAL.md`.
+
+## Lineage (2026-07-24T17:19:27Z)
+
+**BB-EXP-1:** BioBridge expanded PB-G3a (vault + quant) into GTM custody pipeline. See `BIOBRIDGE_EXPANSION_LINEAGE.md`.

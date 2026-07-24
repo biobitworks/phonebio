@@ -1,0 +1,66 @@
+{
+  "schema": "portfolio.lineage_expansion.v1",
+  "decision_id": "BB-EXP-1",
+  "ts_utc": "2026-07-24T17:19:27Z",
+  "operator_lock": "BioBridge expanded on the PhoneBio tertiary path (local sensors \u2192 people estimate \u2192 voice distinguishing while using the vault and quant models).",
+  "parent": {
+    "id": "PB-G3/PB-G3a",
+    "owner": "phonebio",
+    "summary": "Camera-free local sensors + local quant models for presence/people estimate to help voice distinguishing; user custody vault seals leaves"
+  },
+  "child": {
+    "id": "BioBridge",
+    "aka": [
+      "Kylon BioBridge",
+      "biobridge-pipeline"
+    ],
+    "live_demo": "https://biobridge-pipeline.kylon.app/final-demo",
+    "app": "https://biobridge-pipeline.kylon.app",
+    "repo": "https://github.com/biobitworks/biobridge",
+    "hackathon": "Bay Builders \u00b7 GrowthMasters \u00d7 Kylon \u00d7 Nimble \u00b7 GTM AI Employee Challenge",
+    "fco_cite": "10.5281/zenodo.21210575"
+  },
+  "how_it_expanded": [
+    {
+      "from": "user custody vault + sealed leaves",
+      "to": "vaulted/tokenized private contact fields; public custody hash rotates on every touch; unlock is itself a custody event"
+    },
+    {
+      "from": "Merkle root in user vault (Bitcoin-wallet style)",
+      "to": "per-agent Merkle roots \u2014 each agent self-sealing chain; agents interact without crossing privacy boundaries"
+    },
+    {
+      "from": "local quant models for edge triage",
+      "to": "Glasswork/Butterbase multi-model scoring against a vault-sealed golden root \u2014 pick cheapest model that passes (size \u2260 win)"
+    },
+    {
+      "from": "people estimate (presence-class, tertiary)",
+      "to": "GTM people/company graph (aging network) with private PII vaulted \u2014 different sense of people; still privacy-tiered"
+    },
+    {
+      "from": "field voice / sensor context",
+      "to": "GTM AI employee: find \u2192 qualify \u2192 route \u2192 prove every touch in FCO/FCG custody"
+    }
+  ],
+  "not_claimed": [
+    "BioBridge re-implements PhoneBio phone-sensor people counting",
+    "BioBridge is a voice-diarization product",
+    "Kylon host holds the user's private Merkle-root authority as SoT (custody method remains FCO; private tier vaulted)"
+  ],
+  "claim_ceiling": {
+    "allowed": [
+      "BioBridge as lineage expansion of PhoneBio vault + quant/model-selection ideas into GTM custody",
+      "cite live BioBridge demo URL and FCO Zenodo as method anchor"
+    ],
+    "forbidden": [
+      "conflate sensor people-count with BioBridge lead-graph people counts as the same claim",
+      "claim BioBridge processes PHI from phone sensors"
+    ]
+  },
+  "llm_in_science_leaf": false,
+  "authority": {
+    "pi_sign": false,
+    "claim_promotion": false,
+    "writeback": false
+  }
+}
