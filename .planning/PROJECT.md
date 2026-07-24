@@ -6,6 +6,8 @@ PhoneBio is an offline-first voice agent for field biology workers who have limi
 
 The v1 product is a hackathon-grade call assistant plus local tool server. It prioritizes reliable spoken retrieval and guided reasoning over broad web search or image analysis.
 
+**Tertiary goal (PB-G3):** use local sensors to estimate how many people are nearby to help with voice distinguishing (presence-class only — not identity or exact proven headcount).
+
 ## Core Value
 
 A field worker can call in and get the next safe, protocol-grounded action from local knowledge when the network is unreliable, mobile data may be down, and the camera is unavailable.
@@ -58,6 +60,7 @@ A field worker can call in and get the next safe, protocol-grounded action from 
 | Vapi phone-call assistant first | The user already has a Vapi test number and wants call-in access. | - Pending |
 | Offline local knowledge before RAG | The field worker may not have internet and safety answers need deterministic provenance. | - Pending |
 | Camera-free sensor descriptions | The objective explicitly excludes camera use while preserving other phone sensors. | - Pending |
+| Tertiary: local sensors → people estimate → voice distinguishing (PB-G3) | Help diarization / voice leaves when multiple people may be present; presence not identity. | Locked 2026-07-24 |
 | Node webhook with no runtime dependencies | Fast to demo and easy to expose through Vapi CLI forwarding. | - Pending |
 | Vapi + InsForge live path | Vapi handles phone orchestration; InsForge hosts the Vapi tool webhook without requiring OpenAI. | - Active |
 | Nebius deferred | Nebius credits are not yet available and no Nebius runtime is required for v1. | - Accepted |

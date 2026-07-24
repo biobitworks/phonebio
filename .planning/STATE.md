@@ -18,3 +18,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-19)
 ## Next Step
 
 Verify a real inbound call to the assigned Vapi phone number with `make vapi-verify-call`, or set `VAPI_TEST_NUMBER` and run `python3 vapi/wire.py outbound-call --dry-run` followed by the live outbound test if approved.
+
+## Goal priority note (2026-07-24T17:17:32Z)
+
+**PB-G3 tertiary:** local sensors → people-count estimate → help voice distinguishing (presence not identity). See `PHONEBIO_TERTIARY_SENSOR_PEOPLE_VOICE_GOAL.md`.

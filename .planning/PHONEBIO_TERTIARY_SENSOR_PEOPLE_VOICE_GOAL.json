@@ -1,0 +1,38 @@
+{
+  "schema": "portfolio.goal_priority_lock.v1",
+  "project": "phonebio",
+  "decision_id": "PB-G3",
+  "ts_utc": "2026-07-24T17:17:32Z",
+  "operator_lock": "PhoneBio was (also) to use local sensors to determine how many people, to help with voice distinguishing, as a tertiary goal.",
+  "priority": "tertiary",
+  "means": {
+    "local_sensors": "On-device / edge sensors (mic acoustic events, BLE/UWB proximity, motion/vibration, etc. \u2014 camera-free per PhoneBio premise)",
+    "people_estimate": "Presence-class estimate of how many people are nearby (helps diarization / voice distinguishing) \u2014 not biometric identity",
+    "voice_distinguishing": "Tertiary aid: separate speakers / voice leaves when more than one person may be present"
+  },
+  "claim_ceiling": {
+    "allowed": [
+      "local-sensor presence / people-count estimate as tertiary goal",
+      "use of that estimate to help voice distinguishing / diarization",
+      "presence-not-identity framing (aligned with presence_signals.json)"
+    ],
+    "forbidden": [
+      "exact headcount claimed from sensors alone as proven fact",
+      "biometric identity / who-is-speaking legal ID claims",
+      "camera-based people counting (out of PhoneBio camera-free premise)",
+      "elevating people-count/voice-distinguish above core field-protocol voice assistance without OPERATOR re-prioritize"
+    ]
+  },
+  "lineage_surfaces": [
+    "content/presence_signals.json",
+    "docs/DEMO_VIDEO_SCRIPT.md (nearby people; no exact identity/headcount claim)",
+    "docs/VAPI_RUNBOOK.md (possible overlap/equipment nearby, not identity or exact headcount)",
+    "braintona / BioCustody voice-hash (downstream voice-origin custody)"
+  ],
+  "llm_in_science_leaf": false,
+  "authority": {
+    "pi_sign": false,
+    "claim_promotion": false,
+    "writeback": false
+  }
+}
