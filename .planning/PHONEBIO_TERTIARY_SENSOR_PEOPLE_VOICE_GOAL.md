@@ -32,3 +32,7 @@ PhoneBio was to use **local sensors** to determine **how many people**, to help 
 ## Expanded by BioBridge (BB-EXP-1)
 
 BioBridge took the **vault + quant/model-selection** ideas into a **GTM custody AI employee** (tokenized vault, per-agent Merkle roots, sealed golden-path model scoring). See `BIOBRIDGE_EXPANSION_LINEAGE.md`.
+
+## On-device runtime (PB-G3a-ET / D17.7d)
+
+Runs **within computers, phones, etc.** Worked example: **Samsung phones** with **ExecuTorch** + **quantized models**. Not a Samsung partnership claim. Portfolio: bioviz-tech `ON_DEVICE_EXECUTORCH_QUANT_EDGE_LOCK.json`.
