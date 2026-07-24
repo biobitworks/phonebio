@@ -1,24 +1,30 @@
-# PB-G3 — Tertiary goal: local sensors → people estimate → voice distinguishing
+# PB-G3 / PB-G3a — Tertiary: sensors → people → voice (with vault + quant models)
 
-**Locked:** 2026-07-24T17:17:32Z  
+**Locked:** 2026-07-24T17:18:24Z  
 **Priority:** tertiary  
 **Owner:** `phonebio`
 
 ## Operator lock
 
-PhoneBio was to use **local sensors** to determine **how many people**, to help with **voice distinguishing**, as a **tertiary** goal.
+PhoneBio was to use **local sensors** to determine **how many people**, to help with **voice distinguishing**, as a **tertiary** goal — **while using the vault and quant models**.
 
-## Framing
+## Runtime companions (PB-G3a)
 
-| Layer | Role |
+| Piece | Role |
 |---|---|
-| Local sensors | Camera-free phone/edge signals (acoustic presence, BLE/UWB proximity, motion, …) |
-| People estimate | Presence-class “how many people nearby” — not who they are |
-| Voice distinguishing | Tertiary aid for diarization / separating voice leaves when multiple people may be present |
+| **Vault** | User / FCO custody vault — private Merkle root stays user-side (Bitcoin-wallet style). Seal sensor/voice leaves. **Not** WorkOS Vault. |
+| **Quant models** | Local quantized models (Ollama / ExecuTorch / browser edge path) for on-device sensor labels and low-bandwidth presence triage. Fail-soft. |
+| **Local sensors** | Camera-free presence signals (acoustic, BLE/UWB, motion, …). |
+| **People estimate** | Presence-class “how many nearby” — not identity. |
+| **Voice distinguishing** | Tertiary aid for diarization / separating voice leaves. |
+
+## Authority split
+
+- Quant model labels = edge acceleration / context.
+- Reviewed local tools/records = protocol & safety SoT.
+- User vault = custody root authority for sealed leaves.
 
 ## Claim ceiling
 
-- **Do** say: sensors help estimate presence / people-count to improve voice distinguishing.
-- **Do not** say: exact headcount proven from sensors alone; biometric identity; camera people-counting.
-
-Aligns with `content/presence_signals.json` privacy note and demo scripts that forbid exact identity/headcount claims.
+- Do: sensors + quant models help estimate presence to improve voice distinguishing; leaves sealed in user vault.
+- Do not: exact proven headcount; biometric ID; WorkOS as root vault; quant model as safety authority.

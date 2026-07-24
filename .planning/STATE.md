@@ -22,3 +22,7 @@ Verify a real inbound call to the assigned Vapi phone number with `make vapi-ver
 ## Goal priority note (2026-07-24T17:17:32Z)
 
 **PB-G3 tertiary:** local sensors → people-count estimate → help voice distinguishing (presence not identity). See `PHONEBIO_TERTIARY_SENSOR_PEOPLE_VOICE_GOAL.md`.
+
+## PB-G3a (2026-07-24T17:18:24Z)
+
+Tertiary goal companions: **user custody vault** + **local quant models** alongside sensors→people→voice. See `PHONEBIO_TERTIARY_SENSOR_PEOPLE_VOICE_GOAL.md`.
