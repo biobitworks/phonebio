@@ -38,3 +38,9 @@ Key patterns:
 - Reference users with `auth.users(id)`; use `auth.uid()` in RLS policies.
 - For storage uploads, persist both the returned `url` and `key`.
 <!-- INSFORGE:END -->
+
+
+<!-- scratchpad-custody-rule v1 -->
+## Scratchpad is inside the chain of custody
+
+`scratchpad/` is inside the chain of custody — not an ephemeral or exempt zone. Every scratchpad file is a custody atom: record it in `.planning/scratchpad_ledger.jsonl` (`sha256` + origin) and either persist it (commit, or promote to `.planning/` or a named non-repo home) or discard it with a logged reason. A scratchpad file that is neither git-tracked nor ledgered is **UNSAVED** and raises an Antigence Sentinel alert (`scratchpad_custody` event → HIGH ticket → Watchtower review lane). Truly volatile temp work belongs in the harness session scratchpad (`/private/tmp/.../scratchpad`), never an in-repo `scratchpad/`. Nothing in scratchpad goes missing without a receipt.
