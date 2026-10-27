@@ -1,0 +1,66 @@
+{
+  "schema": "portfolio.goal_priority_lock.v1",
+  "project": "phonebio",
+  "decision_id": "PB-G3",
+  "ts_utc": "2026-07-24T17:19:27Z",
+  "operator_lock": "PhoneBio was (also) to use local sensors to determine how many people, to help with voice distinguishing, as a tertiary goal \u2014 while using the vault and quant models.",
+  "priority": "tertiary",
+  "means": {
+    "local_sensors": "On-device / edge sensors (mic acoustic events, BLE/UWB proximity, motion/vibration, etc. \u2014 camera-free per PhoneBio premise)",
+    "people_estimate": "Presence-class estimate of how many people are nearby (helps diarization / voice distinguishing) \u2014 not biometric identity",
+    "voice_distinguishing": "Tertiary aid: separate speakers / voice leaves when more than one person may be present"
+  },
+  "claim_ceiling": {
+    "allowed": [
+      "local-sensor presence / people-count estimate as tertiary goal",
+      "use of that estimate to help voice distinguishing / diarization",
+      "presence-not-identity framing (aligned with presence_signals.json)",
+      "tertiary people\u2192voice goal runs with user custody vault",
+      "local quantized models for edge sensor labels / presence triage (fail-soft)"
+    ],
+    "forbidden": [
+      "exact headcount claimed from sensors alone as proven fact",
+      "biometric identity / who-is-speaking legal ID claims",
+      "camera-based people counting (out of PhoneBio camera-free premise)",
+      "elevating people-count/voice-distinguish above core field-protocol voice assistance without OPERATOR re-prioritize",
+      "WorkOS Vault as the PhoneBio Merkle-root / user vault SoT",
+      "quant model output as protocol/safety authority (tools/records remain SoT)",
+      "cloud LLM required for tertiary people\u2192voice path"
+    ]
+  },
+  "lineage_surfaces": [
+    "content/presence_signals.json",
+    "docs/DEMO_VIDEO_SCRIPT.md (nearby people; no exact identity/headcount claim)",
+    "docs/VAPI_RUNBOOK.md (possible overlap/equipment nearby, not identity or exact headcount)",
+    "braintona / BioCustody voice-hash (downstream voice-origin custody)"
+  ],
+  "llm_in_science_leaf": false,
+  "authority": {
+    "pi_sign": false,
+    "claim_promotion": false,
+    "writeback": false
+  },
+  "runtime_companions": {
+    "id": "PB-G3a",
+    "vault": {
+      "sense": "User / FCO custody vault (Merkle-root authority stays user-side \u2014 Bitcoin-wallet style). Not WorkOS Vault product.",
+      "role": "Seal sensor/voice leaves and presence estimates under user-held root; sponsors/agents verify public commits only"
+    },
+    "quant_models": {
+      "sense": "Local quantized models (Ollama / ExecuTorch / in-browser quantized edge path) for on-device sensor labels and low-bandwidth triage",
+      "role": "Edge inference for presence/sensor context that feeds voice distinguishing \u2014 fail-soft; deterministic tools/records remain authority for protocols/safety",
+      "refs": [
+        "docs/PROVIDER_STRATEGY.md",
+        "docs/EXECUTORCH_LOCAL_ORCHESTRATOR.md",
+        "docs/BANDWIDTH.md",
+        ".planning/PROJECT.md (local quantized models/Ollama)"
+      ]
+    },
+    "together": "Tertiary loop: local sensors + quant models produce presence/people estimates \u2192 help voice distinguishing; results/leaves sealed via user vault \u2014 PHI/presence privacy preserved"
+  },
+  "expanded_by": {
+    "id": "BB-EXP-1",
+    "project": "BioBridge",
+    "receipt": "BIOBRIDGE_EXPANSION_LINEAGE.json"
+  }
+}
